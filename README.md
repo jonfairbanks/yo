@@ -31,7 +31,7 @@ Yo Dawg, heard you're tired of remembering URLs
 #### Clone the project
 
 ```sh
-# clone it
+# Clone it
 git clone https://github.com/jonfairbanks/yo.git
 cd yo
 ```
