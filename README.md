@@ -2,6 +2,7 @@
   Yo - The URL Shortener
 </h1>
 
+<img src="client/public/images/android-chrome-192x192.png" alt="yo-dawg" />
 Yo Dawg, heard you're tired of remembering URLs
 
 ## Architecture
