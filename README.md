@@ -1,5 +1,5 @@
 <h1 align="center">
-  Yo
+  Yo - The URL Shortener
 </h1>
 
 Yo Dawg, heard you're tired of remembering URLs
