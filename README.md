@@ -60,7 +60,37 @@ yarn install
 yarn start
 ```
 
+#### Configure Nginx
+
+Client:
+```
+location / {
+    proxy_pass http://127.0.0.1:3000/;
+    # Upgrade for Websockets
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+location ~* "^/[0-9a-z@]{1,99}$"  {
+    rewrite ^/(.*)$ https://yo-api.fairbanks.io/api/item/$1 redirect;
+}
+```
+
+Server:
+```
+location / {
+    proxy_pass http://127.0.0.1:7000;
+    # Upgrade for Websockets
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
 ## ☑ TODO
 
 - [ ] Complete Semantic UI Migration
 - [ ] Usage Graphs
+
+## Contributers
+Jon Fairbanks - Maintainer
