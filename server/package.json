@@ -1,0 +1,24 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server": "nodemon index.js --ignore tests"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "mongoose": "^4.11.1",
+    "nodemon": "^1.11.0",
+    "path-parser": "^2.0.2",
+    "redis": "^2.8.0",
+    "shortid": "^2.2.8",
+    "util": "^0.11.1",
+    "uuid": "^3.2.1",
+    "valid-url": "^1.0.9"
+  }
+}

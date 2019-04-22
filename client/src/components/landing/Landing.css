@@ -1,0 +1,25 @@
+.landing {
+  margin-top: 20px;
+}
+.submit-btn {
+  width: 100%;
+}
+.shorten-title {
+  margin-top: 20px;
+}
+.formError {
+  color: red;
+}
+.loader {
+  margin-top: 20px;
+  text-align: center;
+  padding: 0 14px;
+}
+.shorten-imp {
+  margin-top: 20px;
+}
+
+.shorten-error {
+  margin-top: 20px;
+  color: red;
+}
