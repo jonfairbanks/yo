@@ -4,11 +4,9 @@
 
 Yo Dawg, heard you're tired of remembering URLs
 
-## Architecture
-
 <img src="images/architecture.png" alt="architecture" />
 
-## Technologies
+## Dependencies
 
 - ### Server
 
