@@ -3,7 +3,6 @@ const { Schema } = mongoose;
 
 const yoSchema = new Schema({
   originalUrl: String,
-  urlCode: String,
   linkName: String,
   shortUrl: String,
   createdAt: { type: Date, default: Date.now },

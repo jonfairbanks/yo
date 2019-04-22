@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const constants = require('./config/constants');
 
-//Connect to MongoDB
+const PORT = process.env.PORT || 7000;
+
+// Connect to MongoDB
 mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
 mongoose.connect(
@@ -11,7 +13,7 @@ mongoose.connect(
   {
     keepAlive: true,
     reconnectTries: Number.MAX_VALUE,
-    useMongoClient: true,
+    useNewUrlParser: true
   },
 );
 
@@ -29,10 +31,10 @@ app.use(function(req, res, next) {
     next();
   }
 });
-require('./routes/yo')(app);
 
+require('./routes/yo')(app);
 require('./services/cache');
-const PORT = 7000;
+
 app.listen(PORT, () => {
   console.log("Yo API running on port " + PORT);
 });

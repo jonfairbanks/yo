@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const validUrl = require('valid-url');
 const Yo = mongoose.model('yo');
 const constants = require('../config/constants');
-const shortCode = require('../middlewares/uniqueUrlCode');
 
 const cache = require('../services/cache');
 module.exports = app => {
@@ -12,22 +11,22 @@ module.exports = app => {
 
   app.get('/api/item/:name', async (req, res) => {
     const urlName = req.params.name;
+    console.log("Request for " + urlName + " received...");
     const item = await Yo.findOne({ linkName: urlName });
     if (item) {
+      console.log("Result found for " + urlName);
       return res.redirect(item.originalUrl);
     } else {
+      console.log("No results found for " + urlName);
       return res.redirect(constants.errorUrl);
     }
   });
 
   app.post('/api/item', async (req, res) => {
-    console.dir(req.body)
     const { shortBaseUrl, originalUrl, linkName } = req.body;
     if (validUrl.isUri(shortBaseUrl)) {
-      console.log("URL is valid.")
     }
     else {
-      console.log('Invalid Base URL format');
       return res.status(404).json('Invalid Base URL format');
     }
 
@@ -48,11 +47,8 @@ module.exports = app => {
         if (urlData) {
           res.status(200).json(urlData);
         } else {
-          console.log("Generating Short Code");
-          const urlCode = shortCode.generate();
-          //shortUrl = shortBaseUrl + '/' + urlCode;
           shortUrl = shortBaseUrl + '/' + linkName;
-          const itemToBeSaved = { originalUrl, shortUrl, urlCode, linkName, updatedAt };
+          const itemToBeSaved = { originalUrl, shortUrl, linkName, updatedAt };
 
           // Add the item to db
           const item = new Yo(itemToBeSaved);
@@ -62,11 +58,9 @@ module.exports = app => {
           res.status(200).json(itemToBeSaved);
         }
       } catch (err) {
-        console.log('Invalid User ID');
         res.status(401).json('Invalid User ID');
       }
     } else {
-      console.log('Invalid Original URL');
       return res.status(401).json('Invalid Original URL');
     }
   });
