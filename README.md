@@ -41,6 +41,7 @@ cd yo
 ```
 # Move to server folder
 cd server/
+
 # Install dependencies
 yarn install
 
@@ -53,8 +54,10 @@ yarn start
 ```
 # Move to client folder
 cd client/
+
 # Install dependencies
 yarn install
+
 # Start client
 yarn start
 ```
