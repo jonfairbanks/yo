@@ -72,7 +72,7 @@ location / {
     proxy_set_header Connection "upgrade";
 }
 location ~* "^/[0-9a-z@]{1,99}$"  {
-    rewrite ^/(.*)$ https://localhost:7000/api/item/$1 redirect;
+    rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
 }
 ```
 
