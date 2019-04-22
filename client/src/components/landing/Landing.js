@@ -42,7 +42,9 @@ class Landing extends Component {
             this.setState({
               showLoading: false,
               showShortenUrl: true,
-              shortenUrl: json.data.shortUrl
+              shortenUrl: json.data.shortUrl,
+              originalUrl: "",
+              linkName: ""
             });
           }, 0);
         })
