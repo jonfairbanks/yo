@@ -10,19 +10,18 @@ Yo Dawg, heard you're tired of remembering URLs
 
 - ### Server
 
-  - [Express](https://expressjs.com/)- Nodejs framwork for building the REST Apis
-  - [Mongodb](http://mongodb.com/)- Document oriented NoSQL database
-  - [Mongoose](https://http://mongoosejs.com)- MongoDB object modeling tool
-  - [Short-id](https://github.com/dylang/shortid)- Short id generator
-  - [Valid-url](https://github.com/ogt/valid-url)- URI validation functions
-  - [Nginx](https://www.nginx.com)- Nginx is event-based and asynchronous web server.
+  - [Express](https://expressjs.com/)- Node.js Framework for Building REST APIs
+  - [MongoDB](http://mongodb.com/)- Document Oriented NoSQL Database
+  - [Mongoose](https://http://mongoosejs.com)- MongoDB Object Modeling
+  - [Valid-url](https://github.com/ogt/valid-url)- URL Validation Functions
+  - [Nginx](https://www.nginx.com)- Reverse Proxy
 
 - ### Client
 
-  - [React](https://reactjs.org/) - JavaScript library for building user interfaces.
-  - [React-router](https://github.com/ReactTraining/react-router)- Complete routing library for React
-  - [Materialize css](http://materializecss.com/)- Responsive front-end framework based on Material Design
-  - [React Semantic UI](https://react.semantic-ui.com/) - Front end UI Framework
+  - [React](https://reactjs.org/) - JS Library for Building UI's
+  - [React-router](https://github.com/ReactTraining/react-router)- Complete Routing Library for React
+  - [Materialize css](http://materializecss.com/)- Responsive Front-end Framework Based on Material UI
+  - [React Semantic UI](https://react.semantic-ui.com/) - Front-end UI Framework & Layout Components
 
 ## Getting Started
 
@@ -37,26 +36,26 @@ cd yo
 #### Run Backend
 
 ```
-# Move to server folder
+# Move to server Folder
 cd server/
 
-# Install dependencies
+# Install Dependencies
 yarn install
 
-# Start server
+# Start Server
 yarn start
 ```
 
 #### Run Front End
 
 ```
-# Move to client folder
+# Move to client Folder
 cd client/
 
-# Install dependencies
+# Install Fependencies
 yarn install
 
-# Start client
+# Start Client
 yarn start
 ```
 
