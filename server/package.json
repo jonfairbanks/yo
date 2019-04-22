@@ -1,13 +1,14 @@
 {
-  "name": "yo-url-shortener",
-  "version": "1.0.0",
+  "name": "yo-url-shortener-api",
   "description": "Yo Dawg, heard you're tired of remebering URLs",
+  "version": "1.0.0",
+  "author": "Jon Fairbanks",
+  "license": "UNLICENSED",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Jon Fairbanks",
-  "license": "UNLICENSED",
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",

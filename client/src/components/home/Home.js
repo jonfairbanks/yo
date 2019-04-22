@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import "./Landing.css";
+import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
-import constants from "../../config/constants";
-class Landing extends Component {
+import constants from "../../config/config";
+class Home extends Component {
   constructor() {
     super();
     this.state = {
@@ -92,13 +92,13 @@ class Landing extends Component {
   }
   render() {
     return (
-      <div className="landing">
+      <div className="home">
         <div>
           <h5>Original URL</h5>
         </div>
         <div>
           Ex:{" "}
-          <a target="_blank" href={this.state.exUrl}>
+          <a href={this.state.exUrl} target="_blank" rel="noopener noreferrer">
             {this.state.exUrl}
           </a>
         </div>
@@ -141,7 +141,7 @@ class Landing extends Component {
         {this.state.showShortenUrl && (
           <div className="shorten-title">
             Shortened URL is ->{` `}
-            <a target="_blank" href={this.state.shortenUrl}>
+            <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
               {this.state.shortenUrl}
             </a>
           </div>
@@ -151,4 +151,4 @@ class Landing extends Component {
   }
 }
 
-export default Landing;
+export default Home;
