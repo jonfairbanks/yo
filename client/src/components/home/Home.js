@@ -3,6 +3,11 @@ import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
 import config from "../../config/config";
 import psl from "psl";
+import Filter from 'bad-words';
+
+var filter = new Filter();
+filter.addWords('maga'); // Items listed here will be replaced with ****
+filter.removeWords('hells', 'god'); // Items listed here will NOT be filtered
 
 class Home extends Component {
   constructor() {
@@ -55,6 +60,7 @@ class Home extends Component {
         shortBaseUrl: config.baseUrl
       };
 
+      // Ensure that links are not pointing back to Yo, essentially creating a loop.
       if(psl.get(this.extractHostname(reqObj.originalUrl)) === psl.get(this.extractHostname(config.baseUrl))) {
         this.setState({
           showLoading: false,
@@ -64,11 +70,24 @@ class Home extends Component {
         return;
       }
 
+      // Ensure linkName's aren't too long
       if(this.state.linkName.length > 99) {
         this.setState({
           showLoading: false,
           showApiError: true,
           apiError: "Please pick a shorter URL."
+        })
+        return;
+      }
+
+      // Profanity filter for linkName's
+      if(filter.isProfane(reqObj.linkName)) {
+        this.setState({
+          showLoading: false,
+          showApiError: true,
+          apiError: "This link name is not supported.",
+          originalUrl: "",
+          linkName: ""
         })
         return;
       }
