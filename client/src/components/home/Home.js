@@ -108,7 +108,7 @@ class Home extends Component {
           this.setState({
             showLoading: false,
             showApiError: true,
-            apiError: "Server Error"
+            apiError: error.response.data
           });
         });
     } else {

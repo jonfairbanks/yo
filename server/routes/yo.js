@@ -11,13 +11,10 @@ module.exports = app => {
 
   app.get('/api/item/:name', async (req, res) => {
     const urlName = req.params.name.toLowerCase();
-    console.log("Request for " + urlName + " received...");
     const item = await Yo.findOneAndUpdate({ linkName: urlName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}});
     if (item) {
-      console.log("Result found for " + urlName);
       return res.redirect(item.originalUrl);
     } else {
-      console.log("No results found for " + urlName);
       return res.redirect(config.errorUrl);
     }
   });
@@ -30,17 +27,22 @@ module.exports = app => {
       return res.status(404).json('Invalid Base URL format');
     }
 
+    nameExists = await Yo.find({ linkName }).exec();
+    if(nameExists.length > 0){
+      return res.status(401).json('This name is already in-use.');
+    }
+
     const updatedAt = new Date();
     const queryOptions = { originalUrl };
     if (validUrl.isUri(originalUrl)) {
       let urlData;
       try {
-        console.log("Checking Redis cache...")
+        //console.log("Checking Redis cache...")
         // Find the item in the cache
         //urlData = await cache.getFromCache('originalUrl', JSON.stringify(queryOptions));
 
         if (!urlData) {
-          // Find the item is in the database
+          // Find if the item is in the database
           urlData = await Yo.findOne(queryOptions).exec();
         }
 
@@ -58,6 +60,7 @@ module.exports = app => {
           res.status(200).json(itemToBeSaved);
         }
       } catch (err) {
+        console.log(err);
         res.status(401).json('Invalid User ID');
       }
     } else {
