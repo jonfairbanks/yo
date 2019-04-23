@@ -10,7 +10,7 @@ module.exports = app => {
   });
 
   app.get('/api/item/:name', async (req, res) => {
-    const urlName = req.params.name;
+    const urlName = req.params.name.toLowerCase();
     console.log("Request for " + urlName + " received...");
     const item = await Yo.findOne({ linkName: urlName });
     if (item) {

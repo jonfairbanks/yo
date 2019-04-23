@@ -56,7 +56,7 @@ class Home extends Component {
 
       let reqObj = {
         originalUrl: this.state.originalUrl,
-        linkName: this.state.linkName,
+        linkName: this.state.linkName.toLowerCase(),
         shortBaseUrl: config.baseUrl
       };
 
