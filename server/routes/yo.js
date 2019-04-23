@@ -24,12 +24,12 @@ module.exports = app => {
     if (validUrl.isUri(shortBaseUrl)) {
     }
     else {
-      return res.status(404).json('Invalid Base URL format');
+      return res.status(400).json('The Base URL provided in the config is not valid.');
     }
 
     nameExists = await Yo.find({ linkName }).exec();
     if(nameExists.length > 0){
-      return res.status(401).json('This name is already in-use.');
+      return res.status(401).json('This name is already in-use. Please select another name.');
     }
 
     const updatedAt = new Date();
@@ -61,10 +61,10 @@ module.exports = app => {
         }
       } catch (err) {
         console.log(err);
-        res.status(401).json('Invalid User ID');
+        res.status(401).json('Invalid Session');
       }
     } else {
-      return res.status(401).json('Invalid Original URL');
+      return res.status(400).json('The provided URL is improperly formatted.');
     }
   });
 };
