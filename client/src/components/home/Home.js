@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
-import constants from "../../config/config";
+import config from "../../config/config";
+import psl from "psl";
+
 class Home extends Component {
   constructor() {
     super();
@@ -17,25 +19,60 @@ class Home extends Component {
       showLoading: false,
       exUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       exLinkName: "Rick",
-      exShortUrl: constants.baseUrl
+      exShortUrl: config.baseUrl
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.extractHostname = this.extractHostname.bind(this);
   }
+
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
     this.setState({ [name]: value });
   }
+
+  extractHostname(url) {
+    var hostname;
+    // Find & remove protocol (http, ftp, etc.) and get hostname
+    if (url.indexOf("//") > -1) {hostname = url.split('/')[2];}
+    else {hostname = url.split('/')[0];}
+    // Find & remove port number
+    hostname = hostname.split(':')[0];
+    // Find & remove "?"
+    hostname = hostname.split('?')[0];
+    return hostname;
+  }
+
   handleSubmit() {
     this.setState({ clickSubmit: true, showApiError: false });
     if (this.state.clickSubmit && this.state.originalUrl) {
       this.setState({ showLoading: true, showShortenUrl: false });
+
       let reqObj = {
         originalUrl: this.state.originalUrl,
         linkName: this.state.linkName,
-        shortBaseUrl: constants.baseUrl
+        shortBaseUrl: config.baseUrl
       };
+
+      if(psl.get(this.extractHostname(reqObj.originalUrl)) === psl.get(this.extractHostname(config.baseUrl))) {
+        this.setState({
+          showLoading: false,
+          showApiError: true,
+          apiError: "Redirects back to Yo are not permitted."
+        })
+        return;
+      }
+
+      if(this.state.linkName.length > 99) {
+        this.setState({
+          showLoading: false,
+          showApiError: true,
+          apiError: "Please pick a shorter URL."
+        })
+        return;
+      }
+
       createShortUrl(reqObj)
         .then(json => {
           setTimeout(() => {
@@ -59,6 +96,7 @@ class Home extends Component {
       this.setState({ showError: true });
     }
   }
+
   renderButton() {
     if (!this.state.showLoading) {
       return (
@@ -90,6 +128,7 @@ class Home extends Component {
       );
     }
   }
+
   render() {
     return (
       <div className="home">
