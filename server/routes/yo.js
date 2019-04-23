@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const validUrl = require('valid-url');
 const Yo = mongoose.model('yo');
-const constants = require('../config/constants');
-
+const config = require('../config/config');
 const cache = require('../services/cache');
+
 module.exports = app => {
   app.get('/api/health', async (req, res) => {
     return res.status(200).send('OK');
@@ -18,7 +18,7 @@ module.exports = app => {
       return res.redirect(item.originalUrl);
     } else {
       console.log("No results found for " + urlName);
-      return res.redirect(constants.errorUrl);
+      return res.redirect(config.errorUrl);
     }
   });
 
@@ -36,7 +36,7 @@ module.exports = app => {
       let urlData;
       try {
         console.log("Checking Redis cache...")
-        // Find the item is in the cache
+        // Find the item in the cache
         //urlData = await cache.getFromCache('originalUrl', JSON.stringify(queryOptions));
 
         if (!urlData) {

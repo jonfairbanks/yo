@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const constants = require('./config/constants');
+const config = require('./config/config');
 
 const PORT = process.env.PORT || 7000;
 
@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 7000;
 mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
 mongoose.connect(
-  constants.mongoURI,
+  config.mongoURI,
   {
     keepAlive: true,
     reconnectTries: Number.MAX_VALUE,
