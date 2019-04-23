@@ -12,7 +12,7 @@ module.exports = app => {
   app.get('/api/item/:name', async (req, res) => {
     const urlName = req.params.name.toLowerCase();
     console.log("Request for " + urlName + " received...");
-    const item = await Yo.findOne({ linkName: urlName });
+    const item = await Yo.findOneAndUpdate({ linkName: urlName }, {$set:{lastAccess:Date.now()}});
     if (item) {
       console.log("Result found for " + urlName);
       return res.redirect(item.originalUrl);
