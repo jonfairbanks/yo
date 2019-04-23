@@ -7,7 +7,8 @@ const yoSchema = new Schema({
   shortUrl: String,
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  lastAccess: { type: Date, default: null }
+  lastAccess: Date,
+  urlHits: Number
 }, { versionKey: false });
 
 mongoose.model("yo", yoSchema);
