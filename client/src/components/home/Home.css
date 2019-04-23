@@ -1,5 +1,22 @@
 .home {
-  margin-top: 20px;
+  margin-top: 3px;
+}
+
+input, select, textarea {
+  color: #e0e0e0;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #616161;
+  opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #616161;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: #616161;
 }
 
 .submit-btn {

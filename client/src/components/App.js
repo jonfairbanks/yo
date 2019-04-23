@@ -18,10 +18,12 @@ class App extends Component {
             </Switch>
           </div>
         </BrowserRouter>
-        <div className="footer">
-          <a target="_blank" href="https://fairbanks.io" rel="noopener noreferrer">
-            Fairbanks.io
-          </a> © 2019
+        <div className="footer grey-text text-darken-4">
+          <div style={{paddingBottom: "15px"}}>
+            <a target="_blank" href="https://fairbanks.io/beta" rel="noopener noreferrer" className="grey-text text-darken-4">
+              Fairbanks.io © 2019
+            </a>
+          </div>
         </div>
       </div>
     );

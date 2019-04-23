@@ -120,7 +120,7 @@ class Home extends Component {
     if (!this.state.showLoading) {
       return (
         <button
-          className="btn waves-effect waves-light submit-btn"
+          className="btn waves-effect waves-light submit-btn grey-text text-darken-4"
           name="action"
           onClick={this.handleSubmit}
         >
@@ -150,20 +150,14 @@ class Home extends Component {
 
   render() {
     return (
-      <div className="home">
+      <div>
         <div>
-          <h5>Original URL</h5>
-        </div>
-        <div>
-          Ex:{" "}
-          <a href={this.state.exUrl} target="_blank" rel="noopener noreferrer">
-            {this.state.exUrl}
-          </a>
+          <h5 className="">Original URL</h5>
         </div>
         <input
           name="originalUrl"
           field="originalUrl"
-          placeholder="Original URL"
+          placeholder={this.state.exUrl}
           value={this.state.originalUrl}
           onChange={this.handleUserInput.bind(this)}
         />
@@ -172,16 +166,15 @@ class Home extends Component {
           <div className="formError">A URL is required</div>
         )}
 
+        <br/><br/>
+        
         <div>
           <h5>Link Name</h5>
-        </div>
-        <div>
-          Ex: {this.state.exLinkName}
         </div>
         <input
           name="linkName"
           field="linkName"
-          placeholder="Your Link Name"
+          placeholder={this.state.exLinkName}
           value={this.state.linkName}
           onChange={this.handleUserInput.bind(this)}
         />
@@ -190,6 +183,8 @@ class Home extends Component {
           <div className="formError">A Link Name is required</div>
         )}
 
+        <br/><br/>
+
         {this.renderButton()}
 
         {this.state.showApiError && (
@@ -197,8 +192,8 @@ class Home extends Component {
         )}
 
         {this.state.showShortenUrl && (
-          <div className="shorten-title">
-            Shortened URL is ->{` `}
+          <div className="shorten-title grey-text">
+            Shortened URL is  🡆  {` `}
             <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
               {this.state.shortenUrl}
             </a>
