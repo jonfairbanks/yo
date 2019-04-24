@@ -13,7 +13,8 @@ mongoose.connect(
   {
     keepAlive: true,
     reconnectTries: Number.MAX_VALUE,
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useFindAndModify: false
   },
 );
 
