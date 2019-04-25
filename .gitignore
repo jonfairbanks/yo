@@ -18,3 +18,5 @@ bash_server.sh
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+server/config/config.js
+server/config/redis.js
