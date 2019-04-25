@@ -27,19 +27,14 @@ module.exports = app => {
       return res.status(400).json('The Base URL provided in the config is not valid.');
     }
 
-    nameExists = await Yo.find({ linkName }).exec();
-    if(nameExists.length > 0){
-      return res.status(401).json('This name is already in-use. Please select another name.');
-    }
-
     const updatedAt = new Date();
-    const queryOptions = { originalUrl };
+    const queryOptions = { linkName };
     if (validUrl.isUri(originalUrl)) {
       let urlData;
       try {
-        //console.log("Checking Redis cache...")
         // Find the item in the cache
-        //urlData = await cache.getFromCache('originalUrl', JSON.stringify(queryOptions));
+        urlData = await cache.getFromCache('linkName', JSON.stringify(queryOptions));
+        // TODO: Should this call fallback to database?
 
         if (!urlData) {
           // Find if the item is in the database
@@ -47,7 +42,7 @@ module.exports = app => {
         }
 
         if (urlData) {
-          res.status(200).json(urlData);
+          res.status(401).json('This name is already in-use. Please select another name.');
         } else {
           shortUrl = shortBaseUrl + '/' + linkName;
           const itemToBeSaved = { originalUrl, shortUrl, linkName, updatedAt };
@@ -56,11 +51,11 @@ module.exports = app => {
           const item = new Yo(itemToBeSaved);
           await item.save();
           // Add the item to cache
-          cache.addToCache('originalUrl', JSON.stringify(queryOptions), itemToBeSaved);
+          cache.addToCache('linkName', JSON.stringify(queryOptions), itemToBeSaved);
           res.status(200).json(itemToBeSaved);
         }
       } catch (err) {
-        console.log(err);
+        console.log("Session Error: " + err);
         res.status(401).json('Invalid Session');
       }
     } else {

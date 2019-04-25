@@ -15,6 +15,7 @@ Yo Dawg, heard you're tired of remembering URLs
   - [Mongoose](https://http://mongoosejs.com)- MongoDB Object Modeling
   - [Valid-url](https://github.com/ogt/valid-url)- URL Validation Functions
   - [Nginx](https://www.nginx.com)- Reverse Proxy
+  - [Redis](https://redis.io/)- Caching
 
 - ### Client
 
@@ -25,7 +26,16 @@ Yo Dawg, heard you're tired of remembering URLs
 
 ## Getting Started
 
-#### Clone the project
+#### Prerequisites
+
+The following will need to be installed before proceeding:
+
+- Node v8+
+- MongoDB
+- Redis Server
+- Nginx
+
+#### Clone the Project
 
 ```sh
 # Clone it
@@ -88,8 +98,7 @@ location / {
 
 ## ☑ TODO
 
-- [ ] Complete Semantic UI Migration
-- [ ] Usage Graphs
+- [ ] Pass through for Query Parameters
 
 ## Contributers
 Jon Fairbanks - Maintainer
