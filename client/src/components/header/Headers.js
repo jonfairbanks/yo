@@ -12,7 +12,7 @@ class Header extends Component {
             style={{ left: "0px", color: "black" }}
           >
             <div>
-              <span>Yo - The URL Shortener  </span>
+              <span className="grey-text text-darken-2">Yo - The URL Shortener  </span>
               <img src="https://i.imgur.com/r8aUQau.png" height="32" width="32" alt="yo-logo"/>
             </div>
           </Link>

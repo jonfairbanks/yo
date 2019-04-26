@@ -157,55 +157,127 @@ class Home extends Component {
   render() {
     return (
       <div>
-        <div>
-          <h5 className="">Original URL</h5>
-        </div>
-        <input
-          name="originalUrl"
-          field="originalUrl"
-          placeholder={this.state.exUrl}
-          value={this.state.originalUrl}
-          onChange={this.handleUserInput.bind(this)}
-        />
-
-        {this.state.showError && (
-          <div className="formError">A URL is required</div>
-        )}
-
-        <br/><br/>
-        
-        <div>
-          <h5>Link Name</h5>
-        </div>
-        <input
-          data-length="99"
-          name="linkName"
-          field="linkName"
-          placeholder={this.state.exLinkName}
-          value={this.state.linkName}
-          onChange={this.handleUserInput.bind(this)}
-        />
-
-        {this.state.showError && (
-          <div className="formError">A Link Name is required</div>
-        )}
-
-        <br/><br/>
-
-        {this.renderButton()}
-
-        {this.state.showApiError && (
-          <div className="shorten-error">{this.state.apiError}</div>
-        )}
-
-        {this.state.showShortenUrl && (
-          <div className="shorten-title grey-text">
-            Shortened URL is  🡆  {` `}
-            <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
-              {this.state.shortenUrl}
-            </a>
+        <ul id="tabs-swipe-demo" className="tabs grey darken-3">
+          <li class="tab col s3"><a className="active teal-text" href="#test-swipe-1">Create</a></li>
+          <li class="tab col s3"><a className="teal-text" href="#test-swipe-2">Popular</a></li>
+          <li class="tab col s3"><a className="teal-text" href="#test-swipe-3">Live</a></li>
+        </ul>
+        <div id="test-swipe-1" className="col s12 teal-text">
+          {/* TAB 1 */}
+          <div>
+            <h5 className="grey-text text-darken-2">Original URL</h5>
           </div>
-        )}
+          <input
+            name="originalUrl"
+            field="originalUrl"
+            placeholder={this.state.exUrl}
+            value={this.state.originalUrl}
+            onChange={this.handleUserInput.bind(this)}
+          />
+
+          {this.state.showError && (
+            <div className="formError">A URL is required</div>
+          )}
+
+          <br/><br/>
+          
+          <div>
+            <h5 className="grey-text text-darken-2">Link Name</h5>
+          </div>
+          <input
+            data-length="99"
+            name="linkName"
+            field="linkName"
+            placeholder={this.state.exLinkName}
+            value={this.state.linkName}
+            onChange={this.handleUserInput.bind(this)}
+          />
+
+          {this.state.showError && (
+            <div className="formError">A Link Name is required</div>
+          )}
+
+          <br/><br/>
+
+          {this.renderButton()}
+
+          {this.state.showApiError && (
+            <div className="shorten-error">{this.state.apiError}</div>
+          )}
+
+          {this.state.showShortenUrl && (
+            <div className="shorten-title grey-text text-darken-2">
+              Shortened URL is  🡆  {` `}
+              <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
+                {this.state.shortenUrl}
+              </a>
+            </div>
+          )}
+        </div>
+        <div id="test-swipe-2" className="col s12 grey-text">
+          {/* TAB 2 */}
+          <table>
+            <thead>
+              <tr>
+                  <th>Link Name</th>
+                  <th>Site URL</th>
+                  <th>URL Hits</th>
+              </tr>
+            </thead>
+
+            {/* TODO: Pull from Database */}
+            <tbody>
+              <tr>
+                <td><pre>rick</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=dQw4w9WgXcQ</a></td>
+                <td>18</td>
+              </tr>
+              <tr>
+                <td><pre>github</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks?tab=repositories" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks?tab=repositories</a></td>
+                <td>4</td>
+              </tr>
+              <tr>
+                <td><pre>yo</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks/yo" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks/yo</a></td>
+                <td>4</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+        <div id="test-swipe-3" className="col s12 grey-text">
+          {/* TAB 3 */}
+          <table>
+            <thead>
+              <tr>
+                  <th>Link Name</th>
+                  <th>Site URL</th>
+                  <th>Last Access</th>
+              </tr>
+            </thead>
+            
+            {/* TODO: Pull from Database */}
+            <tbody>
+              <tr>
+                <td><pre>rick</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=dQw4w9WgXcQ</a></td>
+                <td>10 minutes ago</td>
+              </tr>
+              <tr>
+                <td><pre>github</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks?tab=repositories" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks?tab=repositories</a></td>
+                <td>4 hours ago</td>
+              </tr>
+              <tr>
+                <td><pre>yo</pre></td>
+                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks/yo" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks/yo</a></td>
+                <td>Yesterday</td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
       </div>
     );
   }
