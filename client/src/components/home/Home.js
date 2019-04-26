@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
 import config from "../../config/config";
-import psl from "psl";
 import Filter from 'bad-words';
 
 var filter = new Filter();
@@ -29,6 +28,7 @@ class Home extends Component {
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.extractHostname = this.extractHostname.bind(this);
+    this.checkHostname = this.checkHostname.bind(this);
   }
 
   handleUserInput(e) {
@@ -49,6 +49,12 @@ class Home extends Component {
     return hostname;
   }
 
+  checkHostname(bUrl, oUrl) {
+    var baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, "$1");
+    var originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, "$1");
+    if(baseUrl === originalUrl) { return true }else { return false }
+  }
+
   handleSubmit() {
     this.setState({ clickSubmit: true, showApiError: false });
     if (this.state.clickSubmit && this.state.originalUrl) {
@@ -61,7 +67,7 @@ class Home extends Component {
       };
 
       // Ensure that links are not pointing back to Yo, essentially creating a loop.
-      if(psl.get(this.extractHostname(reqObj.originalUrl)) === psl.get(this.extractHostname(config.baseUrl))) {
+      if(this.checkHostname(config.baseUrl, reqObj.originalUrl)) {
         this.setState({
           showLoading: false,
           showApiError: true,
@@ -75,7 +81,7 @@ class Home extends Component {
         this.setState({
           showLoading: false,
           showApiError: true,
-          apiError: "Please pick a shorter URL."
+          apiError: "Please pick a shorter name."
         })
         return;
       }
@@ -172,6 +178,7 @@ class Home extends Component {
           <h5>Link Name</h5>
         </div>
         <input
+          data-length="99"
           name="linkName"
           field="linkName"
           placeholder={this.state.exLinkName}
