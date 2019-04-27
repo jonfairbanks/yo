@@ -20,7 +20,7 @@ class App extends Component {
         </BrowserRouter>
         <div className="footer grey-text text-darken-4">
           <div style={{paddingBottom: "15px"}}>
-            <a target="_blank" href="https://fairbanks.io/beta" rel="noopener noreferrer" className="grey-text text-darken-4">
+            <a target="_blank" href="https://fairbanks.io/beta" rel="noopener noreferrer" className="grey-text text-darken-2">
               Fairbanks.io © 2019
             </a>
           </div>
