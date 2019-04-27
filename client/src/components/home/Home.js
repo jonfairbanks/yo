@@ -16,6 +16,7 @@ class Home extends Component {
       shortenUrl: "",
       originalUrl: "",
       baseUrl: "",
+      apiUrl: config.apiUrl,
       clickSubmit: true,
       showError: false,
       apiError: "",
@@ -23,12 +24,17 @@ class Home extends Component {
       showLoading: false,
       exUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       exLinkName: "Rick",
-      exShortUrl: config.baseUrl
+      allYos: "",
+      popYos: "",
+      liveYos: ""
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.extractHostname = this.extractHostname.bind(this);
     this.checkHostname = this.checkHostname.bind(this);
+    this.getAllYos = this.getAllYos.bind(this);
+    this.getPopularYos = this.getPopularYos.bind(this);
+    this.getLiveYos = this.getLiveYos.bind(this);
   }
 
   handleUserInput(e) {
@@ -154,13 +160,58 @@ class Home extends Component {
     }
   }
 
+  getAllYos() {
+    fetch(this.state.apiUrl + 'all')
+    .then(res => res.json())
+    .then(out => {
+        this.setState({allYos: out})
+      }
+    )
+    .catch(err => {
+        console.log("All Yos Error: " + err);
+      }
+    )
+  }
+
+  getPopularYos() {
+    fetch(this.state.apiUrl + 'popular')
+    .then(res => res.json())
+    .then(out => {
+        this.setState({popYos: out})
+      }
+    )
+    .catch(err => {
+        console.log("Popular Yos Error: " + err);
+      }
+    )
+  }
+
+  getLiveYos() {
+    fetch(this.state.apiUrl + 'recent')
+    .then(res => res.json())
+    .then(out => {
+        this.setState({liveYos: out})
+      }
+    )
+    .catch(err => {
+        console.log("Live Yos Error: " + err);
+      }
+    )
+  }
+
+  componentDidMount(){
+    this.getAllYos();
+    this.getPopularYos();
+    this.getLiveYos();
+  }
+
   render() {
     return (
       <div>
         <ul id="tabs-swipe-demo" className="tabs grey darken-3">
-          <li class="tab col s3"><a className="active teal-text" href="#test-swipe-1">Create</a></li>
-          <li class="tab col s3"><a className="teal-text" href="#test-swipe-2">Popular</a></li>
-          <li class="tab col s3"><a className="teal-text" href="#test-swipe-3">Live</a></li>
+          <li className="tab col s3"><a className="active teal-text" href="#test-swipe-1">Create</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#test-swipe-2">Popular</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#test-swipe-3">Live</a></li>
         </ul>
         <div id="test-swipe-1" className="col s12 teal-text">
           {/* TAB 1 */}

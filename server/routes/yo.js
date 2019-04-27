@@ -6,7 +6,43 @@ const cache = require('../services/cache');
 
 module.exports = app => {
   app.get('/api/health', async (req, res) => {
-    return res.status(200).send('OK');
+    return res.status(200).json('OK');
+  });
+
+  app.get('/api/all', async (req, res) => {
+    const all = await Yo.find({}).sort({"linkName": 1});
+    if (all) {
+      return res.status(200).json(all);
+    } else {
+      return res.status(500).json('Error retrieving all Yo\'s');
+    }
+  });
+
+  app.get('/api/popular', async (req, res) => {
+    const pop = await Yo.find({}).sort({"urlHits": -1}).limit(10);
+    if (pop) {
+      return res.status(200).json(pop);
+    } else {
+      return res.status(500).json('Error retrieving popular Yo\'s');
+    }
+  });
+
+  app.get('/api/recent', async (req, res) => {
+    const rec = await Yo.find({}).sort({"lastAccess": -1}).limit(10);
+    if (rec) {
+      return res.status(200).json(rec);
+    } else {
+      return res.status(500).json('Error retrieving recently used Yo\'s');
+    }
+  });
+
+  app.get('/api/latest', async (req, res) => {
+    const latest = await Yo.find({}).sort({"createdAt": -1}).limit(10);
+    if (latest) {
+      return res.status(200).json(latest);
+    } else {
+      return res.status(500).json('Error retrieving the latest Yo\'s');
+    }
   });
 
   app.get('/api/item/:name', async (req, res) => {
