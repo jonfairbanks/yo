@@ -14,6 +14,15 @@ module.exports = app => {
     }
   });
 
+  app.get('/api/latest', async (req, res) => {
+    const latest = await Yo.find({}).sort({"createdAt": -1}).limit(10);
+    if (latest) {
+      return res.status(200).json(latest);
+    } else {
+      return res.status(500).json('Error retrieving the latest Yo\'s');
+    }
+  });
+
   app.get('/api/popular', async (req, res) => {
     const pop = await Yo.find({}).sort({"urlHits": -1}).limit(10);
     if (pop) {
@@ -32,12 +41,21 @@ module.exports = app => {
     }
   });
 
-  app.get('/api/latest', async (req, res) => {
-    const latest = await Yo.find({}).sort({"createdAt": -1}).limit(10);
-    if (latest) {
-      return res.status(200).json(latest);
+  app.get('/api/stats', async (req, res) => {
+    var hits = 0;
+    const hits_data = await Yo.find({},{urlHits:1, _id:0}).sort({urlHits: -1});
+    for(i = 0; i < hits_data.length; i++) { 
+      if(hits_data[i].urlHits){
+        hits += hits_data[i].urlHits;
+      }
+    }
+    if (hits_data.length > 0) {
+      return res.status(200).json({
+        "totalYos": hits_data.length,
+        "totalHits": hits
+      });
     } else {
-      return res.status(500).json('Error retrieving the latest Yo\'s');
+      return res.status(500).json('Error retrieving Yo stats');
     }
   });
 

@@ -137,7 +137,7 @@ class Home extends Component {
           name="action"
           onClick={this.handleSubmit}
         >
-          Submit
+          Create Yo Link
         </button>
       );
     } else {
@@ -168,9 +168,7 @@ class Home extends Component {
         this.setState({allYos: out})
       }
     )
-    .catch(err => {
-        console.log("All Yos Error: " + err);
-      }
+    .catch(err => {console.log("All Yos Error: " + err)}
     )
   }
 
@@ -181,9 +179,7 @@ class Home extends Component {
         this.setState({popYos: out})
       }
     )
-    .catch(err => {
-        console.log("Popular Yos Error: " + err);
-      }
+    .catch(err => {console.log("Popular Yos Error: " + err)}
     )
   }
 
@@ -194,9 +190,7 @@ class Home extends Component {
         this.setState({liveYos: out})
       }
     )
-    .catch(err => {
-        console.log("Live Yos Error: " + err);
-      }
+    .catch(err => {console.log("Live Yos Error: " + err)}
     )
   }
 
