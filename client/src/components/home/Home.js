@@ -162,7 +162,7 @@ class Home extends Component {
   }
 
   getAllYos() {
-    fetch(this.state.apiUrl + 'all')
+    fetch(this.state.apiUrl)
     .then(res => res.json())
     .then(out => {
         this.setState({allYos: out})
