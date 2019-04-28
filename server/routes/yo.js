@@ -5,11 +5,7 @@ const config = require('../config/config');
 const cache = require('../services/cache');
 
 module.exports = app => {
-  app.get('/api/health', async (req, res) => {
-    return res.status(200).json('OK');
-  });
-
-  app.get('/api/all', async (req, res) => {
+  app.get('/api/', async (req, res) => {
     const all = await Yo.find({}).sort({"linkName": 1});
     if (all) {
       return res.status(200).json(all);
