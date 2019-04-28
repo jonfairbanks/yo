@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const config = require('./config/config');
+const helmet = require('helmet');
 
 const PORT = process.env.PORT || 7000;
 
@@ -21,8 +22,9 @@ mongoose.connect(
 require('./models/yo');
 const app = express();
 
+app.use(helmet());
 app.use(bodyParser.json());
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-type,Accept,x-access-token,X-Key');
