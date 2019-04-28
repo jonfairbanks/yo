@@ -3,9 +3,10 @@ import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
 import config from "../../config/config";
 import Filter from 'bad-words';
+import moment from 'moment';
 
 var filter = new Filter();
-filter.addWords('maga'); // Items listed here will be replaced with ****
+filter.addWords('maga'); // Items listed here will be filtered
 filter.removeWords('hells', 'god'); // Items listed here will NOT be filtered
 
 class Home extends Component {
@@ -281,8 +282,8 @@ class Home extends Component {
               ? this.state.popYos.map(function(yo, key) {
                 return (
                   <tr key={key}>
-                    <td><pre>{yo.linkName}</pre></td>
-                    <td><a key={key} className="grey-text text-darken-2" href={yo.originalUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
+                    <td><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                     <td>{yo.urlHits}</td>
                   </tr>
                 )
@@ -306,11 +307,12 @@ class Home extends Component {
             {
               this.state.liveYos.length > 0 
               ? this.state.liveYos.map(function(yo, key) {
+                var timeElapsed = moment(yo.lastAccess).from(moment());
                 return (
                   <tr key={key}>
-                    <td><pre>{yo.linkName}</pre></td>
-                    <td><a key={key} className="grey-text text-darken-2" href={yo.originalUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                    <td>{yo.lastAccess}</td>
+                    <td onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
+                    <td><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td>{timeElapsed}</td>
                   </tr>
                 )
               }, this)
