@@ -36,6 +36,7 @@ class Home extends Component {
     this.getAllYos = this.getAllYos.bind(this);
     this.getPopularYos = this.getPopularYos.bind(this);
     this.getLiveYos = this.getLiveYos.bind(this);
+    this.hideErrorDiags = this.hideErrorDiags.bind(this);
   }
 
   handleUserInput(e) {
@@ -62,6 +63,15 @@ class Home extends Component {
     if(baseUrl === originalUrl) { return true }else { return false }
   }
 
+  hideErrorDiags() {
+    setTimeout(() => {
+      this.setState({
+        showApiError: false,
+        showError: false
+      });
+    }, 5000);
+  }
+
   handleSubmit() {
     this.setState({ clickSubmit: true, showApiError: false });
     if (this.state.clickSubmit && this.state.originalUrl) {
@@ -80,6 +90,7 @@ class Home extends Component {
           showApiError: true,
           apiError: "Redirects back to Yo are not permitted."
         })
+        this.hideErrorDiags();
         return;
       }
 
@@ -88,8 +99,9 @@ class Home extends Component {
         this.setState({
           showLoading: false,
           showApiError: true,
-          apiError: "Please pick a shorter name."
+          apiError: "Please pick a shorter link name."
         })
+        this.hideErrorDiags();
         return;
       }
 
@@ -102,6 +114,7 @@ class Home extends Component {
           originalUrl: "",
           linkName: ""
         })
+        this.hideErrorDiags();
         return;
       }
 
@@ -123,9 +136,11 @@ class Home extends Component {
             showApiError: true,
             apiError: error.response.data
           });
+          this.hideErrorDiags();
         });
     } else {
       this.setState({ showError: true });
+      this.hideErrorDiags();
     }
   }
 
@@ -222,7 +237,7 @@ class Home extends Component {
           />
 
           {this.state.showError && (
-            <div className="formError">A URL is required</div>
+            <div className="formError red-text text-darken-4">A URL is required</div>
           )}
 
           <br/><br/>
@@ -240,7 +255,7 @@ class Home extends Component {
           />
 
           {this.state.showError && (
-            <div className="formError">A Link Name is required</div>
+            <div className="formError red-text text-darken-4">A Link Name is required</div>
           )}
 
           <br/><br/>
@@ -248,7 +263,7 @@ class Home extends Component {
           {this.renderButton()}
 
           {this.state.showApiError && (
-            <div className="shorten-error">{this.state.apiError}</div>
+            <div className="shorten-error red-text text-darken-4">{this.state.apiError}</div>
           )}
 
           {this.state.showShortenUrl && (
