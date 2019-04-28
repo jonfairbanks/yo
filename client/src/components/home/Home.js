@@ -279,7 +279,7 @@ class Home extends Component {
             <tbody>
             {
               this.state.popYos.length > 0 
-              ? this.state.popYos.map(function(yo, key) {
+              ? this.state.popYos.map((yo, key) => {
                 return (
                   <tr key={key}>
                     <td><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
@@ -306,7 +306,7 @@ class Home extends Component {
             <tbody>
             {
               this.state.liveYos.length > 0 
-              ? this.state.liveYos.map(function(yo, key) {
+              ? this.state.liveYos.map((yo, key) => {
                 var timeElapsed = moment(yo.lastAccess).from(moment());
                 return (
                   <tr key={key}>
