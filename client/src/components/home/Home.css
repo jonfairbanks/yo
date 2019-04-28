@@ -63,3 +63,7 @@ input, select, textarea {
 .tabs .indicator {
   background-color:#26A69A;
 } /*Color of underline*/
+
+td {
+  padding: 5px 5px;
+}

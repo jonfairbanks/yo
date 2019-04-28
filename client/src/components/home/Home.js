@@ -275,26 +275,21 @@ class Home extends Component {
                   <th>URL Hits</th>
               </tr>
             </thead>
-
-            {/* TODO: Pull from Database */}
             <tbody>
-              <tr>
-                <td><pre>rick</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=dQw4w9WgXcQ</a></td>
-                <td>18</td>
-              </tr>
-              <tr>
-                <td><pre>github</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks?tab=repositories" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks?tab=repositories</a></td>
-                <td>4</td>
-              </tr>
-              <tr>
-                <td><pre>yo</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks/yo" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks/yo</a></td>
-                <td>4</td>
-              </tr>
+            {
+              this.state.popYos.length > 0 
+              ? this.state.popYos.map(function(yo, key) {
+                return (
+                  <tr key={key}>
+                    <td><pre>{yo.linkName}</pre></td>
+                    <td><a key={key} className="grey-text text-darken-2" href={yo.originalUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td>{yo.urlHits}</td>
+                  </tr>
+                )
+              }, this)
+              : null
+            }
             </tbody>
-
           </table>
         </div>
         <div id="test-swipe-3" className="col s12 grey-text">
@@ -307,26 +302,21 @@ class Home extends Component {
                   <th>Last Access</th>
               </tr>
             </thead>
-            
-            {/* TODO: Pull from Database */}
             <tbody>
-              <tr>
-                <td><pre>rick</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=dQw4w9WgXcQ</a></td>
-                <td>10 minutes ago</td>
-              </tr>
-              <tr>
-                <td><pre>github</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks?tab=repositories" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks?tab=repositories</a></td>
-                <td>4 hours ago</td>
-              </tr>
-              <tr>
-                <td><pre>yo</pre></td>
-                <td><a className="grey-text text-darken-2" href="https://github.com/jonfairbanks/yo" target="_blank" rel="noopener noreferrer">https://github.com/jonfairbanks/yo</a></td>
-                <td>Yesterday</td>
-              </tr>
+            {
+              this.state.liveYos.length > 0 
+              ? this.state.liveYos.map(function(yo, key) {
+                return (
+                  <tr key={key}>
+                    <td><pre>{yo.linkName}</pre></td>
+                    <td><a key={key} className="grey-text text-darken-2" href={yo.originalUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td>{yo.lastAccess}</td>
+                  </tr>
+                )
+              }, this)
+              : null
+            }
             </tbody>
-
           </table>
         </div>
       </div>
