@@ -2,41 +2,46 @@ const mongoose = require('mongoose');
 const validUrl = require('valid-url');
 const Yo = mongoose.model('yo');
 const config = require('../config/config');
+const logger = require('./services/logger');
 const cache = require('../services/cache');
 
 module.exports = app => {
   app.get('/api/', async (req, res) => {
     const all = await Yo.find({}).sort({"linkName": 1});
-    if (all) {
+    if(all) {
       return res.status(200).json(all);
     } else {
+      logger.error("Error retrieving all Yo\'s: " + res.data);
       return res.status(500).json('Error retrieving all Yo\'s');
     }
   });
 
   app.get('/api/latest', async (req, res) => {
     const latest = await Yo.find({}).sort({"createdAt": -1}).limit(10);
-    if (latest) {
+    if(latest) {
       return res.status(200).json(latest);
     } else {
+      logger.error("Error retrieving the latest Yo\'s: " + res.data);
       return res.status(500).json('Error retrieving the latest Yo\'s');
     }
   });
 
   app.get('/api/popular', async (req, res) => {
     const pop = await Yo.find({}).sort({"urlHits": -1}).limit(10);
-    if (pop) {
+    if(pop) {
       return res.status(200).json(pop);
     } else {
+      logger.error("Error retrieving popular Yo\'s: " + res.data);
       return res.status(500).json('Error retrieving popular Yo\'s');
     }
   });
 
   app.get('/api/recent', async (req, res) => {
     const rec = await Yo.find({}).sort({"lastAccess": -1}).limit(10);
-    if (rec) {
+    if(rec) {
       return res.status(200).json(rec);
     } else {
+      logger.error("Error retrieving recently used Yo\'s: " + res.data);
       return res.status(500).json('Error retrieving recently used Yo\'s');
     }
   });
@@ -49,12 +54,13 @@ module.exports = app => {
         hits += hits_data[i].urlHits;
       }
     }
-    if (hits_data.length > 0) {
+    if(hits_data.length > 0) {
       return res.status(200).json({
         "totalYos": hits_data.length,
         "totalHits": hits
       });
     } else {
+      logger.error("Error retrieving Yo stats: " + res.data);
       return res.status(500).json('Error retrieving Yo stats');
     }
   });
@@ -65,6 +71,7 @@ module.exports = app => {
     if (item) {
       return res.redirect(item.originalUrl);
     } else {
+      logger.error("Unable to find a DB entry for: " + urlName);
       return res.redirect(config.errorUrl);
     }
   });
@@ -74,6 +81,7 @@ module.exports = app => {
     if (validUrl.isUri(shortBaseUrl)) {
     }
     else {
+      logger.error("The Base URL provided in the config is not valid: " + shortBaseUrl);
       return res.status(400).json('The Base URL provided in the config is not valid.');
     }
 
@@ -92,6 +100,7 @@ module.exports = app => {
         }
 
         if (urlData) {
+          logger.info("Could not create Yo as the name is already in-use: " + queryOptions.linkName);
           res.status(401).json('This name is already in-use. Please select another name.');
         } else {
           shortUrl = shortBaseUrl + '/' + linkName;
@@ -105,10 +114,11 @@ module.exports = app => {
           res.status(200).json(itemToBeSaved);
         }
       } catch (err) {
-        console.log("Session Error: " + err);
+        logger.error("Invalid Session: " + err);
         res.status(401).json('Invalid Session');
       }
     } else {
+      logger.error("The provided URL is improperly formatted: " + originalUrl);
       return res.status(400).json('The provided URL is improperly formatted.');
     }
   });

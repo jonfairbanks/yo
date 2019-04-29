@@ -1,7 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const compression = require('compression')
 const config = require('./config/config');
+const logger = require('./services/logger');
 const helmet = require('helmet');
 const axios = require('axios');
 
@@ -23,6 +25,7 @@ require('./models/yo');
 const app = express();
 
 app.use(helmet());
+app.use(compression());
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -57,7 +60,7 @@ const getPopYosAndEmit = async socket => {
     const res = await axios.get(config.apiUrl + "popular");
     socket.emit("popYos", res.data);
   } catch (error) {
-    console.error(`Socket Error: ${error}`);
+    logger.error(`popYos Socket Error: ${error}`);
   }
 };
 
@@ -66,7 +69,7 @@ const getLiveYosAndEmit = async socket => {
     const res = await axios.get(config.apiUrl + "recent");
     socket.emit("liveYos", res.data);
   } catch (error) {
-    console.error(`Socket Error: ${error}`);
+    logger.error(`liveYos Socket Error: ${error}`);
   }
 };
 
