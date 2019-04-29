@@ -26,8 +26,8 @@ class Home extends Component {
       apiError: "",
       showApiError: false,
       showLoading: false,
-      exUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      exLinkName: "Rick",
+      exUrl: config.urlPlaceholder,
+      exLinkName: config.namePlaceholder,
       allYos: "",
       popYos: "",
       liveYos: ""
@@ -217,7 +217,7 @@ class Home extends Component {
     this.getPopularYos();
     this.getLiveYos();
 
-    // Poll for recent Yo's
+    // Poll for popular Yo's
       socket.on("popYos", (out) => {
         this.setState({ popYos: out });
       }

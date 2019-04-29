@@ -54,7 +54,7 @@ io.on("connection", socket => {
 
 const getPopYosAndEmit = async socket => {
   try {
-    const res = await axios.get(config.apiUrl + "/popular");
+    const res = await axios.get(config.apiUrl + "popular");
     socket.emit("popYos", res.data);
   } catch (error) {
     console.error(`Socket Error: ${error}`);
@@ -63,7 +63,7 @@ const getPopYosAndEmit = async socket => {
 
 const getLiveYosAndEmit = async socket => {
   try {
-    const res = await axios.get(config.apiUrl + "/recent");
+    const res = await axios.get(config.apiUrl + "recent");
     socket.emit("liveYos", res.data);
   } catch (error) {
     console.error(`Socket Error: ${error}`);
