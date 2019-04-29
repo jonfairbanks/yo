@@ -234,11 +234,11 @@ class Home extends Component {
     return (
       <div>
         <ul id="tabs-swipe-demo" className="tabs grey darken-3">
-          <li className="tab col s3"><a className="active teal-text" href="#test-swipe-1">Create</a></li>
-          <li className="tab col s3"><a className="teal-text" href="#test-swipe-2">Popular</a></li>
-          <li className="tab col s3"><a className="teal-text" href="#test-swipe-3">Live</a></li>
+          <li className="tab col s3"><a className="active teal-text" href="#create">Create</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#popular">Popular</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#live">Live</a></li>
         </ul>
-        <div id="test-swipe-1" className="col s12 teal-text">
+        <div id="create" className="col s12 teal-text">
           {/* TAB 1 */}
           <div>
             <h5 className="grey-text text-darken-2">Original URL</h5>
@@ -290,7 +290,7 @@ class Home extends Component {
             </div>
           )}
         </div>
-        <div id="test-swipe-2" className="col s12 grey-text">
+        <div id="popular" className="col s12 grey-text">
           {/* TAB 2 */}
           <table>
             <thead>
@@ -317,7 +317,7 @@ class Home extends Component {
             </tbody>
           </table>
         </div>
-        <div id="test-swipe-3" className="col s12 grey-text">
+        <div id="live" className="col s12 grey-text">
           {/* TAB 3 */}
           <table>
             <thead>
