@@ -80,7 +80,7 @@ location / {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
-location ~* "^/[0-9a-z@-]{1,99}$"  {
+location ~* "^/[0-9a-z!?@#$%^*-_|]{1,99}$"  {
     rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
 }
 ```
