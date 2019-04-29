@@ -98,7 +98,9 @@ location / {
 
 ## ☑ TODO
 
+- [x] Auto Update Tab Data
 - [ ] Pass through for Query Parameters
+- [ ] Better Error Handling when Navigating to Unset Names
 
 ## Contributers
 Jon Fairbanks - Maintainer
