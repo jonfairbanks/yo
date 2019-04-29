@@ -282,7 +282,7 @@ class Home extends Component {
           )}
 
           {this.state.showShortenUrl && (
-            <div className="shorten-title grey-text text-darken-2">
+            <div className="shorten-title grey-text text-darken-1">
               Shortened URL is  🡆  {` `}
               <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
                 {this.state.shortenUrl}
