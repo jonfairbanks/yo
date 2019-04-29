@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const config = require('./config/config');
 const helmet = require('helmet');
+const axios = require('axios');
 
 const PORT = process.env.PORT || 7000;
 
 // Connect to MongoDB
 mongoose.Promise = global.Promise;
-mongoose.set('debug', true);
 mongoose.connect(
   config.mongoURI,
   {
@@ -24,6 +24,7 @@ const app = express();
 
 app.use(helmet());
 app.use(bodyParser.json());
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -35,9 +36,38 @@ app.use((req, res, next) => {
   }
 });
 
-require('./routes/yo')(app);
+const server = app.listen(PORT);
+const io = require('socket.io').listen(server);
+
+require('./routes/yo')(app, io);
 require('./services/cache');
 
-app.listen(PORT, () => {
-  console.log("Yo API running on port " + PORT);
+io.on("connection", socket => {
+  setInterval(
+    () => {
+      getPopYosAndEmit(socket),
+      getLiveYosAndEmit(socket)
+    },
+    3000
+  );
 });
+
+const getPopYosAndEmit = async socket => {
+  try {
+    const res = await axios.get(config.apiUrl + "/popular");
+    socket.emit("popYos", res.data);
+  } catch (error) {
+    console.error(`Socket Error: ${error}`);
+  }
+};
+
+const getLiveYosAndEmit = async socket => {
+  try {
+    const res = await axios.get(config.apiUrl + "/recent");
+    socket.emit("liveYos", res.data);
+  } catch (error) {
+    console.error(`Socket Error: ${error}`);
+  }
+};
+
+console.log("Yo server running on Port " + PORT);

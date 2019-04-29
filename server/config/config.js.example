@@ -1,5 +1,6 @@
 module.exports = {
   mongoURI: "mongodb://localhost/yo",
   errorUrl: "https://yo.fairbanks.io/error",
-  baseUrl: "https://yo.fairbanks.io"
+  baseUrl: "https://yo.fairbanks.io",
+  apiUrl: "https://yo-api.fairbanks.io/api"
 };

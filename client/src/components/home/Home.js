@@ -4,9 +4,12 @@ import { createShortUrl } from "../../APIHelper";
 import config from "../../config/config";
 import Filter from 'bad-words';
 import moment from 'moment';
+import io from 'socket.io-client';
+
+const socket = io("https://yo-api.fairbanks.io");
 
 var filter = new Filter();
-filter.addWords('maga'); // Items listed here will be filtered
+filter.addWords('maga', 'trump'); // Items listed here will be filtered
 filter.removeWords('hells', 'god'); // Items listed here will NOT be filtered
 
 class Home extends Component {
@@ -213,6 +216,18 @@ class Home extends Component {
     this.getAllYos();
     this.getPopularYos();
     this.getLiveYos();
+
+    // Poll for recent Yo's
+      socket.on("popYos", (out) => {
+        this.setState({ popYos: out });
+      }
+    );
+    
+    // Poll for recent Yo's
+    socket.on("liveYos", (out) => {
+        this.setState({ liveYos: out });
+      }
+    );
   }
 
   render() {
