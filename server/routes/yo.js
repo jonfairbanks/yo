@@ -6,6 +6,10 @@ const logger = require('../services/logger');
 const cache = require('../services/cache');
 
 module.exports = app => {
+  app.get('/', async (req, res) => {
+    res.redirect(config.baseUrl);
+  });
+  
   app.get('/api/', async (req, res) => {
     const all = await Yo.find({}).sort({"linkName": 1});
     if(all) {
