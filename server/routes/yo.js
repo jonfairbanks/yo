@@ -95,10 +95,9 @@ module.exports = app => {
       try {
         // Find the item in the cache
         urlData = await cache.getFromCache('linkName', JSON.stringify(queryOptions));
-        // TODO: Should this call fallback to database?
 
         if (!urlData) {
-          // Find if the item is in the database
+          // Find if the item is in the db
           urlData = await Yo.findOne(queryOptions).exec();
         }
 
