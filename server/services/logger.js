@@ -1,8 +1,9 @@
 var winston = require('winston');
+var config = require('../config/config');
 
 const logger = winston.createLogger({
   transports: [
-    new winston.transports.File({ filename: 'yo.log' })
+    new winston.transports.File({ filename: config.logLocation })
   ]
 });
 
