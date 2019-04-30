@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validUrl = require('valid-url');
 const Yo = mongoose.model('yo');
 const config = require('../config/config');
-const logger = require('./services/logger');
+const logger = require('../services/logger');
 const cache = require('../services/cache');
 
 module.exports = app => {
@@ -66,18 +66,21 @@ module.exports = app => {
   });
 
   app.get('/api/item/:name', async (req, res) => {
-    const urlName = req.params.name.toLowerCase();
-    const item = await Yo.findOneAndUpdate({ linkName: urlName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}});
+    const ip = req.headers["x-real-ip"];
+    const linkName = req.params.name.toLowerCase();
+    const item = await Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}});
     if (item) {
+      logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
       return res.redirect(item.originalUrl);
     } else {
-      logger.error("Unable to find a DB entry for: " + urlName);
+      logger.error("Unable to find a DB entry for: " + linkName);
       return res.redirect(config.errorUrl);
     }
   });
 
   app.post('/api/item', async (req, res) => {
     const { shortBaseUrl, originalUrl, linkName } = req.body;
+    const ip = req.headers["x-real-ip"];
     if (validUrl.isUri(shortBaseUrl)) {
     }
     else {
@@ -100,7 +103,7 @@ module.exports = app => {
         }
 
         if (urlData) {
-          logger.info("Could not create Yo as the name is already in-use: " + queryOptions.linkName);
+          logger.info("User " + ip + " could not create a Yo as the name is already in-use: " + queryOptions.linkName);
           res.status(401).json('This name is already in-use. Please select another name.');
         } else {
           shortUrl = shortBaseUrl + '/' + linkName;
@@ -111,6 +114,7 @@ module.exports = app => {
           await item.save();
           // Add the item to cache
           cache.addToCache('linkName', JSON.stringify(queryOptions), itemToBeSaved);
+          logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
           res.status(200).json(itemToBeSaved);
         }
       } catch (err) {

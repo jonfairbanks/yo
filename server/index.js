@@ -24,6 +24,7 @@ mongoose.connect(
 require('./models/yo');
 const app = express();
 
+app.set('trust proxy',true);
 app.use(helmet());
 app.use(compression());
 app.use(bodyParser.json());
