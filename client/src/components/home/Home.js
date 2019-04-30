@@ -6,7 +6,7 @@ import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
 
-const socket = io("https://yo-api.fairbanks.io");
+const socket = io(config.socketUrl);
 
 var filter = new Filter();
 filter.addWords('maga', 'trump'); // Items listed here will be filtered
@@ -224,7 +224,7 @@ class Home extends Component {
     );
     
     // Poll for recent Yo's
-    socket.on("liveYos", (out) => {
+      socket.on("liveYos", (out) => {
         this.setState({ liveYos: out });
       }
     );
