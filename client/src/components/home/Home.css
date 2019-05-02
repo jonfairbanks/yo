@@ -64,6 +64,10 @@ input, select, textarea {
   background-color:#26A69A;
 } /*Color of underline*/
 
+table {
+  width: 100%;
+}
+
 td {
   padding: 5px 5px;
 

@@ -306,9 +306,9 @@ class Home extends Component {
               ? this.state.popYos.map((yo, key) => {
                 return (
                   <tr key={key}>
-                    <td><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
-                    <td><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                    <td>{yo.urlHits}</td>
+                    <td width="15%"><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
+                    <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td width="10%">{yo.urlHits}</td>
                   </tr>
                 )
               }, this)
@@ -334,9 +334,9 @@ class Home extends Component {
                 var timeElapsed = moment(yo.lastAccess).from(moment());
                 return (
                   <tr key={key}>
-                    <td onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
-                    <td><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                    <td>{timeElapsed}</td>
+                    <td width="15%" onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
+                    <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                    <td width="10%">{timeElapsed}</td>
                   </tr>
                 )
               }, this)
