@@ -16,10 +16,19 @@ services:
             - "7000:7000"
         links:
             - mongo
+    redis:
+        container_name: yo-redis
+        image: redis
+        volumes:
+            - ./cache:/etc/redis
+        ports:
+            - "6379:6379"
+        links:
+            - api
     mongo:
         container_name: yo-mongo
         image: mongo
         volumes:
-        - ./data:/data/db
+            - ./data:/data/db
         ports:
-        - "27017:27017"
+            - "27017:27017"

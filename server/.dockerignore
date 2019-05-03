@@ -1,4 +1,9 @@
 node_modules
 npm-debug.log
+.git
+.cache
+*.md
 *.example
-*.png
+LICENSE
+logo.*
+docker-node-app.yaml

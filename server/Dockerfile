@@ -1,7 +1,18 @@
-FROM node:8
-WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3000
-CMD ["yarn", "start"]
+FROM node:12
+
+# Internal Application Port
+EXPOSE 7000
+
+# Run as Non-Root
+RUN mkdir -p /app && chown -R node:node /app
+WORKDIR /app
+USER node
+
+# Quietly Install Dependencies
+COPY --chown=node:node package*.json yarn*.* ./
+RUN  yarn install --production --silent && yarn cache clean
+
+# Bundle App Source
+COPY --chown=node:node . .
+
+CMD [ "node", "index.js" ]
