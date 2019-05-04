@@ -20,6 +20,7 @@ class Home extends Component {
       shortenUrl: "",
       originalUrl: "",
       baseUrl: "",
+      linkName: "",
       apiUrl: config.apiUrl,
       clickSubmit: true,
       showError: false,
