@@ -34,6 +34,7 @@ class Home extends Component {
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
     this.extractHostname = this.extractHostname.bind(this);
     this.checkHostname = this.checkHostname.bind(this);
     this.getAllYos = this.getAllYos.bind(this);
@@ -144,6 +145,12 @@ class Home extends Component {
     } else {
       this.setState({ showError: true });
       this.hideErrorDiags();
+    }
+  }
+
+  handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      this.handleSubmit();
     }
   }
 
@@ -267,6 +274,7 @@ class Home extends Component {
             placeholder={this.state.exLinkName}
             value={this.state.linkName}
             onChange={this.handleUserInput.bind(this)}
+            onKeyDown={this.handleKeyDown}
           />
 
           {this.state.showError && (
