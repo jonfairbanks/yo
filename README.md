@@ -105,8 +105,9 @@ location / {
 ## ☑ TODO
 
 - [x] Auto Update Tab Data
-- [ ] Pass through for Query Parameters
 - [ ] Better Error Handling when Navigating to Unset Names
+- [ ] Pass through for Query Parameters
+- [ ] Swipeable Tabs
 
 ## Contributers
 Jon Fairbanks - Maintainer
