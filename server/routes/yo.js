@@ -76,6 +76,7 @@ module.exports = app => {
 
     try {
       item = await cache.getFromCache('linkName', JSON.stringify({ linkName }));
+      await Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}}); // Make sure to update the DB values, not efficient :(
     }catch(e) {
       logger.warn("Failed to find " + linkName + " in the cache: " + JSON.stringify(e));
     }
