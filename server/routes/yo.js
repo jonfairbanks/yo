@@ -80,16 +80,26 @@ module.exports = app => {
       logger.warn("Failed to find " + linkName + " in the cache: " + JSON.stringify(e));
     }
 
+    // Check the cache and fallback to database if necessary
     if(!item){
       logger.info("Didn't find " + linkName + " in cache. Trying the database.")
       item = await Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}});
+      if(item) {
+        try{
+          cache.addToCache('linkName', JSON.stringify({ linkName }), item);
+          logger.info("Updated missing cache entry for " + linkName);
+        }catch(e){
+          logger.warn("Failed to update missing cache entry for " + linkName + ": " + JSON.stringify(e));
+        }
+      }
     }
 
+    // Send user to originalUrl or errorUrl
     if(item) {
       logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
       return res.redirect(item.originalUrl);
     }else {
-      logger.error("Unable to find a DB entry for: " + linkName);
+      logger.error("Unable to find any entries for: " + linkName);
       return res.redirect(config.errorUrl);
     }
   });
