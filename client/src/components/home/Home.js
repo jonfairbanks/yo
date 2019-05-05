@@ -225,6 +225,12 @@ class Home extends Component {
     this.getPopularYos();
     this.getLiveYos();
 
+    // Poll for all Yo's
+      socket.on("allYos", (out) => {
+        this.setState({ allYos: out });
+      }
+    );
+
     // Poll for popular Yo's
       socket.on("popYos", (out) => {
         this.setState({ popYos: out });

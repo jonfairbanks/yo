@@ -50,9 +50,10 @@ io.on("connection", socket => {
   setInterval(
     () => {
       getPopYosAndEmit(socket),
-      getLiveYosAndEmit(socket)
+      getLiveYosAndEmit(socket),
+      getAllYosAndEmit(socket)
     },
-    3000
+    1000
   );
 });
 
@@ -71,6 +72,15 @@ const getLiveYosAndEmit = async socket => {
     socket.emit("liveYos", res.data);
   } catch (error) {
     logger.error(`liveYos Socket Error: ${error}`);
+  }
+};
+
+const getAllYosAndEmit = async socket => {
+  try {
+    const res = await axios.get(config.apiUrl);
+    socket.emit("allYos", res.data);
+  } catch (error) {
+    logger.error(`allYos Socket Error: ${error}`);
   }
 };
 
