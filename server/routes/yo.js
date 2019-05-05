@@ -100,7 +100,7 @@ module.exports = app => {
       logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
       return res.redirect(item.originalUrl);
     }else {
-      logger.error("Unable to find any entries for: " + linkName);
+      logger.warn("Unable to find any entries for: " + linkName);
       return res.redirect(config.errorUrl);
     }
   });
@@ -147,7 +147,7 @@ module.exports = app => {
         res.status(401).json('Invalid Session');
       }
     } else {
-      logger.error("The provided URL is improperly formatted: " + originalUrl);
+      logger.warn("The provided URL is improperly formatted: " + originalUrl);
       return res.status(400).json('The provided URL is improperly formatted.');
     }
   });
