@@ -73,6 +73,9 @@ yarn start
 
 Client:
 ```
+location /manifest.json {
+    proxy_pass http://127.0.0.1:3002/manifest.json;
+}
 location / {
     proxy_pass http://127.0.0.1:3000/;
     proxy_set_header X-Real-IP $remote_addr;
