@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 
-import Header from "./header/Headers";
+import Header from "./header/Header";
 import Home from "./home/Home";
+import Footer from "./footer/Footer";
+
 import "./styles.css";
 class App extends Component {
   componentDidMount() {}
@@ -16,15 +18,9 @@ class App extends Component {
             <Switch>
               <Route path="/" component={Home} />
             </Switch>
+            <Footer/>
           </div>
         </BrowserRouter>
-        <div className="footer grey-text text-darken-4">
-          <div style={{paddingBottom: "15px", paddingTop: "15px"}}>
-            <a target="_blank" href="https://fbnks.io/yo" rel="noopener noreferrer" className="grey-text text-darken-2">
-              Fairbanks.io © {new Date().getFullYear()}
-            </a>
-          </div>
-        </div>
       </div>
     );
   }

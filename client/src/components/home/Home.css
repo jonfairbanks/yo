@@ -66,6 +66,7 @@ input, select, textarea {
 
 table {
   width: 100%;
+  margin-bottom: 53px;
 }
 
 td {

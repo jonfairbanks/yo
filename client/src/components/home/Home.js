@@ -245,114 +245,150 @@ class Home extends Component {
           <li className="tab col s3"><a className="active teal-text" href="#create">Create</a></li>
           <li className="tab col s3"><a className="teal-text" href="#popular">Popular</a></li>
           <li className="tab col s3"><a className="teal-text" href="#live">Live</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#all">All</a></li>
         </ul>
         <div id="create" className="col s12 teal-text">
           {/* TAB 1 */}
           <div>
-            <h5 className="grey-text text-darken-2">Original URL</h5>
-          </div>
-          <input
-            name="originalUrl"
-            field="originalUrl"
-            placeholder={this.state.exUrl}
-            value={this.state.originalUrl}
-            onChange={this.handleUserInput.bind(this)}
-          />
-
-          {this.state.showError && (
-            <div className="formError red-text text-darken-4">A URL is required</div>
-          )}
-
-          <br/><br/>
-          
-          <div>
-            <h5 className="grey-text text-darken-2">Link Name</h5>
-          </div>
-          <input
-            data-length="99"
-            name="linkName"
-            field="linkName"
-            placeholder={this.state.exLinkName}
-            value={this.state.linkName}
-            onChange={this.handleUserInput.bind(this)}
-            onKeyDown={this.handleKeyDown}
-          />
-
-          {this.state.showError && (
-            <div className="formError red-text text-darken-4">A Link Name is required</div>
-          )}
-
-          <br/><br/>
-
-          {this.renderButton()}
-
-          {this.state.showApiError && (
-            <div className="shorten-error red-text text-darken-4">{this.state.apiError}</div>
-          )}
-
-          {this.state.showShortenUrl && (
-            <div className="shorten-title grey-text text-darken-1">
-              Shortened URL is  🡆  {` `}
-              <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
-                {this.state.shortenUrl}
-              </a>
+            <div>
+              <h5 className="grey-text text-darken-2">Original URL</h5>
             </div>
-          )}
+            <input
+              name="originalUrl"
+              field="originalUrl"
+              placeholder={this.state.exUrl}
+              value={this.state.originalUrl}
+              onChange={this.handleUserInput.bind(this)}
+            />
+
+            {this.state.showError && (
+              <div className="formError red-text text-darken-4">A URL is required</div>
+            )}
+
+            <br/><br/>
+            
+            <div>
+              <h5 className="grey-text text-darken-2">Link Name</h5>
+            </div>
+            <input
+              data-length="99"
+              name="linkName"
+              field="linkName"
+              placeholder={this.state.exLinkName}
+              value={this.state.linkName}
+              onChange={this.handleUserInput.bind(this)}
+              onKeyDown={this.handleKeyDown}
+            />
+
+            {this.state.showError && (
+              <div className="formError red-text text-darken-4">A Link Name is required</div>
+            )}
+
+            <br/><br/>
+
+            {this.renderButton()}
+
+            {this.state.showApiError && (
+              <div className="shorten-error red-text text-darken-4">{this.state.apiError}</div>
+            )}
+
+            {this.state.showShortenUrl && (
+              <div className="shorten-title grey-text text-darken-1">
+                Shortened URL is  🡆  {` `}
+                <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
+                  {this.state.shortenUrl}
+                </a>
+              </div>
+            )}
+          </div>
         </div>
         <div id="popular" className="col s12 grey-text">
           {/* TAB 2 */}
-          <table>
-            <thead>
-              <tr>
-                  <th>Link Name</th>
-                  <th>Site URL</th>
-                  <th>URL Hits</th>
-              </tr>
-            </thead>
-            <tbody>
-            {
-              this.state.popYos.length > 0 
-              ? this.state.popYos.map((yo, key) => {
-                return (
-                  <tr key={key}>
-                    <td width="15%"><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
-                    <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                    <td width="10%">{yo.urlHits}</td>
-                  </tr>
-                )
-              }, this)
-              : null
-            }
-            </tbody>
-          </table>
+          <div>
+            <table>
+              <thead>
+                <tr>
+                    <th>Link Name</th>
+                    <th>Site URL</th>
+                    <th>URL Hits</th>
+                </tr>
+              </thead>
+              <tbody>
+              {
+                this.state.popYos.length > 0 
+                ? this.state.popYos.map((yo, key) => {
+                  return (
+                    <tr key={key}>
+                      <td width="15%"><pre onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
+                      <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                      <td width="10%">{yo.urlHits}</td>
+                    </tr>
+                  )
+                }, this)
+                : null
+              }
+              </tbody>
+            </table>
+          </div>
         </div>
         <div id="live" className="col s12 grey-text">
           {/* TAB 3 */}
-          <table>
-            <thead>
-              <tr>
-                  <th>Link Name</th>
-                  <th>Site URL</th>
-                  <th>Last Access</th>
-              </tr>
-            </thead>
-            <tbody>
-            {
-              this.state.liveYos.length > 0 
-              ? this.state.liveYos.map((yo, key) => {
-                var timeElapsed = moment(yo.lastAccess).from(moment());
-                return (
-                  <tr key={key}>
-                    <td width="15%" onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
-                    <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                    <td width="10%">{timeElapsed}</td>
-                  </tr>
-                )
-              }, this)
-              : null
-            }
-            </tbody>
-          </table>
+          <div>
+            <table>
+              <thead>
+                <tr>
+                    <th>Link Name</th>
+                    <th>Site URL</th>
+                    <th>Last Access</th>
+                </tr>
+              </thead>
+              <tbody>
+              {
+                this.state.liveYos.length > 0 
+                ? this.state.liveYos.map((yo, key) => {
+                  var timeElapsed = moment(yo.lastAccess).from(moment());
+                  return (
+                    <tr key={key}>
+                      <td width="15%" onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
+                      <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                      <td width="10%">{timeElapsed}</td>
+                    </tr>
+                  )
+                }, this)
+                : null
+              }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="all" className="col s12 grey-text">
+          {/* TAB 4 */}
+          <div>
+            <table>
+              <thead>
+                <tr>
+                    <th>Link Name</th>
+                    <th>Site URL</th>
+                    <th>URL Hits</th>
+                </tr>
+              </thead>
+              <tbody>
+              {
+                this.state.allYos.length > 0 
+                ? this.state.allYos.map((yo, key) => {
+                  return (
+                    <tr key={key}>
+                      <td width="15%" onClick={() => window.location=yo.shortUrl} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
+                      <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                      <td width="10%">{ !yo.urlHits ? "-" : yo.urlHits}</td>
+                    </tr>
+                  )
+                }, this)
+                : null
+              }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );
