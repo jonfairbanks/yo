@@ -105,6 +105,7 @@ location / {
 ## ☑ TODO
 
 - [x] Auto Update Tab Data
+- [ ] Re-think the caching setup
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
