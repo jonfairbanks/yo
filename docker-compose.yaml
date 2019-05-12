@@ -18,15 +18,17 @@ services:
             - mongo
     redis:
         container_name: yo-redis
+        restart: always
         image: redis
         volumes:
-            - ./cache:/etc/redis
+            - ./cache:/data
         ports:
             - "6379:6379"
         links:
             - api
     mongo:
         container_name: yo-mongo
+        restart: always
         image: mongo
         volumes:
             - ./data:/data/db
