@@ -82,7 +82,7 @@ module.exports = app => {
       logger.warn("Failed to find " + linkName + " in the cache: " + JSON.stringify(e));
     }
     */
-   
+
     // Check the cache and fallback to database if necessary
     if(!item){
       logger.info("Didn't find " + linkName + " in cache. Trying the database.")
@@ -121,8 +121,10 @@ module.exports = app => {
     if(validUrl.isUri(originalUrl)) {
       let urlData;
       try {
+        /*
         // Find the item in the cache
         urlData = await cache.getFromCache('linkName', JSON.stringify(queryOptions));
+        */
 
         if(!urlData) {
           // Find if the item is in the db
