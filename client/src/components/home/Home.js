@@ -220,7 +220,7 @@ class Home extends Component {
     )
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.getAllYos();
     this.getPopularYos();
     this.getLiveYos();
@@ -314,9 +314,9 @@ class Home extends Component {
             <table>
               <thead>
                 <tr>
-                    <th>Link Name</th>
-                    <th>Site URL</th>
-                    <th>URL Hits</th>
+                  <th>Link Name</th>
+                  <th>Site URL</th>
+                  <th>URL Hits</th>
                 </tr>
               </thead>
               <tbody>
@@ -343,9 +343,9 @@ class Home extends Component {
             <table>
               <thead>
                 <tr>
-                    <th>Link Name</th>
-                    <th>Site URL</th>
-                    <th>Last Access</th>
+                  <th>Link Name</th>
+                  <th>Site URL</th>
+                  <th>Last Access</th>
                 </tr>
               </thead>
               <tbody>
@@ -373,9 +373,9 @@ class Home extends Component {
             <table>
               <thead>
                 <tr>
-                    <th>Link Name</th>
-                    <th>Site URL</th>
-                    <th>URL Hits</th>
+                  <th>Link Name</th>
+                  <th>Site URL</th>
+                  <th>URL Hits</th>
                 </tr>
               </thead>
               <tbody>
