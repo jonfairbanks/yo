@@ -62,7 +62,7 @@ yarn start
 # Move to client Folder
 cd client/
 
-# Install Fependencies
+# Install Dependencies
 yarn install
 
 # Start Client
@@ -109,6 +109,7 @@ location / {
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
+- [ ] Edit/Delete Functionality
 
 ## Contributers
 Jon Fairbanks - Maintainer
