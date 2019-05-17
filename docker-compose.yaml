@@ -15,9 +15,10 @@ services:
         ports:
             - "7000:7000"
         links:
+            - redis
             - mongo
     redis:
-        container_name: yo-redis
+        container_name: yo-cache
         restart: always
         image: redis
         volumes:
