@@ -22,7 +22,6 @@ Yo Dawg, heard you're tired of remembering URLs
   - [React](https://reactjs.org/) - JS Library for Building UI's
   - [React-router](https://github.com/ReactTraining/react-router)- Complete Routing Library for React
   - [Materialize css](http://materializecss.com/)- Responsive Front-end Framework Based on Material UI
-  - [React Semantic UI](https://react.semantic-ui.com/) - Front-end UI Framework & Layout Components
 
 ## Getting Started
 
@@ -31,7 +30,7 @@ Yo Dawg, heard you're tired of remembering URLs
 The following will need to be installed before proceeding:
 
 - Node v8+
-- MongoDB
+- Mongo DB
 - Redis Server
 - Nginx
 
@@ -74,7 +73,7 @@ yarn start
 Client:
 ```
 location /manifest.json {
-    proxy_pass http://127.0.0.1:3002/manifest.json;
+    proxy_pass http://127.0.0.1:3000/manifest.json;
 }
 location / {
     proxy_pass http://127.0.0.1:3000/;
@@ -84,14 +83,14 @@ location / {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
-location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
-    proxy_set_header X-Real-IP $remote_addr;
-    rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
-}
 ```
 
 Server:
 ```
+location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
+    proxy_set_header X-Real-IP $remote_addr;
+    rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
+}
 location / {
     proxy_pass http://127.0.0.1:7000;
     proxy_set_header X-Real-IP $remote_addr;
@@ -105,6 +104,8 @@ location / {
 ## ☑ TODO
 
 - [x] Auto Update Tab Data
+- [x] Client Dockerfile
+- [ ] Server Dockerfile
 - [ ] Re-think the caching setup
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
