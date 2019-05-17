@@ -22,7 +22,6 @@ Yo Dawg, heard you're tired of remembering URLs
   - [React](https://reactjs.org/) - JS Library for Building UI's
   - [React-router](https://github.com/ReactTraining/react-router)- Complete Routing Library for React
   - [Materialize css](http://materializecss.com/)- Responsive Front-end Framework Based on Material UI
-  - [React Semantic UI](https://react.semantic-ui.com/) - Front-end UI Framework & Layout Components
 
 ## Getting Started
 
@@ -31,7 +30,7 @@ Yo Dawg, heard you're tired of remembering URLs
 The following will need to be installed before proceeding:
 
 - Node v8+
-- MongoDB
+- Mongo DB
 - Redis Server
 - Nginx
 
@@ -105,6 +104,8 @@ location / {
 ## ☑ TODO
 
 - [x] Auto Update Tab Data
+- [x] Client Dockerfile
+- [ ] Server Dockerfile
 - [ ] Re-think the caching setup
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
