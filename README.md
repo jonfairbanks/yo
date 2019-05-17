@@ -74,7 +74,7 @@ yarn start
 Client:
 ```
 location /manifest.json {
-    proxy_pass http://127.0.0.1:3002/manifest.json;
+    proxy_pass http://127.0.0.1:3000/manifest.json;
 }
 location / {
     proxy_pass http://127.0.0.1:3000/;
