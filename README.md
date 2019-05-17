@@ -83,14 +83,14 @@ location / {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
-location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
-    proxy_set_header X-Real-IP $remote_addr;
-    rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
-}
 ```
 
 Server:
 ```
+location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
+    proxy_set_header X-Real-IP $remote_addr;
+    rewrite ^/(.*)$ http://localhost:7000/api/item/$1 redirect;
+}
 location / {
     proxy_pass http://127.0.0.1:7000;
     proxy_set_header X-Real-IP $remote_addr;
