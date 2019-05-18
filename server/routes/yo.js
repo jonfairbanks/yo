@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validUrl = require('valid-url');
 const Yo = mongoose.model('yo');
+const YoCtrl = require('../controllers/yo')
 const config = require('../config/config');
 const logger = require('../services/logger');
 const cache = require('../services/cache');
@@ -69,43 +70,7 @@ module.exports = app => {
     }
   });
 
-  app.get('/api/item/:name', async (req, res) => {
-    const ip = req.headers["x-real-ip"];
-    const linkName = req.params.name.toLowerCase();
-    var item = null;
-
-    /*
-    try {
-      item = await cache.getFromCache('linkName', JSON.stringify({ linkName }));
-      await Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}}); // Make sure to update the DB values, not efficient :(
-    }catch(e) {
-      logger.warn("Failed to find " + linkName + " in the cache: " + JSON.stringify(e));
-    }
-    */
-
-    // Check the cache and fallback to database if necessary
-    if(!item){
-      logger.info("Didn't find " + linkName + " in cache. Trying the database.")
-      item = await Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}});
-      if(item) {
-        try{
-          cache.addToCache('linkName', JSON.stringify({ linkName }), item);
-          logger.info("Updated missing cache entry for " + linkName);
-        }catch(e){
-          logger.warn("Failed to update missing cache entry for " + linkName + ": " + JSON.stringify(e));
-        }
-      }
-    }
-
-    // Send user to originalUrl or errorUrl
-    if(item) {
-      logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
-      return res.redirect(item.originalUrl);
-    }else {
-      logger.warn("Unable to find any entries for: " + linkName);
-      return res.redirect(config.errorUrl);
-    }
-  });
+  app.get('/api/item/:name', YoCtrl.getCached)
 
   app.post('/api/item', async (req, res) => {
     const { shortBaseUrl, originalUrl, linkName } = req.body;

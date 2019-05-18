@@ -1,7 +1,7 @@
 module.exports = {
-  apiUrl: "https://yo-api.fairbanks.io/api/",
-  socketUrl: "https://yo-api.fairbanks.io",
-  baseUrl: "https://yo.fairbanks.io",
+  apiUrl: "https://id-api.bsord.io/api/",
+  socketUrl: "https://id-api.bsord.io",
+  baseUrl: "https://id.bsord.io",
   urlPlaceholder: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   namePlaceholder: "Rick"
 };
