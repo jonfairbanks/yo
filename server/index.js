@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 });
 
 const server = app.listen(PORT);
-const io = require('socket.io').listen(server);
+const io = require('socket.io').listen(server, {pingTimeout: 60000});
 
 require('./routes/yo')(app, io);
 require('./services/cache');
@@ -53,7 +53,7 @@ io.on("connection", socket => {
       getLiveYosAndEmit(socket),
       getAllYosAndEmit(socket)
     },
-    1000
+    2500
   );
 });
 
