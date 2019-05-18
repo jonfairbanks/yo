@@ -1,0 +1,7 @@
+module.exports = {
+  apiUrl: "https://yo-api.mysite.io/api/",
+  socketUrl: "https://yo-api.mysite.io",
+  baseUrl: "https://yo.mysite.io",
+  urlPlaceholder: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  namePlaceholder: "Rick"
+};

@@ -1,7 +1,7 @@
 module.exports = {
   mongoURI: "mongodb://localhost/yo",
-  errorUrl: "https://yo.fairbanks.io/error",
-  baseUrl: "https://yo.fairbanks.io",
-  apiUrl: "https://yo-api.fairbanks.io/api/",
+  errorUrl: "https://yo.mysite.io/error",
+  baseUrl: "https://yo.mysite.io",
+  apiUrl: "https://yo-api.mysite.io/api/",
   logLocation: "yo.log"
 };
