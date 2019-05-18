@@ -47,14 +47,17 @@ require('./routes/yo')(app, io);
 require('./services/cache');
 
 io.on("connection", socket => {
-  setInterval(
+  var interval = setInterval(
     () => {
       getPopYosAndEmit(socket),
       getLiveYosAndEmit(socket),
       getAllYosAndEmit(socket)
     },
-    2500
+    2000
   );
+  io.on('disconnect', () => {
+    clearInterval(interval);
+  });
 });
 
 const getPopYosAndEmit = async socket => {
