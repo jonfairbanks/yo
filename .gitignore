@@ -21,3 +21,4 @@ yarn-error.log*
 server/config/config.js
 server/config/redis.js
 .vscode/settings.json
+client/src/config/config.js

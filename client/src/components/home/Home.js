@@ -352,7 +352,7 @@ class Home extends Component {
               {
                 this.state.liveYos.length > 0 
                 ? this.state.liveYos.map((yo, key) => {
-                  var timeElapsed = moment(yo.lastAccess).from(moment());
+                  var timeElapsed = moment(yo.lastAccess).from(moment().add(1, "s"));
                   return (
                     <tr key={key}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
