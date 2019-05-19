@@ -91,6 +91,24 @@ location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
     proxy_set_header X-Real-IP $remote_addr;
     rewrite ^/(.*)$ https://my-api-url.com/api/item/$1 redirect;
 }
+location /status/ {
+    auth_basic "Administrator Login";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+    proxy_pass http://127.0.0.1:7000/status;
+    proxy_set_header x-real-ip $remote_addr;
+    # Upgrade for Websockets
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+location /socket.io {
+    proxy_pass http://127.0.0.1:7000;
+    proxy_set_header x-real-ip $remote_addr;
+    # Upgrade for Websockets
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
 location / {
     proxy_pass http://127.0.0.1:7000;
     proxy_set_header X-Real-IP $remote_addr;

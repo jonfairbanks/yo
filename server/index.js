@@ -43,6 +43,8 @@ app.use((req, res, next) => {
 const server = app.listen(PORT);
 const io = require('socket.io').listen(server, {pingTimeout: 60000});
 
+app.use(require('express-status-monitor')({ websocket: io, title: "Yo API Status"}));
+
 require('./routes/yo')(app, io);
 require('./services/cache');
 
@@ -88,3 +90,4 @@ const getAllYosAndEmit = async socket => {
 };
 
 console.log("Yo server running on Port " + PORT);
+console.log("\nApp logs are available at: \n" + config.logLocation);
