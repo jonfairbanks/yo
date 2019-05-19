@@ -42,12 +42,18 @@ exports.getCached = (req, res) => {
         else { //Item does not exist in cache, pull from the database
             Yo.findOne({ linkName: linkName })
                 .catch( error => {
-                    logger.warn("Unable to find any entries for: " + linkName + '; ' + error);
+                    logger.warn("There was an error while searching database for: " + linkName + '; ' + error);
                     return res.redirect(config.errorUrl);
                 })
                 .then( item => {
-                    logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
-                    return res.redirect(item.originalUrl);
+                    if(item){ // item returned is not empty
+                        logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
+                        return res.redirect(item.originalUrl);
+                    } else { //item returned is empty
+                        logger.warn("Unable to find any entries for: " + linkName + '; ' + error);
+                        return res.redirect(config.errorUrl);
+                    }
+                    
                 });
         }
     });
