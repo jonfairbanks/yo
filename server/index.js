@@ -43,7 +43,7 @@ app.use((req, res, next) => {
 const server = app.listen(PORT);
 const io = require('socket.io').listen(server, {pingTimeout: 60000});
 
-app.use(require('express-status-monitor')({ websocket: io, title: "Yo API Status"}));
+app.use(require('express-status-monitor')({ websocket: io, title: "API Status | Yo - The URL Shortener"}));
 
 require('./routes/yo')(app, io);
 require('./services/cache');
@@ -62,31 +62,22 @@ io.on("connection", socket => {
   });
 });
 
-const getPopYosAndEmit = async socket => {
-  try {
-    const res = await axios.get(config.apiUrl + "popular");
-    socket.emit("popYos", res.data);
-  } catch (error) {
-    logger.error(`popYos Socket Error: ${error}`);
-  }
+const getPopYosAndEmit = socket => {
+  axios.get(config.apiUrl + "popular")
+    .then(res => { socket.emit("popYos", res.data) })
+    .catch(e => { logger.error(`popYos Socket Error: ${e}`) })
 };
 
-const getLiveYosAndEmit = async socket => {
-  try {
-    const res = await axios.get(config.apiUrl + "recent");
-    socket.emit("liveYos", res.data);
-  } catch (error) {
-    logger.error(`liveYos Socket Error: ${error}`);
-  }
+const getLiveYosAndEmit = socket => {
+  axios.get(config.apiUrl + "recent")
+    .then(res => { socket.emit("liveYos", res.data) })
+    .catch(e => { logger.error(`liveYos Socket Error: ${e}`) })
 };
 
-const getAllYosAndEmit = async socket => {
-  try {
-    const res = await axios.get(config.apiUrl);
-    socket.emit("allYos", res.data);
-  } catch (error) {
-    logger.error(`allYos Socket Error: ${error}`);
-  }
+const getAllYosAndEmit = socket => {
+  axios.get(config.apiUrl)
+    .then(res => { socket.emit("allYos", res.data) })
+    .catch(e => { logger.error(`allYos Socket Error: ${e}`) })
 };
 
 console.log("Yo server running on Port " + PORT);

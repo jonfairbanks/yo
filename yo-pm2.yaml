@@ -6,10 +6,10 @@ apps:
       PORT: 3000
     watch:  true
 
-  - name:   yo-server
+  - name:   yo-api
     script: index.js
     cwd:    server
     env:
-      PORT: 7000
+      PORT:     7000
       NODE_ENV: production
     watch:  true
