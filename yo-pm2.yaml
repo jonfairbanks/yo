@@ -2,6 +2,8 @@ apps:
   - name:   yo-client 
     script: node_modules/react-scripts/scripts/start.js
     cwd:    client
+    max_restarts: 3
+    min_uptime: 10s
     env:
       PORT: 3000
     watch:  true
@@ -9,6 +11,8 @@ apps:
   - name:   yo-api
     script: index.js
     cwd:    server
+    max_restarts: 3
+    min_uptime: 10s
     env:
       PORT:     7000
       NODE_ENV: production
