@@ -13,5 +13,4 @@ module.exports = app => {
   app.get('/api/item/:name', YoCtrl.getYo) // Get a single Yo
   app.post('/api/item', YoCtrl.postYo) // Post a single Yo
   app.get('/api/stats', YoCtrl.getStats) // Get statistics
-
 };

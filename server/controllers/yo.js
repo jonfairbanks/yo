@@ -20,7 +20,6 @@ exports.getYo = (req, res) => {
                 logger.warn("Unable to find any entries for: " + linkName);
                 return res.redirect(config.errorUrl);
             }
- 
         }).catch( error => {
             logger.warn("There was an error while searching database for: " + linkName + '; ' + error);
             return res.redirect(config.errorUrl);
@@ -36,15 +35,12 @@ exports.postYo = (req, res) => {
     const queryOptions = { linkName };
 
     if(validUrl.isUri(originalUrl)) {
-
         Yo.findOne(queryOptions)
             .then( urlData => {
-                
                 if(urlData) {
                     // URL already exists
                     logger.info("User " + ip + " could not create a Yo as the name is already in-use: " + queryOptions.linkName);
                     res.status(401).json('This name is already in-use. Please select another name.');
-
                 } else {
                     // Define Yo object
                     shortUrl = shortBaseUrl + '/' + linkName;
@@ -56,18 +52,15 @@ exports.postYo = (req, res) => {
                     item.save().then(()=>{
                         logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
                         res.status(200).json(itemToBeSaved);
-
                     }).catch(error=>{
                         logger.info("Error while trying to save Yo:" + linkName + " -> " + originalUrl + " to database: " + error);
                         itemToBeSaved.status = "Failed"
                         res.status(200).json(itemToBeSaved);
                     });
-
                 }
             }).catch( error => {
                 //Handle Error
             });
-
     } else {
       logger.warn("The provided URL is improperly formatted: " + originalUrl);
       return res.status(400).json('The provided URL is improperly formatted.');
@@ -80,8 +73,8 @@ exports.getStats = (req, res) => {
     Yo.find({},{urlHits:1, _id:0}).sort({urlHits: -1})
         .then( hits_data => {
             for(i = 0; i < hits_data.length; i++) { 
-                if(hits_data[i].urlHits){
-                hits += hits_data[i].urlHits;
+                if(hits_data[i].urlHits) {
+                    hits += hits_data[i].urlHits;
                 }
             }
             if(hits_data.length > 0) {
@@ -96,7 +89,6 @@ exports.getStats = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
-    
 }
 
 // Get recent Yos
@@ -112,7 +104,6 @@ exports.getRecent = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
-    
 }
 
 exports.getPopular = (req, res) => {
@@ -127,7 +118,6 @@ exports.getPopular = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
-        
 }
 
 exports.getLatest = (req, res) => {
@@ -142,7 +132,6 @@ exports.getLatest = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
-    
 }
 
 exports.getAll = (req, res) => {
@@ -157,5 +146,4 @@ exports.getAll = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
-    
-  }
+}
