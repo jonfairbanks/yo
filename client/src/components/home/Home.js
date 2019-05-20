@@ -9,8 +9,8 @@ import io from 'socket.io-client';
 const socket = io(config.socketUrl);
 
 var filter = new Filter();
-filter.addWords('maga', 'trump'); // Items listed here will be filtered
-filter.removeWords('hells', 'god'); // Items listed here will NOT be filtered
+filter.addWords(...config.blockedNames); 
+filter.removeWords(...config.allowedNames);
 
 class Home extends Component {
   constructor() {
@@ -194,8 +194,7 @@ class Home extends Component {
         this.setState({allYos: out})
       }
     )
-    .catch(err => {console.log("All Yos Error: " + err)}
-    )
+    .catch(err => {})
   }
 
   getPopularYos() {
@@ -205,8 +204,7 @@ class Home extends Component {
         this.setState({popYos: out})
       }
     )
-    .catch(err => {console.log("Popular Yos Error: " + err)}
-    )
+    .catch(err => {})
   }
 
   getLiveYos() {
@@ -216,8 +214,7 @@ class Home extends Component {
         this.setState({liveYos: out})
       }
     )
-    .catch(err => {console.log("Live Yos Error: " + err)}
-    )
+    .catch(err => {})
   }
 
   componentDidMount() {
