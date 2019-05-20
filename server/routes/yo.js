@@ -12,5 +12,7 @@ module.exports = app => {
   app.get('/api/recent', YoCtrl.getRecent) // Get recent Yos
   app.get('/api/item/:name', YoCtrl.getYo) // Get a single Yo
   app.post('/api/item', YoCtrl.postYo) // Post a single Yo
+  //app.post('/api/item/update', YoCtrl.updateYo) // Update a single Yo
+  //app.post('/api/item/delete', YoCtrl.deleteYo) // Delete a single Yo
   app.get('/api/stats', YoCtrl.getStats) // Get statistics
 };
