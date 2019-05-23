@@ -2,6 +2,8 @@ module.exports = {
   apiUrl: "https://yo-api.mysite.io/api/",
   socketUrl: "https://yo-api.mysite.io",
   baseUrl: "https://yo.mysite.io",
+  blockedNames: ['status', 'socket.io'], // Items listed here will be blocked as linkNames
+  allowedNames: ['hells', 'god'], // Items listed here will NOT be blocked as linkNames
   urlPlaceholder: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   namePlaceholder: "Rick"
 };

@@ -63,19 +63,19 @@ io.on("connection", socket => {
 });
 
 const getPopYosAndEmit = socket => {
-  axios.get(config.apiUrl + "popular")
+  axios.get(config.apiUrl + "popular", {headers: {"Content-Encoding": "gzip"}})
     .then(res => { socket.emit("popYos", res.data) })
     .catch(e => { logger.error(`popYos Socket Error: ${e}`) })
 };
 
 const getLiveYosAndEmit = socket => {
-  axios.get(config.apiUrl + "recent")
+  axios.get(config.apiUrl + "recent", {headers: {"Content-Encoding": "gzip"}})
     .then(res => { socket.emit("liveYos", res.data) })
     .catch(e => { logger.error(`liveYos Socket Error: ${e}`) })
 };
 
 const getAllYosAndEmit = socket => {
-  axios.get(config.apiUrl)
+  axios.get(config.apiUrl, {headers: {"Content-Encoding": "gzip"}})
     .then(res => { socket.emit("allYos", res.data) })
     .catch(e => { logger.error(`allYos Socket Error: ${e}`) })
 };
