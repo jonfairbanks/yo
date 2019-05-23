@@ -40,45 +40,26 @@ app.use((req, res, next) => {
   }
 });
 
+
 const server = app.listen(PORT);
 const io = require('socket.io').listen(server, {pingTimeout: 60000});
+//pass socket along with reqest.
 
-app.use(require('express-status-monitor')({ websocket: io, title: "API Status | Yo - The URL Shortener"}));
+io.on('connection', function(socket){
+  console.log('a user connected');
 
-require('./routes/yo')(app, io);
-require('./services/cache');
+  socket.emit('tx', 'msg');
 
-io.on("connection", socket => {
-  var interval = setInterval(
-    () => {
-      getPopYosAndEmit(socket),
-      getLiveYosAndEmit(socket),
-      getAllYosAndEmit(socket)
-    },
-    2000
-  );
-  io.on('disconnect', () => {
-    clearInterval(interval);
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
   });
 });
 
-const getPopYosAndEmit = socket => {
-  axios.get(config.apiUrl + "popular", {headers: {"Content-Encoding": "gzip"}})
-    .then(res => { socket.emit("popYos", res.data) })
-    .catch(e => { logger.error(`popYos Socket Error: ${e}`) })
-};
-
-const getLiveYosAndEmit = socket => {
-  axios.get(config.apiUrl + "recent", {headers: {"Content-Encoding": "gzip"}})
-    .then(res => { socket.emit("liveYos", res.data) })
-    .catch(e => { logger.error(`liveYos Socket Error: ${e}`) })
-};
-
-const getAllYosAndEmit = socket => {
-  axios.get(config.apiUrl, {headers: {"Content-Encoding": "gzip"}})
-    .then(res => { socket.emit("allYos", res.data) })
-    .catch(e => { logger.error(`allYos Socket Error: ${e}`) })
-};
+app.io = io
+app.use(require('express-status-monitor')({ websocket: io, title: "API Status | Yo - The URL Shortener"}));
 
 console.log("Yo server running on Port " + PORT);
 console.log("\nApp logs are available at: \n" + config.logLocation);
+
+require('./routes/yo')(app);
+require('./services/cache');

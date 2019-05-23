@@ -191,7 +191,7 @@ class Home extends Component {
     fetch(this.state.apiUrl)
     .then(res => res.json())
     .then(out => {
-        this.setState({allYos: out})
+        this.setState({allYos: []})
       }
     )
     .catch(err => {})
