@@ -204,21 +204,13 @@ exports.emitSocketUpdate = (req, res) => {
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
             if(all) {
-                try{
-                    console.log(req.app)
-                    req.app.io.emit("popYos", all)
-                } catch (err) {
-                    console.log(err)
-                }
-                
+                req.app.io.emit("popYos", all)
             }else {
                 logger.error("Error retrieving all Yo\'s: " + res.data);   
             }
         }).catch( error => {
             //Handle Error
         });
-
-    
 
     //emit live
     Yo.find({}).sort({"createdAt": -1}).limit(10)

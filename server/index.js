@@ -22,13 +22,12 @@ mongoose.connect(
 );
 
 require('./models/yo');
-const app = express();
 
+const app = express();
 app.set('trust proxy',true);
 app.use(helmet());
 app.use(compression());
 app.use(bodyParser.json());
-
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -40,22 +39,10 @@ app.use((req, res, next) => {
   }
 });
 
-
 const server = app.listen(PORT);
 const io = require('socket.io').listen(server, {pingTimeout: 60000});
-//pass socket along with reqest.
-
-io.on('connection', function(socket){
-  console.log('a user connected');
-
-  socket.emit('tx', 'msg');
-
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-});
-
 app.io = io
+
 app.use(require('express-status-monitor')({ websocket: io, title: "API Status | Yo - The URL Shortener"}));
 
 console.log("Yo server running on Port " + PORT);
