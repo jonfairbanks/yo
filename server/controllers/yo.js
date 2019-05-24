@@ -7,7 +7,7 @@ const validUrl = require('valid-url');
 
 
 // Get a single Yo from DB and redirect
-exports.getYo = (req, res) => {
+exports.getYo = (req, res, next) => {
     const ip = req.headers["x-real-ip"];
     const linkName = req.params.name.toLowerCase();
     
@@ -24,6 +24,9 @@ exports.getYo = (req, res) => {
             logger.error("There was an error while searching database for: " + linkName + ': ' + error);
             return res.redirect(config.errorUrl);
         });
+   
+    next()      
+        
 }
 
 // Add new Yo to DB
@@ -193,4 +196,44 @@ exports.getAll = (req, res) => {
         }).catch( error => {
             //Handle Error
         });
+}
+
+
+exports.emitSocketUpdate = (req, res) => {
+    //emit all
+    Yo.find({}).sort({"linkName": 1})
+        .then(all => {
+            if(all) {
+                req.app.io.emit("popYos", all)
+            }else {
+                logger.error("Error retrieving all Yo\'s: " + res.data);   
+            }
+        }).catch( error => {
+            //Handle Error
+        });
+
+    //emit live
+    Yo.find({}).sort({"createdAt": -1}).limit(10)
+        .then(latest=>{
+            if(latest) {
+                req.app.io.emit("liveYos", latest)
+            }else {
+                logger.error("Error retrieving the latest Yo\'s: " + res.data);
+            }
+        }).catch( error => {
+            //Handle Error
+        });
+
+    //emit popular
+    Yo.find({}).sort({"urlHits": -1}).limit(10)
+        .then(pop=>{
+            if(pop) {
+                req.app.io.emit("popYos", pop)
+            }else {
+                logger.error("Error retrieving popular Yo\'s: " + res.data);
+            }
+        }).catch( error => {
+            //Handle Error
+        });
+
 }
