@@ -10,7 +10,6 @@ const validUrl = require('valid-url');
 exports.getYo = (req, res, next) => {
     const ip = req.headers["x-real-ip"];
     const linkName = req.params.name.toLowerCase();
-    
     Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}})
         .then( item => {
             if(item){ // item returned is not empty
@@ -20,7 +19,8 @@ exports.getYo = (req, res, next) => {
                 logger.warn("Unable to find any entries for: " + linkName);
                 return res.redirect(config.errorUrl);
             }
-        }).catch( error => {
+        })
+        .catch( error => {
             logger.error("There was an error while searching database for: " + linkName + ': ' + error);
             return res.redirect(config.errorUrl);
         });
@@ -31,25 +31,18 @@ exports.getYo = (req, res, next) => {
 exports.postYo = (req, res) => {
     const { shortBaseUrl, originalUrl, linkName } = req.body;
     const ip = req.headers["x-real-ip"];
-
     const updatedAt = new Date();
     const queryOptions = { linkName };
-
     if(validUrl.isUri(originalUrl)) {
         Yo.findOne(queryOptions)
             .then( urlData => {
                 if(urlData) {
-                    // URL already exists
                     logger.info("User " + ip + " could not create a Yo as the name is already in-use: " + queryOptions.linkName);
                     res.status(401).json('This name is already in-use. Please select another name.');
                 } else {
-                    // Define Yo object
                     shortUrl = shortBaseUrl + '/' + linkName;
                     const itemToBeSaved = { originalUrl, shortUrl, linkName, updatedAt };
-        
-                    // Add the item to db
                     const item = new Yo(itemToBeSaved);
-
                     item.save().then(()=>{
                         logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
                         res.status(200).json(itemToBeSaved);
@@ -71,9 +64,7 @@ exports.updateYo = (req, res) => {
     const originalUrl = req.body.originalUrl;
     const linkName = req.body.linkName.toLowerCase();
     const ip = req.headers["x-real-ip"];
-
     const updatedAt = new Date();
-
     if(validUrl.isUri(originalUrl)) {
         Yo.findOneAndUpdate({"linkName": linkName}, {$set: {"originalUrl": originalUrl, "updatedAt": updatedAt}}, {returnNewDocument: true})
             .then(data => {
@@ -84,7 +75,8 @@ exports.updateYo = (req, res) => {
                     logger.warn("User from " + ip + " tried updating alias: " + linkName + ", but it doesn't exist.");
                     return res.status(500).json('There was an error while updating that Yo');
                 }
-            }).catch( error => {
+            })
+            .catch( error => {
                 logger.warn("There was an error while updating alias: " + linkName + ': ' + error);
                 return res.status(500).json('There was an error while updating that Yo');
             });
@@ -100,14 +92,15 @@ exports.deleteYo = (req, res) => {
     const linkName = req.body.linkName.toLowerCase();
     Yo.findOneAndDelete({ linkName: linkName })
         .then(item => {
-            if(item){ // item returned is not empty
+            if(item){
                 logger.info("User from " + ip + " deleted " + item.originalUrl + " as alias: " + linkName);
                 return res.status(200).json(linkName + ' deleted successfully.');
-            } else { // item returned is empty
+            } else {
                 logger.warn("Unable to delete alias: " + linkName);
                 return res.status(500).json('Failed to delete ' + linkName);
             }
-        }).catch( error => {
+        })
+        .catch( error => {
             logger.warn("There was an error while deleting alias: " + linkName + ': ' + error);
             return res.status(500).json('There was an error while deleting that Yo');
         });
@@ -119,14 +112,12 @@ exports.getStats = (req, res) => {
     Yo.find({},{urlHits:1, _id:0}).sort({urlHits: -1})
         .then( hits_data => {
             for(i = 0; i < hits_data.length; i++) { 
-                if(hits_data[i].urlHits) {
-                    hits += hits_data[i].urlHits;
-                }
+                if(hits_data[i].urlHits) { hits += hits_data[i].urlHits }
             }
             if(hits_data.length > 0) {
                 return res.status(200).json({
-                "totalYos": hits_data.length,
-                "totalHits": hits
+                    "totalYos": hits_data.length,
+                    "totalHits": hits
                 });
             }else {
                 logger.error("Error retrieving Yo stats: " + res.data);
@@ -189,7 +180,7 @@ exports.emitSocketUpdate = (req, res) => {
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
             if(all) {
-                req.app.io.emit("popYos", all)
+                req.app.io.emit("allYos", all)
             }else {
                 logger.error("Error retrieving all Yo\'s: " + res.data);   
             }
