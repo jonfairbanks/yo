@@ -24,9 +24,7 @@ exports.getYo = (req, res, next) => {
             logger.error("There was an error while searching database for: " + linkName + ': ' + error);
             return res.redirect(config.errorUrl);
         });
-   
     next()      
-        
 }
 
 // Add new Yo to DB
@@ -61,8 +59,6 @@ exports.postYo = (req, res) => {
                         res.status(500).json(itemToBeSaved);
                     });
                 }
-            }).catch( error => {
-                //Handle Error
             });
     } else {
       logger.warn("The provided URL is improperly formatted: " + originalUrl);
@@ -136,8 +132,6 @@ exports.getStats = (req, res) => {
                 logger.error("Error retrieving Yo stats: " + res.data);
                 return res.status(500).json('Error retrieving Yo stats');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
@@ -151,8 +145,6 @@ exports.getRecent = (req, res) => {
                 logger.error("Error retrieving recently used Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving recently used Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
@@ -165,8 +157,6 @@ exports.getPopular = (req, res) => {
                 logger.error("Error retrieving popular Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving popular Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
@@ -179,8 +169,6 @@ exports.getLatest = (req, res) => {
                 logger.error("Error retrieving the latest Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving the latest Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
@@ -193,14 +181,11 @@ exports.getAll = (req, res) => {
                 logger.error("Error retrieving all Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving all Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
-
 exports.emitSocketUpdate = (req, res) => {
-    //emit all
+    // All
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
             if(all) {
@@ -208,11 +193,9 @@ exports.emitSocketUpdate = (req, res) => {
             }else {
                 logger.error("Error retrieving all Yo\'s: " + res.data);   
             }
-        }).catch( error => {
-            //Handle Error
         });
 
-    //emit live
+    // Live
     Yo.find({}).sort({"createdAt": -1}).limit(10)
         .then(latest=>{
             if(latest) {
@@ -220,11 +203,9 @@ exports.emitSocketUpdate = (req, res) => {
             }else {
                 logger.error("Error retrieving the latest Yo\'s: " + res.data);
             }
-        }).catch( error => {
-            //Handle Error
         });
 
-    //emit popular
+    // Popular
     Yo.find({}).sort({"urlHits": -1}).limit(10)
         .then(pop=>{
             if(pop) {
@@ -232,8 +213,5 @@ exports.emitSocketUpdate = (req, res) => {
             }else {
                 logger.error("Error retrieving popular Yo\'s: " + res.data);
             }
-        }).catch( error => {
-            //Handle Error
         });
-
 }

@@ -2,9 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const compression = require('compression')
-const logger = require('./services/logger');
 const helmet = require('helmet');
-const axios = require('axios');
 
 const config = require('./config/config');
 const PORT = process.env.PORT || 7000;
