@@ -12,10 +12,10 @@ exports.getYo = (req, res, next) => {
     const linkName = req.params.name.toLowerCase();
     Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}})
         .then( item => {
-            if(item){ // item returned is not empty
+            if(item){
                 logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
                 return res.redirect(item.originalUrl);
-            } else { //item returned is empty
+            } else {
                 logger.warn("Unable to find any entries for: " + linkName);
                 return res.redirect(config.errorUrl);
             }
