@@ -194,18 +194,27 @@ class Home extends Component {
         this.setState({allYos: out})
       }
     )
+    .catch(err => {})
   }
 
   getPopularYos() {
     fetch(this.state.apiUrl + 'popular')
     .then(res => res.json())
-    .then(out => { this.setState({popYos: out}) })
+    .then(out => {
+        this.setState({popYos: out})
+      }
+    )
+    .catch(err => {})
   }
 
   getLiveYos() {
     fetch(this.state.apiUrl + 'recent')
     .then(res => res.json())
-    .then(out => { this.setState({liveYos: out}) })
+    .then(out => {
+        this.setState({liveYos: out})
+      }
+    )
+    .catch(err => {})
   }
 
   componentDidMount() {
@@ -214,18 +223,21 @@ class Home extends Component {
     this.getLiveYos();
 
     // Poll for all Yo's
-      socket.on("allYos", (out) => { 
-        console.log(JSON.stringify(out))
-        this.setState({ allYos: out }) 
+      socket.on("allYos", (out) => {
+        this.setState({ allYos: out });
       }
     );
 
     // Poll for popular Yo's
-      socket.on("popYos", (out) => { this.setState({ popYos: out }) }
+      socket.on("popYos", (out) => {
+        this.setState({ popYos: out });
+      }
     );
     
     // Poll for recent Yo's
-      socket.on("liveYos", (out) => { this.setState({ liveYos: out }) }
+      socket.on("liveYos", (out) => {
+        this.setState({ liveYos: out });
+      }
     );
   }
 
