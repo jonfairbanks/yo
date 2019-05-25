@@ -9,7 +9,6 @@ const axios = require('axios');
 const config = require('./config/config');
 const PORT = process.env.PORT || 7000;
 
-// Connect to MongoDB
 mongoose.Promise = global.Promise;
 mongoose.connect(
   config.mongoURI,
