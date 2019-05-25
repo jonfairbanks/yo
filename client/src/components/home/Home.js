@@ -5,6 +5,7 @@ import config from "../../config/config";
 import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 const socket = io(config.socketUrl);
 
@@ -31,7 +32,8 @@ class Home extends Component {
       exLinkName: config.namePlaceholder,
       allYos: "",
       popYos: "",
-      liveYos: ""
+      liveYos: "",
+      copied: false
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -42,6 +44,7 @@ class Home extends Component {
     this.getPopularYos = this.getPopularYos.bind(this);
     this.getLiveYos = this.getLiveYos.bind(this);
     this.hideErrorDiags = this.hideErrorDiags.bind(this);
+    this.handleCopy = this.handleCopy.bind(this);
   }
 
   handleUserInput(e) {
@@ -155,6 +158,22 @@ class Home extends Component {
     }
   }
 
+  handleCopy(yo) {
+    return (
+      !this.state.copied
+      ? <CopyToClipboard 
+          text={yo.originalUrl} 
+          onCopy={() => {
+            this.setState({ copied: true })
+            setTimeout(() => {this.setState({ copied: false })}, 3000)}
+          }
+        >
+          <li><i style={{ "cursor":"pointer", "paddingRight":"7px" }} className="small material-icons">content_copy</i></li>
+        </CopyToClipboard>
+      : <li><i style={{ "cursor":"none", "paddingRight":"7px" }} className="small teal-text material-icons">check</i></li>
+    )
+  }
+
   renderButton() {
     if (!this.state.showLoading) {
       return (
@@ -215,7 +234,6 @@ class Home extends Component {
 
     // Poll for all Yo's
       socket.on("allYos", (out) => { 
-        console.log(JSON.stringify(out))
         this.setState({ allYos: out }) 
       }
     );
@@ -361,6 +379,7 @@ class Home extends Component {
                   <th>Link Name</th>
                   <th>Site URL</th>
                   <th>URL Hits</th>
+                  <th>Options</th>
                 </tr>
               </thead>
               <tbody>
@@ -372,6 +391,12 @@ class Home extends Component {
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{ !yo.urlHits ? "-" : yo.urlHits}</td>
+                      <td>
+                        <ul style={{"display":"flex"}}>
+                          {this.handleCopy(yo)}
+                          <li><i style={{ "cursor":"not-allowed", "paddingRight":"7px" }} className="small material-icons">edit</i></li>
+                        </ul>
+                      </td>
                     </tr>
                   )
                 }, this)

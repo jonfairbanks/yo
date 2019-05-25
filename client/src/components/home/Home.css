@@ -83,3 +83,7 @@ td {
   -webkit-hyphens: auto;
   hyphens: auto;
 }
+
+i.small {
+  font-size: 1.5rem;
+}
