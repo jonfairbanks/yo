@@ -28,7 +28,7 @@ Yo Dawg, heard you're tired of remembering URLs
 
 The following will need to be installed before proceeding:
 
-- Node v8+
+- Node v8.x
 - Mongo DB
 - Nginx
 
