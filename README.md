@@ -15,7 +15,6 @@ Yo Dawg, heard you're tired of remembering URLs
   - [Mongoose](https://http://mongoosejs.com)- MongoDB Object Modeling
   - [Valid-url](https://github.com/ogt/valid-url)- URL Validation Functions
   - [Nginx](https://www.nginx.com)- Reverse Proxy
-  - [Redis](https://redis.io/)- Caching
 
 - ### Client
 
@@ -31,7 +30,6 @@ The following will need to be installed before proceeding:
 
 - Node v8+
 - Mongo DB
-- Redis Server
 - Nginx
 
 #### Clone the Project
@@ -123,8 +121,7 @@ location / {
 
 - [x] Auto Update Tab Data
 - [x] Client Dockerfile
-- [ ] Server Dockerfile
-- [ ] Re-think the caching setup
+- [x] Server Dockerfile
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
