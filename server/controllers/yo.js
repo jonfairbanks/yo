@@ -28,7 +28,7 @@ exports.getYo = (req, res, next) => {
 }
 
 // Add new Yo to DB
-exports.postYo = (req, res) => {
+exports.postYo = (req, res, next) => {
     const { shortBaseUrl, originalUrl, linkName } = req.body;
     const ip = req.headers["x-real-ip"];
     const updatedAt = new Date();
@@ -53,6 +53,7 @@ exports.postYo = (req, res) => {
                     });
                 }
             });
+        next()
     } else {
       logger.warn("The provided URL is improperly formatted: " + originalUrl);
       return res.status(400).json('The provided URL is improperly formatted.');
