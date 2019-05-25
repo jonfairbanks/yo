@@ -10,6 +10,7 @@ const config = require('./config/config');
 const PORT = process.env.PORT || 7000;
 
 mongoose.Promise = global.Promise;
+
 mongoose.connect(
   config.mongoURI,
   {

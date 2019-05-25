@@ -125,7 +125,7 @@ exports.getStats = (req, res) => {
                 return res.status(500).json('Error retrieving Yo stats');
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
 
 // Get recent Yos
@@ -139,7 +139,7 @@ exports.getRecent = (req, res) => {
                 return res.status(500).json('Error retrieving recently used Yo\'s');
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
 
 exports.getPopular = (req, res) => {
@@ -152,7 +152,7 @@ exports.getPopular = (req, res) => {
                 return res.status(500).json('Error retrieving popular Yo\'s');
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
 
 exports.getLatest = (req, res) => {
@@ -165,7 +165,7 @@ exports.getLatest = (req, res) => {
                 return res.status(500).json('Error retrieving the latest Yo\'s');
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
 
 exports.getAll = (req, res) => {
@@ -178,7 +178,7 @@ exports.getAll = (req, res) => {
                 return res.status(500).json('Error retrieving all Yo\'s');
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
 
 
@@ -187,12 +187,12 @@ exports.emitSocketUpdate = (req, res) => {
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
             if(all) {
-                req.app.io.emit("popYos", all)
+                req.app.io.emit("allYos", all)
             }else {
                 logger.error("Error retrieving all Yo\'s: " + res.data);   
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 
     // Live
     Yo.find({}).sort({"createdAt": -1}).limit(10)
@@ -203,7 +203,7 @@ exports.emitSocketUpdate = (req, res) => {
                 logger.error("Error retrieving the latest Yo\'s: " + res.data);
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 
     // Popular
     Yo.find({}).sort({"urlHits": -1}).limit(10)
@@ -214,5 +214,5 @@ exports.emitSocketUpdate = (req, res) => {
                 logger.error("Error retrieving popular Yo\'s: " + res.data);
             }
         })
-        .catch( error => {});
+        .catch(err => {});
 }
