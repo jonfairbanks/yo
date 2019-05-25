@@ -187,7 +187,7 @@ exports.emitSocketUpdate = (req, res) => {
         });
 
     // Live
-    Yo.find({}).sort({"createdAt": -1}).limit(10)
+    Yo.find({}).sort({"lastAccess": -1}).limit(10)
         .then(latest=>{
             if(latest) {
                 req.app.io.emit("liveYos", latest)
