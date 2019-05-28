@@ -33,7 +33,7 @@ class Home extends Component {
       allYos: "",
       popYos: "",
       liveYos: "",
-      copied: false
+      copied: ""
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -160,13 +160,15 @@ class Home extends Component {
 
   handleCopy(yo) {
     return (
-      !this.state.copied
+      this.state.copied !== yo._id
       ? <CopyToClipboard 
           text={yo.originalUrl} 
           onCopy={() => {
-            this.setState({ copied: true })
-            setTimeout(() => {this.setState({ copied: false })}, 3000)}
-          }
+            this.setState({ copied: yo._id })
+            setTimeout(() => {
+              this.setState({ copied: "" })
+            }, 3000)
+          }}
         >
           <li><i style={{ "cursor":"pointer", "paddingRight":"7px" }} className="small material-icons">content_copy</i></li>
         </CopyToClipboard>
