@@ -14,6 +14,14 @@ exports.getYo = (req, res, next) => {
         .then( item => {
             if(item){
                 logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
+                Yo.find({}).sort({"linkName": 1})
+                .then(all => {
+                    if(all) {
+                        req.app.io.emit("allYos", all)
+                    }else {
+                        logger.error("Error retrieving all Yo\'s: " + res.data);
+                    }
+                });
                 return res.redirect(item.originalUrl);
             } else {
                 logger.warn("Unable to find any entries for: " + linkName);
@@ -39,18 +47,28 @@ exports.postYo = (req, res, next) => {
                 if(urlData) {
                     logger.info("User " + ip + " could not create a Yo as the name is already in-use: " + queryOptions.linkName);
                     res.status(401).json('This name is already in-use. Please select another name.');
-                } else {
+                }else {
                     shortUrl = shortBaseUrl + '/' + linkName;
                     const itemToBeSaved = { originalUrl, shortUrl, linkName, updatedAt };
                     const item = new Yo(itemToBeSaved);
-                    item.save().then(()=>{
-                        logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
-                        res.status(200).json(itemToBeSaved);
-                    }).catch(error=>{
-                        logger.error("Error while trying to save Yo:" + linkName + " -> " + originalUrl + " to database: " + error);
-                        itemToBeSaved.status = "Failed"
-                        res.status(500).json(itemToBeSaved);
-                    });
+                    item.save()
+                        .then(() => {
+                            logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
+                            Yo.find({}).sort({"linkName": 1})
+                            .then(all => {
+                                if(all) {
+                                    req.app.io.emit("allYos", all)
+                                }else {
+                                    logger.error("Error retrieving all Yo\'s: " + res.data);
+                                }
+                            });
+                            res.status(200).json(itemToBeSaved);
+                        })
+                        .catch(error=>{
+                            logger.error("Error while trying to save Yo:" + linkName + " -> " + originalUrl + " to database: " + error);
+                            itemToBeSaved.status = "Failed"
+                            res.status(500).json(itemToBeSaved);
+                        });
                 }
             });
         next()
@@ -68,9 +86,17 @@ exports.updateYo = (req, res) => {
     const updatedAt = new Date();
     if(validUrl.isUri(originalUrl)) {
         Yo.findOneAndUpdate({"linkName": linkName}, {$set: {"originalUrl": originalUrl, "updatedAt": updatedAt}}, {returnNewDocument: true})
-            .then(data => {
-                if(data) {
+            .then(item => {
+                if(item) {
                     logger.info("User from " + ip + " updated " + originalUrl + " as alias: " + linkName);
+                    Yo.find({}).sort({"linkName": 1})
+                    .then(all => {
+                        if(all) {
+                            req.app.io.emit("allYos", all)
+                        }else {
+                            logger.error("Error retrieving all Yo\'s: " + res.data);
+                        }
+                    });
                     return res.status(200).json(linkName + ' updated successfully.');
                 } else {
                     logger.warn("User from " + ip + " tried updating alias: " + linkName + ", but it doesn't exist.");
@@ -95,6 +121,14 @@ exports.deleteYo = (req, res) => {
         .then(item => {
             if(item){
                 logger.info("User from " + ip + " deleted " + item.originalUrl + " as alias: " + linkName);
+                Yo.find({}).sort({"linkName": 1})
+                .then(all => {
+                    if(all) {
+                        req.app.io.emit("allYos", all)
+                    }else {
+                        logger.error("Error retrieving all Yo\'s: " + res.data);
+                    }
+                });
                 return res.status(200).json(linkName + ' deleted successfully.');
             } else {
                 logger.warn("Unable to delete alias: " + linkName);
@@ -183,7 +217,7 @@ exports.emitSocketUpdate = (req, res) => {
             if(all) {
                 req.app.io.emit("allYos", all)
             }else {
-                logger.error("Error retrieving all Yo\'s: " + res.data);   
+                logger.error("Error retrieving all Yo\'s: " + res.data);
             }
         });
 

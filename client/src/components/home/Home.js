@@ -211,10 +211,7 @@ class Home extends Component {
   getAllYos() {
     fetch(this.state.apiUrl)
     .then(res => res.json())
-    .then(out => {
-        this.setState({allYos: out})
-      }
-    )
+    .then(out => { this.setState({allYos: out}) })
   }
 
   getPopularYos() {
@@ -235,9 +232,7 @@ class Home extends Component {
     this.getLiveYos();
 
     // Poll for all Yo's
-      socket.on("allYos", (out) => { 
-        this.setState({ allYos: out }) 
-      }
+      socket.on("allYos", (out) => { this.setState({ allYos: out }) }
     );
 
     // Poll for popular Yo's
