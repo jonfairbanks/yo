@@ -388,7 +388,11 @@ class Home extends Component {
                       <td>
                         <ul style={{"display":"flex"}}>
                           {this.handleCopy(yo)}
-                          <li><i style={{ "cursor":"not-allowed", "paddingRight":"7px" }} className="small material-icons">edit</i></li>
+                          <li>
+                            <a className="modal-trigger grey-text" href="#edit">
+                              <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
+                            </a>
+                          </li>
                         </ul>
                       </td>
                     </tr>
@@ -398,6 +402,30 @@ class Home extends Component {
               }
               </tbody>
             </table>
+            <div id="edit" className="modal">
+              <div className="modal-content">
+                <h4>Edit</h4>
+                <h6>Link Name</h6>
+                <input disabled></input>
+                <h6>Original URL</h6>
+                <input></input>
+                <br/><br/>
+                <a 
+                  href="#!"
+                  className="modal-close waves-effect waves-red red darken-2 btn"
+                  onClick={e =>
+                    window.confirm("Are you sure you want to delete this link?") &&
+                    console.log("Deleted!")
+                  } 
+                >
+                  Permanently Delete
+                </a>
+              </div>
+              <div className="modal-footer">
+                <a href="#!" className="modal-close waves-effect waves-teal btn-flat">Cancel</a>
+                <a href="#!" className="modal-close waves-effect waves-teal btn-flat">Update</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
