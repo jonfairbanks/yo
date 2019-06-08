@@ -41,8 +41,6 @@ const server = app.listen(PORT);
 const io = require('socket.io').listen(server, {pingTimeout: 60000});
 app.io = io
 
-app.use(require('express-status-monitor')({ websocket: io, title: "API Status | Yo - The URL Shortener"}));
-
 console.log("Yo server running on Port " + PORT);
 console.log("\nApp logs are available at: \n" + config.logLocation);
 
