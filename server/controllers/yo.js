@@ -63,7 +63,7 @@ exports.postYo = (req, res, next) => {
 // Update existing Yo in DB
 exports.updateYo = (req, res) => {
     const originalUrl = req.body.originalUrl;
-    const linkName = req.body.linkName.toLowerCase();
+    const linkName = req.params.name.toLowerCase();
     const ip = req.headers["x-real-ip"];
     const updatedAt = new Date();
     if(validUrl.isUri(originalUrl)) {
@@ -71,7 +71,7 @@ exports.updateYo = (req, res) => {
             .then(data => {
                 if(data) {
                     logger.info("User from " + ip + " updated " + originalUrl + " as alias: " + linkName);
-                    return res.status(200).json(linkName + ' updated to ' + originalUrl + ' successfully.');
+                    return res.status(200).json(linkName + ' updated successfully.');
                 } else {
                     logger.warn("User from " + ip + " tried updating alias: " + linkName + ", but it doesn't exist.");
                     return res.status(500).json('There was an error while updating that Yo');
@@ -90,7 +90,7 @@ exports.updateYo = (req, res) => {
 // Delete a Yo from DB
 exports.deleteYo = (req, res) => {
     const ip = req.headers["x-real-ip"];
-    const linkName = req.body.linkName.toLowerCase();
+    const linkName = req.params.name.toLowerCase();
     Yo.findOneAndDelete({ linkName: linkName })
         .then(item => {
             if(item){
