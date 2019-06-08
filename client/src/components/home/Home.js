@@ -232,16 +232,13 @@ class Home extends Component {
     this.getLiveYos();
 
     // Poll for all Yo's
-      socket.on("allYos", (out) => { this.setState({ allYos: out }) }
-    );
+      socket.on("allYos", (out) => { this.setState({ allYos: out }) });
 
     // Poll for popular Yo's
-      socket.on("popYos", (out) => { this.setState({ popYos: out }) }
-    );
+      socket.on("popYos", (out) => { this.setState({ popYos: out }) });
     
     // Poll for recent Yo's
-      socket.on("liveYos", (out) => { this.setState({ liveYos: out }) }
-    );
+      socket.on("liveYos", (out) => { this.setState({ liveYos: out }) });
   }
 
   render() {
