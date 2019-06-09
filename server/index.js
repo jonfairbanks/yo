@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const compression = require('compression')
 const helmet = require('helmet');
+const cors = require('cors');
 
 const config = require('./config/config');
 const PORT = process.env.PORT || 7000;
@@ -26,6 +27,7 @@ app.set('trust proxy',true);
 app.use(helmet());
 app.use(compression());
 app.use(bodyParser.json());
+app.use(cors());
 app.use((req, res, next) => {
   // Required to prevent CORS issues
   res.header('Access-Control-Allow-Origin', '*');
