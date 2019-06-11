@@ -34,7 +34,9 @@ class Home extends Component {
       allYos: "",
       popYos: "",
       liveYos: "",
-      copied: ""
+      copied: "",
+      editingLink: "",
+      editingOriginalUrl: ""
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -177,6 +179,13 @@ class Home extends Component {
     )
   }
 
+  handleEdit(yo) {
+    this.setState({
+      editingLink: yo.linkName,
+      editingOriginalUrl: yo.originalUrl
+    });
+  }
+
   renderButton() {
     if (!this.state.showLoading) {
       return (
@@ -235,6 +244,7 @@ class Home extends Component {
         allowedConnections: ["Username-Password-Authentication"],
         rememberLastLogin: false,
         allowForgotPassword: false,
+        allowSignUp: false,
         closable: false,
         languageDictionary: {"title":"Yo - The URL Shortener"},
         theme: {
@@ -430,7 +440,7 @@ class Home extends Component {
                         <ul style={{"display":"flex"}}>
                           {this.handleCopy(yo)}
                           <li>
-                            <a className="modal-trigger grey-text" href="#edit">
+                            <a onClick={e => this.handleEdit(yo)} className="modal-trigger grey-text" href="#edit">
                               <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
                             </a>
                           </li>
@@ -443,28 +453,30 @@ class Home extends Component {
               }
               </tbody>
             </table>
-            <div id="edit" className="modal">
-              <div className="modal-content">
-                <h4>Edit</h4>
-                <h6>Link Name</h6>
-                <input disabled></input>
-                <h6>Original URL</h6>
-                <input></input>
+            <div id="edit" className="modal grey lighten-3">
+              <h5 style={{marginLeft: "20px"}} className="grey-text text-darken-3">Edit</h5>
+              <div className="modal-content grey-text text-darken-3">
+                <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
+                <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
                 <br/><br/>
+                <input style={{color: "#424242"}} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
+                <br/>
+              </div>
+              <div className="modal-footer grey lighten-3">
                 <a 
                   href="#!"
+                  style={{float: "left"}}
                   className="modal-close waves-effect waves-red red darken-2 btn"
                   onClick={e =>
-                    window.confirm("Are you sure you want to delete this link?") &&
+                    window.confirm("Are you sure you want to permanently delete this link?") &&
                     console.log("Deleted!")
                   } 
                 >
-                  Permanently Delete
+                  Delete
                 </a>
-              </div>
-              <div className="modal-footer">
-                <a href="#!" className="modal-close waves-effect waves-teal btn-flat">Cancel</a>
-                <a href="#!" className="modal-close waves-effect waves-teal btn-flat">Update</a>
+                <a href="#!" className="modal-close waves-effect waves-white btn grey">Cancel</a>
+                <a style={{marginLeft: "8px"}} href="#!" className="waves-effect waves-teal btn">Update</a>
               </div>
             </div>
           </div>
