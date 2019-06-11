@@ -6,6 +6,7 @@ import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import Auth0Lock from 'auth0-lock';
 
 const socket = io(config.socketUrl);
 
@@ -227,6 +228,46 @@ class Home extends Component {
   }
 
   componentDidMount() {
+    var lock = new Auth0Lock(
+      config.auth0Client,
+      config.auth0Domain,
+      {
+        allowedConnections: ["Username-Password-Authentication"],
+        rememberLastLogin: false,
+        allowForgotPassword: false,
+        closable: false,
+        languageDictionary: {"title":"Yo - The URL Shortener"},
+        theme: {
+          "logo":"https://i.imgur.com/r8aUQau.png",
+          "primaryColor":"#26A69A"
+        }
+      }
+    );
+
+    lock.checkSession({}, (err, authResult) => {
+      if (err || !authResult) {
+        lock.show();
+        lock.on("authenticated", authResult => {
+          lock.getUserInfo(authResult.accessToken, (err, profile) => {
+            if (err) {
+              // Handle error
+              return;
+            }
+            localStorage.setItem("accessToken", authResult.accessToken);
+            localStorage.setItem("profile", JSON.stringify(profile));
+            console.log("Hello, " + profile.nickname + "!")
+          });
+        });
+      } else {
+        // User has an active session, so we can use the accessToken directly.
+        lock.getUserInfo(authResult.accessToken, (err, profile) => {
+          localStorage.setItem("accessToken", authResult.accessToken);
+          localStorage.setItem("profile", JSON.stringify(profile));
+          console.log("Welcome back, " + profile.nickname + "!")
+        });
+      }
+    });
+
     this.getAllYos();
     this.getPopularYos();
     this.getLiveYos();
