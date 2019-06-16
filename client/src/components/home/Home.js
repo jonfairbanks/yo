@@ -105,7 +105,7 @@ class Home extends Component {
         return;
       }
 
-      // Ensure linkName's aren't too long
+      // Ensure linkName's aren't too long (better UX)
       if(this.state.linkName.length > 99) {
         this.setState({
           showLoading: false,
@@ -454,7 +454,6 @@ class Home extends Component {
               </tbody>
             </table>
             <div id="edit" className="modal grey lighten-3">
-              <h5 style={{marginLeft: "20px"}} className="grey-text text-darken-3">Edit</h5>
               <div className="modal-content grey-text text-darken-3">
                 <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
