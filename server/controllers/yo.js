@@ -174,6 +174,7 @@ exports.getRecent = (req, res) => {
         });
 }
 
+// Get popular Yos
 exports.getPopular = (req, res) => {
     Yo.find({}).sort({"urlHits": -1}).limit(10)
         .then(pop=>{
@@ -186,6 +187,7 @@ exports.getPopular = (req, res) => {
         });
 }
 
+// Get latest Yos
 exports.getLatest = (req, res) => {
     Yo.find({}).sort({"createdAt": -1}).limit(10)
         .then(latest=>{
@@ -198,6 +200,7 @@ exports.getLatest = (req, res) => {
         });
 }
 
+// Get all Yos
 exports.getAll = (req, res) => {
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
@@ -210,6 +213,7 @@ exports.getAll = (req, res) => {
         });
 }
 
+// Manage socket.io events
 exports.emitSocketUpdate = (req, res) => {
     // All
     Yo.find({}).sort({"linkName": 1})
