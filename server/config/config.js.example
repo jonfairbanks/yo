@@ -3,5 +3,6 @@ module.exports = {
   errorUrl: "https://yo.mysite.io/error",
   baseUrl: "https://yo.mysite.io",
   apiUrl: "https://yo-api.mysite.io/api/",
-  logLocation: "yo.log"
+  logLocation: "yo.log",
+  auth0Domain: "mysite.auth0.com"
 };
