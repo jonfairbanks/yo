@@ -4,9 +4,7 @@ const axios = require('axios');
 
 const authCheck = (req, res, next) => {
   try{ var authToken = req.headers['authorization'] }catch(e) {res.status(401).json('Authentication Error')}
-  if (authToken && authToken.startsWith("Bearer "))
-    authToken = authToken.substring(7, authToken.length);
-  const headers = { 'Authorization': "Bearer " + authToken }
+  const headers = { 'Authorization': authToken }
   axios.get('https://' + config.auth0Domain + '/userinfo', {headers: headers})
   .then((res) => { next() })
   .catch((err) => { res.status(401).json('Authentication Error'); return })
