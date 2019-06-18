@@ -5,6 +5,9 @@ import config from "../../config/config";
 import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import Auth0Lock from 'auth0-lock';
+import axios from "axios";
 
 const socket = io(config.socketUrl);
 
@@ -31,7 +34,10 @@ class Home extends Component {
       exLinkName: config.namePlaceholder,
       allYos: "",
       popYos: "",
-      liveYos: ""
+      liveYos: "",
+      copied: "",
+      editingLink: "",
+      editingOriginalUrl: ""
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -42,6 +48,7 @@ class Home extends Component {
     this.getPopularYos = this.getPopularYos.bind(this);
     this.getLiveYos = this.getLiveYos.bind(this);
     this.hideErrorDiags = this.hideErrorDiags.bind(this);
+    this.handleCopy = this.handleCopy.bind(this);
   }
 
   handleUserInput(e) {
@@ -99,7 +106,7 @@ class Home extends Component {
         return;
       }
 
-      // Ensure linkName's aren't too long
+      // Ensure linkName's aren't too long (better UX)
       if(this.state.linkName.length > 99) {
         this.setState({
           showLoading: false,
@@ -155,6 +162,31 @@ class Home extends Component {
     }
   }
 
+  handleCopy(yo) {
+    return (
+      this.state.copied !== yo._id
+      ? <CopyToClipboard 
+          text={yo.originalUrl} 
+          onCopy={() => {
+            this.setState({ copied: yo._id })
+            setTimeout(() => {
+              this.setState({ copied: "" })
+            }, 3000)
+          }}
+        >
+          <li><i style={{ "cursor":"pointer", "paddingRight":"7px" }} className="small material-icons">content_copy</i></li>
+        </CopyToClipboard>
+      : <li><i style={{ "cursor":"none", "paddingRight":"7px" }} className="small teal-text material-icons">check</i></li>
+    )
+  }
+
+  handleEdit(yo) {
+    this.setState({
+      editingLink: yo.linkName,
+      editingOriginalUrl: yo.originalUrl
+    });
+  }
+
   renderButton() {
     if (!this.state.showLoading) {
       return (
@@ -187,58 +219,84 @@ class Home extends Component {
     }
   }
 
-  getAllYos() {
-    fetch(this.state.apiUrl)
-    .then(res => res.json())
-    .then(out => {
-        this.setState({allYos: out})
-      }
-    )
-    .catch(err => {})
+  getAllYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({allYos: res.data}) })
   }
 
-  getPopularYos() {
-    fetch(this.state.apiUrl + 'popular')
-    .then(res => res.json())
-    .then(out => {
-        this.setState({popYos: out})
-      }
-    )
-    .catch(err => {})
+  getPopularYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'popular', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({popYos: res.data}) })
   }
 
-  getLiveYos() {
-    fetch(this.state.apiUrl + 'recent')
-    .then(res => res.json())
-    .then(out => {
-        this.setState({liveYos: out})
-      }
-    )
-    .catch(err => {})
+  getLiveYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'recent', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({liveYos: res.data}) })
   }
 
   componentDidMount() {
-    this.getAllYos();
-    this.getPopularYos();
-    this.getLiveYos();
+    if(process.env.REACT_APP_AUTH === 'true'){
+      var lock = new Auth0Lock(
+        config.auth0Client,
+        config.auth0Domain,
+        {
+          allowedConnections: ["Username-Password-Authentication"],
+          rememberLastLogin: false,
+          allowForgotPassword: false,
+          allowSignUp: false,
+          closable: false,
+          languageDictionary: {"title":"Yo - The URL Shortener"},
+          theme: {
+            "logo":"https://i.imgur.com/r8aUQau.png",
+            "primaryColor":"#26A69A"
+          }
+        }
+      );
+
+      lock.checkSession({}, (err, authResult) => {
+        if (err || !authResult) {
+          lock.show();
+          lock.on("authenticated", authResult => {
+            lock.getUserInfo(authResult.accessToken, (err, profile) => {
+              if (err) {
+                // Handle error
+                return;
+              }
+              localStorage.setItem("accessToken", authResult.accessToken);
+              console.log("Hello, " + profile.nickname + "!")
+            });
+          });
+        } else {
+          // User has an active session, so we can use the accessToken directly.
+          lock.getUserInfo(authResult.accessToken, (err, profile) => {
+            localStorage.setItem("accessToken", authResult.accessToken);
+            console.log("Welcome back, " + profile.nickname + "!")
+          });
+        }
+        this.getAllYos(authResult);
+        this.getPopularYos(authResult);
+        this.getLiveYos(authResult);
+      });
+    }else {
+      this.getAllYos();
+      this.getPopularYos();
+      this.getLiveYos();
+    }
 
     // Poll for all Yo's
-      socket.on("allYos", (out) => {
-        this.setState({ allYos: out });
-      }
-    );
+    socket.on("allYos", (out) => { this.setState({ allYos: out }) });
 
     // Poll for popular Yo's
-      socket.on("popYos", (out) => {
-        this.setState({ popYos: out });
-      }
-    );
+    socket.on("popYos", (out) => { this.setState({ popYos: out }) });
     
     // Poll for recent Yo's
-      socket.on("liveYos", (out) => {
-        this.setState({ liveYos: out });
-      }
-    );
+    socket.on("liveYos", (out) => { this.setState({ liveYos: out }) });
   }
 
   render() {
@@ -349,7 +407,7 @@ class Home extends Component {
               {
                 this.state.liveYos.length > 0 
                 ? this.state.liveYos.map((yo, key) => {
-                  var timeElapsed = moment(yo.lastAccess).from(moment().add(1, "s"));
+                  var timeElapsed = moment(yo.lastAccess).from(moment().add(30, "s"));
                   return (
                     <tr key={key}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
@@ -373,6 +431,7 @@ class Home extends Component {
                   <th>Link Name</th>
                   <th>Site URL</th>
                   <th>URL Hits</th>
+                  <th>Options</th>
                 </tr>
               </thead>
               <tbody>
@@ -384,6 +443,16 @@ class Home extends Component {
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{ !yo.urlHits ? "-" : yo.urlHits}</td>
+                      <td>
+                        <ul style={{"display":"flex"}}>
+                          {this.handleCopy(yo)}
+                          <li>
+                            <a onClick={e => this.handleEdit(yo)} className="modal-trigger grey-text" href="#edit">
+                              <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
+                            </a>
+                          </li>
+                        </ul>
+                      </td>
                     </tr>
                   )
                 }, this)
@@ -391,6 +460,31 @@ class Home extends Component {
               }
               </tbody>
             </table>
+            <div id="edit" className="modal grey lighten-3">
+              <div className="modal-content grey-text text-darken-3">
+                <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
+                <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
+                <br/><br/>
+                <input style={{color: "#424242"}} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
+                <br/>
+              </div>
+              <div className="modal-footer grey lighten-3">
+                <a 
+                  href="#!"
+                  style={{float: "left"}}
+                  className="modal-close waves-effect waves-red red darken-2 btn"
+                  onClick={e =>
+                    window.confirm("Are you sure you want to permanently delete this link?") &&
+                    console.log("Deleted!")
+                  } 
+                >
+                  Delete
+                </a>
+                <a href="#!" className="modal-close waves-effect waves-white btn grey">Cancel</a>
+                <a style={{marginLeft: "8px"}} href="#!" className="waves-effect waves-teal btn">Update</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

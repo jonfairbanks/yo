@@ -13,10 +13,18 @@ exports.getYo = (req, res) => {
     
     Yo.findOneAndUpdate({ linkName: linkName }, {$inc : {urlHits : 1}, $set:{lastAccess:Date.now()}})
         .then( item => {
-            if(item){ // item returned is not empty
+            if(item){
                 logger.info("User from " + ip + " loaded " + item.originalUrl + " as alias: " + linkName);
+                Yo.find({}).sort({"linkName": 1})
+                .then(all => {
+                    if(all) {
+                        req.app.io.emit("allYos", all)
+                    }else {
+                        logger.error("Error retrieving all Yo\'s: " + res.data);
+                    }
+                });
                 return res.redirect(item.originalUrl);
-            } else { //item returned is empty
+            } else {
                 logger.warn("Unable to find any entries for: " + linkName);
                 return res.redirect(config.errorUrl);
             }
@@ -27,7 +35,7 @@ exports.getYo = (req, res) => {
 }
 
 // Add new Yo to DB
-exports.postYo = (req, res) => {
+exports.postYo = (req, res, next) => {
     const { shortBaseUrl, originalUrl, linkName } = req.body;
     const ip = req.headers["x-real-ip"];
 
@@ -41,26 +49,33 @@ exports.postYo = (req, res) => {
                     // URL already exists
                     logger.info("User " + ip + " could not create a Yo as the name is already in-use: " + queryOptions.linkName);
                     res.status(401).json('This name is already in-use. Please select another name.');
-                } else {
-                    // Define Yo object
+                }else {
                     shortUrl = shortBaseUrl + '/' + linkName;
                     const itemToBeSaved = { originalUrl, shortUrl, linkName, updatedAt };
         
                     // Add the item to db
                     const item = new Yo(itemToBeSaved);
-
-                    item.save().then(()=>{
-                        logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
-                        res.status(200).json(itemToBeSaved);
-                    }).catch(error=>{
-                        logger.error("Error while trying to save Yo:" + linkName + " -> " + originalUrl + " to database: " + error);
-                        itemToBeSaved.status = "Failed"
-                        res.status(500).json(itemToBeSaved);
-                    });
+                    item.save()
+                        .then(() => {
+                            logger.info("User from " + ip + " created alias: " + linkName + " -> " + originalUrl);
+                            Yo.find({}).sort({"linkName": 1})
+                            .then(all => {
+                                if(all) {
+                                    req.app.io.emit("allYos", all)
+                                }else {
+                                    logger.error("Error retrieving all Yo\'s: " + res.data);
+                                }
+                            });
+                            res.status(200).json(itemToBeSaved);
+                        })
+                        .catch(error=>{
+                            logger.error("Error while trying to save Yo:" + linkName + " -> " + originalUrl + " to database: " + error);
+                            itemToBeSaved.status = "Failed"
+                            res.status(500).json(itemToBeSaved);
+                        });
                 }
-            }).catch( error => {
-                //Handle Error
             });
+        next()
     } else {
       logger.warn("The provided URL is improperly formatted: " + originalUrl);
       return res.status(400).json('The provided URL is improperly formatted.');
@@ -70,17 +85,25 @@ exports.postYo = (req, res) => {
 // Update existing Yo in DB
 exports.updateYo = (req, res) => {
     const originalUrl = req.body.originalUrl;
-    const linkName = req.body.linkName.toLowerCase();
+    const linkName = req.params.name.toLowerCase();
     const ip = req.headers["x-real-ip"];
 
     const updatedAt = new Date();
 
     if(validUrl.isUri(originalUrl)) {
         Yo.findOneAndUpdate({"linkName": linkName}, {$set: {"originalUrl": originalUrl, "updatedAt": updatedAt}}, {returnNewDocument: true})
-            .then(data => {
-                if(data) {
+            .then(item => {
+                if(item) {
                     logger.info("User from " + ip + " updated " + originalUrl + " as alias: " + linkName);
-                    return res.status(200).json(linkName + ' updated to ' + originalUrl + ' successfully.');
+                    Yo.find({}).sort({"linkName": 1})
+                    .then(all => {
+                        if(all) {
+                            req.app.io.emit("allYos", all)
+                        }else {
+                            logger.error("Error retrieving all Yo\'s: " + res.data);
+                        }
+                    });
+                    return res.status(200).json(linkName + ' updated successfully.');
                 } else {
                     logger.warn("User from " + ip + " tried updating alias: " + linkName + ", but it doesn't exist.");
                     return res.status(500).json('There was an error while updating that Yo');
@@ -98,11 +121,19 @@ exports.updateYo = (req, res) => {
 // Delete a Yo from DB
 exports.deleteYo = (req, res) => {
     const ip = req.headers["x-real-ip"];
-    const linkName = req.body.linkName.toLowerCase();
+    const linkName = req.params.name.toLowerCase();
     Yo.findOneAndDelete({ linkName: linkName })
         .then(item => {
             if(item){ // item returned is not empty
                 logger.info("User from " + ip + " deleted " + item.originalUrl + " as alias: " + linkName);
+                Yo.find({}).sort({"linkName": 1})
+                .then(all => {
+                    if(all) {
+                        req.app.io.emit("allYos", all)
+                    }else {
+                        logger.error("Error retrieving all Yo\'s: " + res.data);
+                    }
+                });
                 return res.status(200).json(linkName + ' deleted successfully.');
             } else { // item returned is empty
                 logger.warn("Unable to delete alias: " + linkName);
@@ -133,8 +164,6 @@ exports.getStats = (req, res) => {
                 logger.error("Error retrieving Yo stats: " + res.data);
                 return res.status(500).json('Error retrieving Yo stats');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
@@ -148,11 +177,10 @@ exports.getRecent = (req, res) => {
                 logger.error("Error retrieving recently used Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving recently used Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
+// Get popular Yos
 exports.getPopular = (req, res) => {
     Yo.find({}).sort({"urlHits": -1}).limit(10)
         .then(pop=>{
@@ -162,11 +190,10 @@ exports.getPopular = (req, res) => {
                 logger.error("Error retrieving popular Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving popular Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
+// Get latest Yos
 exports.getLatest = (req, res) => {
     Yo.find({}).sort({"createdAt": -1}).limit(10)
         .then(latest=>{
@@ -176,11 +203,10 @@ exports.getLatest = (req, res) => {
                 logger.error("Error retrieving the latest Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving the latest Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
         });
 }
 
+// Get all Yos
 exports.getAll = (req, res) => {
     Yo.find({}).sort({"linkName": 1})
         .then(all => {
@@ -190,7 +216,38 @@ exports.getAll = (req, res) => {
                 logger.error("Error retrieving all Yo\'s: " + res.data);
                 return res.status(500).json('Error retrieving all Yo\'s');
             }
-        }).catch( error => {
-            //Handle Error
+        });
+}
+
+// Manage socket.io events
+exports.emitSocketUpdate = (req, res) => {
+    // All
+    Yo.find({}).sort({"linkName": 1})
+        .then(all => {
+            if(all) {
+                req.app.io.emit("allYos", all)
+            }else {
+                logger.error("Error retrieving all Yo\'s: " + res.data);
+            }
+        });
+
+    // Live
+    Yo.find({}).sort({"lastAccess": -1}).limit(10)
+        .then(latest=>{
+            if(latest) {
+                req.app.io.emit("liveYos", latest)
+            }else {
+                logger.error("Error retrieving the latest Yo\'s: " + res.data);
+            }
+        });
+
+    // Popular
+    Yo.find({}).sort({"urlHits": -1}).limit(10)
+        .then(pop=>{
+            if(pop) {
+                req.app.io.emit("popYos", pop)
+            }else {
+                logger.error("Error retrieving popular Yo\'s: " + res.data);
+            }
         });
 }
