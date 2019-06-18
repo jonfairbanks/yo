@@ -6,6 +6,7 @@ apps:
     min_uptime: 10s
     env:
       PORT: 3000
+      REACT_APP_AUTH: false
     watch:  true
 
   - name:   yo-api
@@ -16,4 +17,5 @@ apps:
     env:
       PORT:     7000
       NODE_ENV: production
+      AUTH: false
     watch:  true

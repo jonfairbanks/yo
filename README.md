@@ -117,15 +117,28 @@ location / {
 }
 ```
 
+## Enabling API Authentication
+By default, the Yo backend API is open which would allow anyone who knew your API endpoint to list, edit or even delete links if they chose. To prevent this, you can enable Auth0 authentication for requests between the client and server. 
+
+- Sign up for an Auth0 account @ https://auth0.com
+- Create and Setup a Regular Web Application. Configure it as you see fit.
+- In the Yo config.js files, set the Client and/or Domain provided by Auth0.
+- Before leaving Auth0, create a user account for your application under User & Roles.
+- When starting the Yo client, pass `REACT_APP_AUTH=true` as an ENV variable to enforce user logins.
+- When starting the Yo server, pass `AUTH=true` as an ENV variable to enable authentication checks. 
+- Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully. 
+
 ## ☑ TODO
 
 - [x] Auto Update Tab Data
 - [x] Client Dockerfile
 - [x] Server Dockerfile
+- [x] API Authentication
 - [ ] Better Error Handling when Navigating to Unset Names
 - [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
 - [ ] Edit/Delete Functionality
+- [ ] Further refactor Home.js
 
 ## Contributers
 Jon Fairbanks - Maintainer

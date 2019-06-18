@@ -7,6 +7,7 @@ import moment from 'moment';
 import io from 'socket.io-client';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Auth0Lock from 'auth0-lock';
+import axios from "axios";
 
 const socket = io(config.socketUrl);
 
@@ -218,69 +219,75 @@ class Home extends Component {
     }
   }
 
-  getAllYos() {
-    fetch(this.state.apiUrl)
-    .then(res => res.json())
-    .then(out => { this.setState({allYos: out}) })
+  getAllYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({allYos: res.data}) })
   }
 
-  getPopularYos() {
-    fetch(this.state.apiUrl + 'popular')
-    .then(res => res.json())
-    .then(out => { this.setState({popYos: out}) })
+  getPopularYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'popular', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({popYos: res.data}) })
   }
 
-  getLiveYos() {
-    fetch(this.state.apiUrl + 'recent')
-    .then(res => res.json())
-    .then(out => { this.setState({liveYos: out}) })
+  getLiveYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'recent', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({liveYos: res.data}) })
   }
 
   componentDidMount() {
-    var lock = new Auth0Lock(
-      config.auth0Client,
-      config.auth0Domain,
-      {
-        allowedConnections: ["Username-Password-Authentication"],
-        rememberLastLogin: false,
-        allowForgotPassword: false,
-        allowSignUp: false,
-        closable: false,
-        languageDictionary: {"title":"Yo - The URL Shortener"},
-        theme: {
-          "logo":"https://i.imgur.com/r8aUQau.png",
-          "primaryColor":"#26A69A"
+    if(process.env.REACT_APP_AUTH === 'true'){
+      var lock = new Auth0Lock(
+        config.auth0Client,
+        config.auth0Domain,
+        {
+          allowedConnections: ["Username-Password-Authentication"],
+          rememberLastLogin: false,
+          allowForgotPassword: false,
+          allowSignUp: false,
+          closable: false,
+          languageDictionary: {"title":"Yo - The URL Shortener"},
+          theme: {
+            "logo":"https://i.imgur.com/r8aUQau.png",
+            "primaryColor":"#26A69A"
+          }
         }
-      }
-    );
+      );
 
-    lock.checkSession({}, (err, authResult) => {
-      if (err || !authResult) {
-        lock.show();
-        lock.on("authenticated", authResult => {
-          lock.getUserInfo(authResult.accessToken, (err, profile) => {
-            if (err) {
-              // Handle error
-              return;
-            }
-            localStorage.setItem("accessToken", authResult.accessToken);
-            localStorage.setItem("profile", JSON.stringify(profile));
-            console.log("Hello, " + profile.nickname + "!")
+      lock.checkSession({}, (err, authResult) => {
+        if (err || !authResult) {
+          lock.show();
+          lock.on("authenticated", authResult => {
+            lock.getUserInfo(authResult.accessToken, (err, profile) => {
+              if (err) {
+                // Handle error
+                return;
+              }
+              localStorage.setItem("accessToken", authResult.accessToken);
+              console.log("Hello, " + profile.nickname + "!")
+            });
           });
-        });
-      } else {
-        // User has an active session, so we can use the accessToken directly.
-        lock.getUserInfo(authResult.accessToken, (err, profile) => {
-          localStorage.setItem("accessToken", authResult.accessToken);
-          localStorage.setItem("profile", JSON.stringify(profile));
-          console.log("Welcome back, " + profile.nickname + "!")
-        });
-      }
-    });
-
-    this.getAllYos();
-    this.getPopularYos();
-    this.getLiveYos();
+        } else {
+          // User has an active session, so we can use the accessToken directly.
+          lock.getUserInfo(authResult.accessToken, (err, profile) => {
+            localStorage.setItem("accessToken", authResult.accessToken);
+            console.log("Welcome back, " + profile.nickname + "!")
+          });
+        }
+        this.getAllYos(authResult);
+        this.getPopularYos(authResult);
+        this.getLiveYos(authResult);
+      });
+    }else {
+      this.getAllYos();
+      this.getPopularYos();
+      this.getLiveYos();
+    }
 
     // Poll for all Yo's
     socket.on("allYos", (out) => { this.setState({ allYos: out }) });
@@ -400,7 +407,7 @@ class Home extends Component {
               {
                 this.state.liveYos.length > 0 
                 ? this.state.liveYos.map((yo, key) => {
-                  var timeElapsed = moment(yo.lastAccess).from(moment().add(1, "s"));
+                  var timeElapsed = moment(yo.lastAccess).from(moment().add(30, "s"));
                   return (
                     <tr key={key}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
