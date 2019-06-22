@@ -8,6 +8,7 @@ import io from 'socket.io-client';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Auth0Lock from 'auth0-lock';
 import axios from "axios";
+import SweetAlert from "react-bootstrap-sweetalert";
 
 const socket = io(config.socketUrl);
 
@@ -49,11 +50,15 @@ class Home extends Component {
     this.getLiveYos = this.getLiveYos.bind(this);
     this.hideErrorDiags = this.hideErrorDiags.bind(this);
     this.handleCopy = this.handleCopy.bind(this);
+    this.handleEdit = this.handleEdit.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
   }
 
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
+    console.log(name);
+    console.log(value);
     this.setState({ [name]: value });
   }
 
@@ -187,6 +192,21 @@ class Home extends Component {
     });
   }
 
+  handleUpdate() {
+    //console.log("Updating " + yo);
+    //console.log("Updated " + yo);
+  }
+  
+  handleDelete() {
+    var accessToken = null;
+    try{ accessToken = localStorage.getItem("accessToken") }catch(e) { accessToken = null };
+    var delEndpoint = this.state.apiUrl + "delete/" + this.state.editingLink;
+    axios.post(delEndpoint, null, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(
+      this.setState({alert: null})
+    )
+  }
+
   renderButton() {
     if (!this.state.showLoading) {
       return (
@@ -249,7 +269,7 @@ class Home extends Component {
           allowedConnections: ["Username-Password-Authentication"],
           rememberLastLogin: false,
           allowForgotPassword: false,
-          allowSignUp: false,
+          allowSignUp: process.env.REACT_APP_SIGNUPS || false,
           closable: false,
           languageDictionary: {"title":"Yo - The URL Shortener"},
           theme: {
@@ -465,7 +485,7 @@ class Home extends Component {
                 <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
                 <br/><br/>
-                <input style={{color: "#424242"}} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                <input style={{color: "#424242"}} onChange={this.handleUserInput.bind(this)} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
                 <br/>
               </div>
@@ -474,17 +494,58 @@ class Home extends Component {
                   href="#!"
                   style={{float: "left"}}
                   className="modal-close waves-effect waves-red red darken-2 btn"
-                  onClick={e =>
-                    window.confirm("Are you sure you want to permanently delete this link?") &&
-                    console.log("Deleted!")
-                  } 
+                  onClick={e => 
+                    this.setState({
+                      alert: (
+                        <SweetAlert
+                          danger
+                          showCancel
+                          confirmBtnText="Yes, delete it!"
+                          confirmBtnBsStyle="danger"
+                          confirmBtnCssClass="modal-close waves-effect waves-red red darken-2 btn"
+                          cancelBtnBsStyle="default"
+                          cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
+                          title={"Delete " + this.state.editingLink + "?"}
+                          onConfirm={this.handleDelete}
+                          onCancel={this.setState({alert: null})}
+                        >
+                          Are you sure? This is permanent!
+                        </SweetAlert>
+                      )
+                    })
+                  }
                 >
                   Delete
                 </a>
                 <a href="#!" className="modal-close waves-effect waves-white btn grey">Cancel</a>
-                <a style={{marginLeft: "8px"}} href="#!" className="waves-effect waves-teal btn">Update</a>
+                <a 
+                  href="#!"
+                  style={{marginLeft: "8px"}} 
+                  className="waves-effect waves-teal btn"
+                  onClick={e => 
+                    this.setState({
+                      alert: (
+                        <SweetAlert
+                          warning
+                          showCancel
+                          confirmBtnText="Update"
+                          confirmBtnBsStyle="danger"
+                          cancelBtnBsStyle="default"
+                          title="Are you sure?"
+                          onConfirm={this.handleUpdate}
+                          onCancel={this.setState({alert: null})}
+                        >
+                          Update {this.state.editingLink}'s URL?
+                        </SweetAlert>
+                      )
+                    })
+                  }
+                >
+                    Update
+                </a>
               </div>
             </div>
+            {this.state.alert}
           </div>
         </div>
       </div>

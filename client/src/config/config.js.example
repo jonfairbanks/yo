@@ -1,5 +1,5 @@
 module.exports = {
-  apiUrl: "https://yo-api.mysite.io/api/",
+  apiUrl: "https://yo-api.mysite.io/api/", // Include the trailing slash!
   socketUrl: "https://yo-api.mysite.io",
   baseUrl: "https://yo.mysite.io",
   blockedNames: ['socket.io'], // Items listed here will be blocked as linkNames
