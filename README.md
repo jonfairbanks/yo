@@ -90,16 +90,6 @@ location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
     proxy_set_header X-Real-IP $remote_addr;
     rewrite ^/(.*)$ https://my-api-url.com/api/item/$1 redirect;
 }
-location /status/ {
-    auth_basic "Administrator Login";
-    auth_basic_user_file /etc/nginx/.htpasswd;
-    proxy_pass http://127.0.0.1:7000/status;
-    proxy_set_header x-real-ip $remote_addr;
-    # Upgrade for Websockets
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-}
 location /socket.io {
     proxy_pass http://127.0.0.1:7000;
     proxy_set_header x-real-ip $remote_addr;
@@ -127,7 +117,13 @@ By default, the Yo backend API is open which would allow anyone who knew your AP
 - Before leaving Auth0, create a user account for your application under User & Roles.
 - When starting the Yo client, pass `REACT_APP_AUTH=true` as an ENV variable to enforce user logins.
 - When starting the Yo server, pass `AUTH=true` as an ENV variable to enable authentication checks. 
-- Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully. 
+- Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully.
+
+By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup. 
+
+## Extras
+- If you're using PM2 to manage your node processes, you can use the included `yo-pm2.yaml` to start and deploy the app.
+- Yo can also be deployed via Docker using the included `docker-compose.yaml` file. Enter the Yo root directory and run `docker-compose up` to deploy the Yo client, backend and 
 
 ## ☑ TODO
 
@@ -135,10 +131,11 @@ By default, the Yo backend API is open which would allow anyone who knew your AP
 - [x] Client Dockerfile
 - [x] Server Dockerfile
 - [x] API Authentication
-- [ ] Better Error Handling when Navigating to Unset Names
+- [x] Edit/Delete Functionality
+- [ ] Build and Deploy App
+- [ ] Better Error Handling when Navigating to Unset Links
 - [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
-- [ ] Edit/Delete Functionality
 - [ ] Further refactor Home.js
 
 ## Contributers
