@@ -4,7 +4,7 @@
 
 Yo Dawg, heard you're tired of remembering URLs
 
-<img src="images/architecture.png" alt="architecture" />
+<img src="images/yo.png" alt="yo" />
 
 ## Dependencies
 
@@ -120,6 +120,9 @@ By default, the Yo backend API is open which would allow anyone who knew your AP
 - Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully.
 
 By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup. 
+
+## Architecture
+<img src="images/architecture.png" alt="architecture" />
 
 ## Extras
 - If you're using PM2 to manage your node processes, you can use the included `yo-pm2.yaml` to start and deploy the app.
