@@ -4,7 +4,7 @@
 
 Yo Dawg, heard you're tired of remembering URLs
 
-<img src="images/yo.png" alt="yo" />
+<img src="images/yo.gif" alt="yo-demo" />
 
 ## Dependencies
 
