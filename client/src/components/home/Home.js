@@ -52,14 +52,14 @@ class Home extends Component {
     this.handleCopy = this.handleCopy.bind(this);
     this.handleEdit = this.handleEdit.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
+    this.handleCancel = this.handleCancel.bind(this);
   }
 
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
-    console.log(name);
-    console.log(value);
-    this.setState({ [name]: value });
+    this.setState({ [name]: value, editingOriginalUrl: value });
   }
 
   extractHostname(url) {
@@ -193,8 +193,44 @@ class Home extends Component {
   }
 
   handleUpdate() {
-    //console.log("Updating " + yo);
-    //console.log("Updated " + yo);
+    var accessToken = null;
+    try{ accessToken = localStorage.getItem("accessToken") }catch(e) { accessToken = null };
+    var updEndpoint = this.state.apiUrl + "update/" + this.state.editingLink;
+    var body = { originalUrl: this.state.editingOriginalUrl }
+    axios.post(updEndpoint, body, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(
+      this.setState({
+        alert: (
+          <SweetAlert
+            success
+            allowEscape
+            confirmBtnCssClass="modal-close waves-effect btn"
+            title={"Updated " + this.state.editingLink + "!"}
+            onConfirm={this.handleCancel}
+          >
+            This link was successfully updated.
+          </SweetAlert>
+        )
+      }),
+      setTimeout(() => {
+        this.handleCancel()
+      }, 5000)
+    )
+    .catch(err => 
+      this.setState({
+        alert: (
+          <SweetAlert
+            warning
+            allowEscape
+            confirmBtnCssClass="modal-close waves-effect btn"
+            title={"Internal Error"}
+            onConfirm={this.setState({alert: null})}
+          >
+            There was an error while updating {this.state.editingLink}.
+          </SweetAlert>
+        )
+      })  
+    )
   }
   
   handleDelete() {
@@ -203,8 +239,42 @@ class Home extends Component {
     var delEndpoint = this.state.apiUrl + "delete/" + this.state.editingLink;
     axios.post(delEndpoint, null, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
     .then(
-      this.setState({alert: null})
+      this.setState({
+        alert: (
+          <SweetAlert
+            success
+            allowEscape
+            confirmBtnCssClass="modal-close waves-effect btn"
+            title={"Deleted " + this.state.editingLink + "!"}
+            onConfirm={this.handleCancel}
+          >
+            This link was successfully deleted.
+          </SweetAlert>
+        )
+      }),
+      setTimeout(() => {
+        this.handleCancel()
+      }, 5000)
     )
+    .catch(err => 
+      this.setState({
+        alert: (
+          <SweetAlert
+            warning
+            allowEscape
+            confirmBtnCssClass="modal-close waves-effect btn"
+            title={"Internal Error"}
+            onConfirm={this.handleCancel}
+          >
+            There was an error while deleting {this.state.editingLink}.
+          </SweetAlert>
+        )
+      })
+    )
+  }
+
+  handleCancel() {
+    this.setState({alert: null});
   }
 
   renderButton() {
@@ -494,12 +564,13 @@ class Home extends Component {
                   href="#!"
                   style={{float: "left"}}
                   className="modal-close waves-effect waves-red red darken-2 btn"
-                  onClick={e => 
+                  onClick={e  => 
                     this.setState({
                       alert: (
                         <SweetAlert
                           danger
                           showCancel
+                          allowEscape
                           confirmBtnText="Yes, delete it!"
                           confirmBtnBsStyle="danger"
                           confirmBtnCssClass="modal-close waves-effect waves-red red darken-2 btn"
@@ -507,7 +578,7 @@ class Home extends Component {
                           cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
                           title={"Delete " + this.state.editingLink + "?"}
                           onConfirm={this.handleDelete}
-                          onCancel={this.setState({alert: null})}
+                          onCancel={this.handleCancel}
                         >
                           Are you sure? This is permanent!
                         </SweetAlert>
@@ -521,21 +592,24 @@ class Home extends Component {
                 <a 
                   href="#!"
                   style={{marginLeft: "8px"}} 
-                  className="waves-effect waves-teal btn"
+                  className="modal-close waves-effect waves-teal btn"
                   onClick={e => 
                     this.setState({
                       alert: (
                         <SweetAlert
-                          warning
+                          info
                           showCancel
-                          confirmBtnText="Update"
-                          confirmBtnBsStyle="danger"
+                          allowEscape
+                          confirmBtnText="Yes, update it!"
+                          confirmBtnBsStyle="default"
+                          confirmBtnCssClass="waves-effect waves-teal btn"
                           cancelBtnBsStyle="default"
-                          title="Are you sure?"
+                          cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
+                          title={"Update " + this.state.editingLink + "?"}
                           onConfirm={this.handleUpdate}
-                          onCancel={this.setState({alert: null})}
+                          onCancel={this.handleCancel}
                         >
-                          Update {this.state.editingLink}'s URL?
+                          Do you want to update the current URL?
                         </SweetAlert>
                       )
                     })
