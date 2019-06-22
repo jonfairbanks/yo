@@ -122,6 +122,7 @@ By default, the Yo backend API is open which would allow anyone who knew your AP
 By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup. 
 
 ## Architecture
+
 <img src="images/architecture.png" alt="architecture" />
 
 ## Extras
