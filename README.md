@@ -6,6 +6,8 @@ Yo Dawg, heard you're tired of remembering URLs
 
 <img src="images/yo.gif" alt="yo-demo" />
 
+Turn long, hard to remember URLs into easily sharable short-links. 
+
 ## Dependencies
 
 - ### Server
