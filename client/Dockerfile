@@ -1,5 +1,5 @@
 # Stage 1 - build process
-FROM node:12 as build-deps
+FROM node:8 as build-deps
 
 # Run as Non-Root
 RUN mkdir -p /app && chown -R node:node /app
