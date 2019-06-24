@@ -4,7 +4,7 @@
 
 Yo Dawg, heard you're tired of remembering URLs
 
-<img src="images/yo.gif" alt="yo-demo" />
+<img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
 
 Turn long, hard to remember URLs into easily sharable short-links. 
 
@@ -125,7 +125,7 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 
 ## Architecture
 
-<img src="images/architecture.png" alt="architecture" />
+<img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/architecture.png" alt="yo-architecture" />
 
 ## Extras
 - If you're using PM2 to manage your node processes, you can use the included `yo-pm2.yaml` to start and deploy the app.
