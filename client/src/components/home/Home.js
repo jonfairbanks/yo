@@ -59,7 +59,7 @@ class Home extends Component {
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
-    this.setState({ [name]: value, editingOriginalUrl: value });
+    this.setState({ [name]: value });
   }
 
   extractHostname(url) {
@@ -224,7 +224,7 @@ class Home extends Component {
             allowEscape
             confirmBtnCssClass="modal-close waves-effect btn"
             title={"Internal Error"}
-            onConfirm={this.setState({alert: null})}
+            onConfirm={this.handleCancel}
           >
             There was an error while updating {this.state.editingLink}.
           </SweetAlert>
@@ -274,7 +274,11 @@ class Home extends Component {
   }
 
   handleCancel() {
-    this.setState({alert: null});
+    this.setState({
+      alert: null,
+      editingLink: null,
+      editingOriginalUrl: null
+    });
   }
 
   renderButton() {
@@ -537,7 +541,16 @@ class Home extends Component {
                         <ul style={{"display":"flex"}}>
                           {this.handleCopy(yo)}
                           <li>
-                            <a onClick={e => this.handleEdit(yo)} className="modal-trigger grey-text" href="#edit">
+                            <a 
+                              onClick={
+                                e => this.setState({
+                                  editingLink: yo.linkName,
+                                  editingOriginalUrl: yo.originalUrl
+                                })
+                              }
+                              className="modal-trigger grey-text" 
+                              href="#edit"
+                            >
                               <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
                             </a>
                           </li>
@@ -555,7 +568,7 @@ class Home extends Component {
                 <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
                 <br/><br/>
-                <input style={{color: "#424242"}} onChange={this.handleUserInput.bind(this)} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                <input style={{color: "#424242"}} onChange={e => this.setState({editingOriginalUrl: e.target.value})} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
                 <br/>
               </div>
