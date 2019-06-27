@@ -1,9 +1,15 @@
 node_modules
 npm-debug.log
 .git
+.gitignore
 .cache
 *.md
 *.example
 LICENSE
 logo.*
-docker-node-app.yaml
+*.yaml
+*.png
+*.gif
+*.jpg
+*.bmpr
+.env*
