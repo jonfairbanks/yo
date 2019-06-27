@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 mongoose.promise = Promise;
 const Yo = mongoose.model('yo');
 const logger = require('../services/logger');
-const config = require('../config/config');
 const validUrl = require('valid-url');
 
 
@@ -26,11 +25,11 @@ exports.getYo = (req, res) => {
                 return res.redirect(item.originalUrl);
             } else {
                 logger.warn("Unable to find any entries for: " + linkName);
-                return res.redirect(config.errorUrl);
+                return res.redirect(process.env.ERROR_URL);
             }
         }).catch( error => {
             logger.error("There was an error while searching database for: " + linkName + ': ' + error);
-            return res.redirect(config.errorUrl);
+            return res.redirect(process.env.ERROR_URL);
         });
 }
 
