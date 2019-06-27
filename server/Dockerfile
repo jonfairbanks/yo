@@ -9,7 +9,7 @@ WORKDIR /app
 USER node
 
 # Quietly Install Dependencies
-COPY --chown=node:node package*.json yarn*.* ./
+COPY --chown=node:node package*.json yarn*.* .env ./
 RUN  yarn install --production --silent && yarn cache clean
 
 # Bundle App Source
