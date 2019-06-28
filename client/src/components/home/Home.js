@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
-import config from "../../config/config";
 import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
@@ -10,11 +9,13 @@ import Auth0Lock from 'auth0-lock';
 import axios from "axios";
 import SweetAlert from "react-bootstrap-sweetalert";
 
-const socket = io(config.socketUrl);
+const socket = io(process.env.REACT_APP_SOCKET_URL);
 
 var filter = new Filter();
-filter.addWords(...config.blockedNames); 
-filter.removeWords(...config.allowedNames);
+var blocked = process.env.REACT_APP_BLOCKED_NAMES.split(",");
+var allowed = process.env.REACT_APP_ALLOWED_NAMES.split(",");
+filter.addWords(...blocked); 
+filter.removeWords(...allowed);
 
 class Home extends Component {
   constructor() {
@@ -25,14 +26,14 @@ class Home extends Component {
       originalUrl: "",
       baseUrl: "",
       linkName: "",
-      apiUrl: config.apiUrl,
+      apiUrl: process.env.REACT_APP_API_URL,
       clickSubmit: true,
       showError: false,
       apiError: "",
       showApiError: false,
       showLoading: false,
-      exUrl: config.urlPlaceholder,
-      exLinkName: config.namePlaceholder,
+      exUrl: process.env.REACT_APP_URL_PLACEHOLDER,
+      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER,
       allYos: "",
       popYos: "",
       liveYos: "",
@@ -97,11 +98,11 @@ class Home extends Component {
       let reqObj = {
         originalUrl: this.state.originalUrl,
         linkName: this.state.linkName.toLowerCase(),
-        shortBaseUrl: config.baseUrl
+        shortBaseUrl: process.env.REACT_APP_BASE_URL
       };
 
       // Ensure that links are not pointing back to Yo, essentially creating a loop.
-      if(this.checkHostname(config.baseUrl, reqObj.originalUrl)) {
+      if(this.checkHostname(process.env.REACT_APP_BASE_URL, reqObj.originalUrl)) {
         this.setState({
           showLoading: false,
           showApiError: true,
@@ -123,7 +124,7 @@ class Home extends Component {
       }
 
       // Profanity filter for linkName's
-      if(filter.isProfane(reqObj.linkName)) {
+      if(filter.isProfane(reqObj.linkName) || reqObj.linkName === "socket.io") {
         this.setState({
           showLoading: false,
           showApiError: true,
@@ -252,9 +253,7 @@ class Home extends Component {
           </SweetAlert>
         )
       }),
-      setTimeout(() => {
-        this.handleCancel()
-      }, 5000)
+      setTimeout(() => { this.handleCancel() }, 5000)
     )
     .catch(err => 
       this.setState({
@@ -337,8 +336,8 @@ class Home extends Component {
   componentDidMount() {
     if(process.env.REACT_APP_AUTH === 'true'){
       var lock = new Auth0Lock(
-        config.auth0Client,
-        config.auth0Domain,
+        process.env.REACT_APP_AUTH0_CLIENT,
+        process.env.REACT_APP_AUTH0_DOMAIN,
         {
           allowedConnections: ["Username-Password-Authentication"],
           rememberLastLogin: false,
