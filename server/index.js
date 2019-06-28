@@ -44,7 +44,7 @@ const io = require('socket.io').listen(server, {pingTimeout: 60000});
 app.io = io
 
 console.log("Yo server running on Port " + PORT);
-console.log("\nApp logs are available at: \n" + process.env.LOG_LOCATION);
+console.log("\nApp logs are available at: \n" + process.env.LOG_LOCATION || "yo.log");
 
 require('./routes/yo')(app);
 require('./services/cache');
