@@ -8,23 +8,6 @@ Yo Dawg, heard you're tired of remembering URLs
 
 Turn long, hard to remember URLs into easily sharable short-links. 
 
-## Dependencies
-
-- ### Server
-
-  - [Express](https://expressjs.com/) - Node.js Framework for Building REST APIs
-  - [MongoDB](http://mongodb.com/) - Document Oriented NoSQL Database
-  - [Mongoose](https://http://mongoosejs.com) - MongoDB Object Modeling
-  - [Valid-url](https://github.com/ogt/valid-url) - URL Validation Functions
-  - [Nginx](https://www.nginx.com) - Reverse Proxy
-
-- ### Client
-
-  - [React](https://reactjs.org/) - JS Library for Building UI's
-  - [React-router](https://github.com/ReactTraining/react-router) - Complete Routing Library for React
-  - [Materialize css](http://materializecss.com/) - Responsive Front-end Framework Based on Material UI
-  - [Auth0 Lock](https://www.npmjs.com/package/auth0-lock) - Universal login and access control
-
 ## Getting Started
 
 #### Prerequisites
