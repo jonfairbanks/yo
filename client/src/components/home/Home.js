@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import "./Home.css";
 import { createShortUrl } from "../../APIHelper";
-import config from "../../config/config";
 import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
@@ -10,11 +9,13 @@ import Auth0Lock from 'auth0-lock';
 import axios from "axios";
 import SweetAlert from "react-bootstrap-sweetalert";
 
-const socket = io(config.socketUrl);
+const socket = io(process.env.REACT_APP_SOCKET_URL);
 
 var filter = new Filter();
-filter.addWords(...config.blockedNames); 
-filter.removeWords(...config.allowedNames);
+var blocked = process.env.REACT_APP_BLOCKED_NAMES.split(",");
+var allowed = process.env.REACT_APP_ALLOWED_NAMES.split(",");
+filter.addWords(...blocked); 
+filter.removeWords(...allowed);
 
 class Home extends Component {
   constructor() {
@@ -25,14 +26,14 @@ class Home extends Component {
       originalUrl: "",
       baseUrl: "",
       linkName: "",
-      apiUrl: config.apiUrl,
+      apiUrl: process.env.REACT_APP_API_URL,
       clickSubmit: true,
       showError: false,
       apiError: "",
       showApiError: false,
       showLoading: false,
-      exUrl: config.urlPlaceholder,
-      exLinkName: config.namePlaceholder,
+      exUrl: process.env.REACT_APP_URL_PLACEHOLDER || "https://github.com/jonfairbanks/yo",
+      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || "Yo | The URL Shortener",
       allYos: "",
       popYos: "",
       liveYos: "",
@@ -59,7 +60,7 @@ class Home extends Component {
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
-    this.setState({ [name]: value, editingOriginalUrl: value });
+    this.setState({ [name]: value });
   }
 
   extractHostname(url) {
@@ -97,11 +98,11 @@ class Home extends Component {
       let reqObj = {
         originalUrl: this.state.originalUrl,
         linkName: this.state.linkName.toLowerCase(),
-        shortBaseUrl: config.baseUrl
+        shortBaseUrl: process.env.REACT_APP_BASE_URL
       };
 
       // Ensure that links are not pointing back to Yo, essentially creating a loop.
-      if(this.checkHostname(config.baseUrl, reqObj.originalUrl)) {
+      if(this.checkHostname(process.env.REACT_APP_BASE_URL, reqObj.originalUrl)) {
         this.setState({
           showLoading: false,
           showApiError: true,
@@ -123,7 +124,7 @@ class Home extends Component {
       }
 
       // Profanity filter for linkName's
-      if(filter.isProfane(reqObj.linkName)) {
+      if(filter.isProfane(reqObj.linkName) || reqObj.linkName === "socket.io") {
         this.setState({
           showLoading: false,
           showApiError: true,
@@ -224,7 +225,7 @@ class Home extends Component {
             allowEscape
             confirmBtnCssClass="modal-close waves-effect btn"
             title={"Internal Error"}
-            onConfirm={this.setState({alert: null})}
+            onConfirm={this.handleCancel}
           >
             There was an error while updating {this.state.editingLink}.
           </SweetAlert>
@@ -252,9 +253,7 @@ class Home extends Component {
           </SweetAlert>
         )
       }),
-      setTimeout(() => {
-        this.handleCancel()
-      }, 5000)
+      setTimeout(() => { this.handleCancel() }, 5000)
     )
     .catch(err => 
       this.setState({
@@ -274,7 +273,11 @@ class Home extends Component {
   }
 
   handleCancel() {
-    this.setState({alert: null});
+    this.setState({
+      alert: null,
+      editingLink: null,
+      editingOriginalUrl: null
+    });
   }
 
   renderButton() {
@@ -333,8 +336,8 @@ class Home extends Component {
   componentDidMount() {
     if(process.env.REACT_APP_AUTH === 'true'){
       var lock = new Auth0Lock(
-        config.auth0Client,
-        config.auth0Domain,
+        process.env.REACT_APP_AUTH0_CLIENT,
+        process.env.REACT_APP_AUTH0_DOMAIN,
         {
           allowedConnections: ["Username-Password-Authentication"],
           rememberLastLogin: false,
@@ -380,13 +383,13 @@ class Home extends Component {
     }
 
     // Poll for all Yo's
-    socket.on("allYos", (out) => { this.setState({ allYos: out }) });
+    socket.on("allYos", (all) => { this.setState({ allYos: all }) });
 
     // Poll for popular Yo's
-    socket.on("popYos", (out) => { this.setState({ popYos: out }) });
+    socket.on("popYos", (pop) => { this.setState({ popYos: pop }) });
     
     // Poll for recent Yo's
-    socket.on("liveYos", (out) => { this.setState({ liveYos: out }) });
+    socket.on("liveYos", (live) => { this.setState({ liveYos: live }) });
   }
 
   render() {
@@ -537,7 +540,16 @@ class Home extends Component {
                         <ul style={{"display":"flex"}}>
                           {this.handleCopy(yo)}
                           <li>
-                            <a onClick={e => this.handleEdit(yo)} className="modal-trigger grey-text" href="#edit">
+                            <a 
+                              onClick={
+                                e => this.setState({
+                                  editingLink: yo.linkName,
+                                  editingOriginalUrl: yo.originalUrl
+                                })
+                              }
+                              className="modal-trigger grey-text" 
+                              href="#edit"
+                            >
                               <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
                             </a>
                           </li>
@@ -555,7 +567,7 @@ class Home extends Component {
                 <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
                 <br/><br/>
-                <input style={{color: "#424242"}} onChange={this.handleUserInput.bind(this)} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                <input style={{color: "#424242"}} onChange={e => this.setState({editingOriginalUrl: e.target.value})} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
                 <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
                 <br/>
               </div>
