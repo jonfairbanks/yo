@@ -45,19 +45,19 @@ Rename the included `.env.sample` files to `.env` and update variables as approp
 
 ###### Client:
 
-| ENV                | Required? | Details                                                                                                    | Example								|
-|--------------------|-----------|------------------------------------------------------------------------------------------------------------|
-| `REACT_APP_API_URL`          | Yes       | Used to connect to the Yo API. Be sure to include the trailing slash. | `https://yo-api.mysite.io/api/` |
-| `REACT_APP_SOCKET_URL`       | Yes       | This will be used to connect to Yo API's Socket.io endpoint. | `https://yo-api.mysite.io`                                               |
-| `REACT_APP_BASE_URL`         | Yes       | The url of the website where Yo is hosted. The slash is not required.            |   `https://yo.mysite.io`
-| `REACT_APP_BLOCKED_NAMES`    | No        | Comma separated string of words that cannot be used as link names. | `"blocked1,blocked2"`                   |
-| `REACT_APP_ALLOWED_NAMES`    | No        | Comma separated string of words to allow through the filter. A complete list of blocked names can be found [here](https://github.com/web-mech/badwords/blob/master/lib/lang.json "here"). | `"allowed1,allowed2"`.       |
-| `REACT_APP_URL_PLACEHOLDER`  | No        | Overwrite the default URL placeholder shown on the submit form.  | `https://www.youtube.com/watch?v=dQw4w9WgXcQ`                                                          |
-| `REACT_APP_NAME_PLACEHOLDER` | No        | Overwrite the default link name placeholder shown on the submit form.      | `Rick`                                               |
-| `REACT_APP_AUTH`             | No        | Enforces user logins via Auth0. For more details, see the **Enabling API Authentication** section below.                          | `true`
-| `REACT_APP_AUTH0_CLIENT`     | No        | Required for Authentication Setup                 | Provided during Auth0 Setup                                                         |
-| `REACT_APP_AUTH0_DOMAIN`     | No        | Required for Authentication Setup                 | `mysite.auth0.com`                                                         |
-| `PORT`     | No        | Override the application port. Defaults to 3000.                | `3001`                                                         |
+| ENV                          | Required? | Details                                                                                                                                                                                   | Example                                       |
+|------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| `REACT_APP_API_URL`          | Yes       | Used to connect to the Yo API. Be sure to include the trailing slash.                                                                                                                     | `https://yo-api.mysite.io/api/`               |
+| `REACT_APP_SOCKET_URL`       | Yes       | This will be used to connect to Yo API’s Socket.io endpoint.                                                                                                                              | `https://yo-api.mysite.io`                    |
+| `REACT_APP_BASE_URL`         | Yes       | The url of the website where Yo is hosted. The slash is not required.                                                                                                                     | `https://yo.mysite.io`                        |
+| `REACT_APP_BLOCKED_NAMES`    | No        | Comma separated string of words that cannot be used as link names.                                                                                                                        | `"blocked1,blocked2"`                         |
+| `REACT_APP_ALLOWED_NAMES`    | No        | Comma separated string of words to allow through the filter. A complete list of blocked names can be found [here](https://github.com/web-mech/badwords/blob/master/lib/lang.json "here"). | `"allowed1,allowed2"`                         |
+| `REACT_APP_URL_PLACEHOLDER`  | No        | Overwrite the default URL placeholder shown on the submit form.                                                                                                                           | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
+| `REACT_APP_NAME_PLACEHOLDER` | No        | Overwrite the default link name placeholder shown on the submit form.                                                                                                                     | `Rick`                                        |
+| `REACT_APP_AUTH`             | No        | Enforces user logins via Auth0. For more details, see the **Enabling API Authentication** section below.                                                                                   | `true`                                        |
+| `REACT_APP_AUTH0_CLIENT`     | No        | Required for Authentication Setup                                                                                                                                                         | Provided during Auth0 Setup                   |
+| `REACT_APP_AUTH0_DOMAIN`     | No        | Required for Authentication Setup                                                                                                                                                         | `mysite.auth0.com`                            |
+| `PORT`                       | No        | Override the application port. Defaults to 3000.                                                                                                                                          | `3001`                                        |                                                     |
 
 ###### Server:
 
