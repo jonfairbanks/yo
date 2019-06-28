@@ -9,7 +9,7 @@ require('dotenv').config()
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
-  process.env.MONGO_URI,
+  process.env.MONGO_URI || 'mongodb://localhost/yo',
   {
     keepAlive: true,
     reconnectTries: Number.MAX_VALUE,
