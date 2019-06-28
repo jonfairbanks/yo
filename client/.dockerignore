@@ -13,3 +13,4 @@ logo.*
 *.jpg
 *.bmpr
 .env*
+*.sample
