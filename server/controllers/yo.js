@@ -17,7 +17,7 @@ exports.getYo = (req, res) => {
                 Yo.find({}).sort({"linkName": 1})
                 .then(all => {
                     if(all) {
-                        req.app.io.emit("allYos", all)
+                        this.emitSocketUpdate(req)
                     }else {
                         logger.error("Error retrieving all Yo\'s: " + res.data);
                     }
@@ -232,7 +232,7 @@ exports.emitSocketUpdate = (req, res) => {
 
     // Live
     Yo.find({}).sort({"lastAccess": -1}).limit(10)
-        .then(latest=>{
+        .then(latest => {
             if(latest) {
                 req.app.io.emit("liveYos", latest)
             }else {
@@ -242,7 +242,7 @@ exports.emitSocketUpdate = (req, res) => {
 
     // Popular
     Yo.find({}).sort({"urlHits": -1}).limit(10)
-        .then(pop=>{
+        .then(pop => {
             if(pop) {
                 req.app.io.emit("popYos", pop)
             }else {

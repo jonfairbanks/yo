@@ -384,13 +384,13 @@ class Home extends Component {
     }
 
     // Poll for all Yo's
-    socket.on("allYos", (out) => { this.setState({ allYos: out }) });
+    socket.on("allYos", (all) => { this.setState({ allYos: all }) });
 
     // Poll for popular Yo's
-    socket.on("popYos", (out) => { this.setState({ popYos: out }) });
+    socket.on("popYos", (pop) => { this.setState({ popYos: pop }) });
     
     // Poll for recent Yo's
-    socket.on("liveYos", (out) => { this.setState({ liveYos: out }) });
+    socket.on("liveYos", (live) => { this.setState({ liveYos: live }) });
   }
 
   render() {
