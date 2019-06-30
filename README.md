@@ -157,7 +157,6 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 - [x] Edit/Delete Functionality
 - [x] Build and Deploy App
 - [ ] Better Error Handling when Navigating to Unset Links
-- [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
 - [ ] Further refactor Home.js
 

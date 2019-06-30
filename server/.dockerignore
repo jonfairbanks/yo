@@ -12,5 +12,4 @@ logo.*
 *.gif
 *.jpg
 *.bmpr
-.env*
 *.sample
