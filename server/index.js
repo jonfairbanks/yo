@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const compression = require('compression')
 const helmet = require('helmet');
 const cors = require('cors');
+const stoppable = require('stoppable');
 
 require('dotenv').config()
 
@@ -12,7 +13,7 @@ mongoose.connect(
   process.env.MONGO_URI || 'mongodb://localhost/yo',
   {
     keepAlive: true,
-    reconnectTries: Number.MAX_VALUE,
+    reconnectTries: 5,
     useNewUrlParser: true,
     useFindAndModify: false
   },
@@ -40,7 +41,8 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 7000;
 const server = app.listen(PORT);
-const io = require('socket.io').listen(server, {pingTimeout: 60000});
+stoppable(server, 30000); // Properly handle SIGTERM and SIGKILL
+const io = require('socket.io').listen(server);
 app.io = io
 
 console.log("Yo server running on Port " + PORT);
