@@ -8,14 +8,16 @@ EXPOSE 3000
 RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
 USER node
-COPY --chown=node:node package*.json yarn*.* .env* ./
-RUN  yarn install --production --ignore-optional --silent && yarn cache clean
+COPY --chown=node:node package*.json ./
+RUN  npm install --no-optional --silent && npm cache clean
+#RUN  yarn install --production --ignore-optional --silent && yarn cache clean
 
 # Development ENV
 FROM base as dev
 ENV NODE_ENV=development
 ENV PATH=/app/node_modules/.bin:$PATH
-RUN yarn install --production=false --ignore-optional --silent && yarn cache clean
+RUN npm install --only=development --no-optional --silent && npm cache clean
+#RUN yarn install --production=false --ignore-optional --silent && yarn cache clean
 CMD ["nodemon", "index.js", "--inspect=0.0.0.0:9229"]
 
 # Source
@@ -34,7 +36,7 @@ CMD ["npm", "run", "test"]
 # Audit ENV
 FROM test as audit
 USER root
-RUN yarn audit --audit-level critical
+RUN npm audit --audit-level critical
 ARG MICROSCANNER_TOKEN
 ADD https://get.aquasec.com/microscanner /
 RUN chmod +x /microscanner
