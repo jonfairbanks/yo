@@ -146,9 +146,9 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 
 ## Extras
 - If you're using PM2 to manage your node processes, you can use the included `yo-pm2.yaml` to start and deploy the app.
-- Yo can also be deployed via Docker using the included `docker-compose.yaml` file. Enter the Yo root directory and run `docker-compose up` to deploy the Yo client, backend and 
+- Yo can also be deployed via Docker using the included `docker-compose.yaml` file. Enter the Yo root directory and run `docker-compose up` to deploy the Yo client, backend and database.
 
-## ☑ TODO
+## ☑ To Do
 
 - [x] Auto Update Tab Data
 - [x] Client Dockerfile
@@ -157,7 +157,6 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 - [x] Edit/Delete Functionality
 - [x] Build and Deploy App
 - [ ] Better Error Handling when Navigating to Unset Links
-- [ ] Pass through for Query Parameters
 - [ ] Swipeable Tabs
 - [ ] Further refactor Home.js
 
