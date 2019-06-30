@@ -1,6 +1,5 @@
 import axios from "axios";
-import constants from "./config/config";
-axios.defaults.baseURL = constants.apiUrl;
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 var accessToken = localStorage.getItem("accessToken");
 const headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken }
