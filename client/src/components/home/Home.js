@@ -413,6 +413,8 @@ class Home extends Component {
               placeholder={this.state.exUrl}
               value={this.state.originalUrl}
               onChange={this.handleUserInput.bind(this)}
+              autoComplete="off"
+              spellCheck="false"
             />
 
             {this.state.showError && (
@@ -432,6 +434,8 @@ class Home extends Component {
               value={this.state.linkName}
               onChange={this.handleUserInput.bind(this)}
               onKeyDown={this.handleKeyDown}
+              autoComplete="off"
+              spellCheck="false"
             />
 
             {this.state.showError && (

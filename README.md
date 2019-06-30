@@ -6,7 +6,6 @@ Yo Dawg, heard you're tired of remembering URLs
 
 <img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
 
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 ![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/jonfairbanks/yo-client.svg)
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/jonfairbanks/yo-client.svg)
 ![GitHub top language](https://img.shields.io/github/languages/top/jonfairbanks/yo.svg)
