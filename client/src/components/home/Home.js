@@ -33,7 +33,7 @@ class Home extends Component {
       showApiError: false,
       showLoading: false,
       exUrl: process.env.REACT_APP_URL_PLACEHOLDER || "https://github.com/jonfairbanks/yo",
-      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || "Yo | The URL Shortener",
+      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || "Yo-URL",
       allYos: "",
       popYos: "",
       liveYos: "",
