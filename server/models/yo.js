@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+
 const { Schema } = mongoose;
 
 const yoSchema = new Schema({
@@ -8,7 +9,7 @@ const yoSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   lastAccess: Date,
-  urlHits: Number
+  urlHits: Number,
 }, { versionKey: false });
 
-mongoose.model("yo", yoSchema);
+mongoose.model('yo', yoSchema);
