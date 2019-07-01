@@ -49,7 +49,7 @@ exports.postYo = (req, res, next) => {
           logger.info(`User ${ip} could not create a Yo as the name is already in-use: ${queryOptions.linkName}`);
           res.status(401).json('This name is already in-use. Please select another name.');
         } else {
-          let shortUrl = `${shortBaseUrl}/${linkName}`;
+          const shortUrl = `${shortBaseUrl}/${linkName}`;
           const itemToBeSaved = {
             originalUrl, shortUrl, linkName, updatedAt,
           };
@@ -150,7 +150,7 @@ exports.getStats = (req, res) => {
   let hits = 0;
   Yo.find({}, { urlHits: 1, _id: 0 }).sort({ urlHits: -1 })
     .then((hitsData) => {
-      for (let i = 0; i < hitsData.length; i+=1) {
+      for (let i = 0; i < hitsData.length; i += 1) {
         if (hitsData[i].urlHits) {
           hits += hitsData[i].urlHits;
         }
@@ -174,7 +174,7 @@ exports.getRecent = (req, res) => {
         return res.status(200).json(rec);
       }
       logger.error(`Error retrieving recently used Yo's: ${res.data}`);
-      return res.status(500).json(`Error retrieving recently used Yo's`);
+      return res.status(500).json('Error retrieving recently used Yo\'s');
     });
 };
 
@@ -186,7 +186,7 @@ exports.getPopular = (req, res) => {
         return res.status(200).json(pop);
       }
       logger.error(`Error retrieving popular Yo's: ${res.data}`);
-      return res.status(500).json(`Error retrieving popular Yo's`);
+      return res.status(500).json('Error retrieving popular Yo\'s');
     });
 };
 
@@ -198,7 +198,7 @@ exports.getLatest = (req, res) => {
         return res.status(200).json(latest);
       }
       logger.error(`Error retrieving the latest Yo's: ${res.data}`);
-      return res.status(500).json(`Error retrieving the latest Yo's`);
+      return res.status(500).json('Error retrieving the latest Yo\'s');
     });
 };
 
@@ -210,7 +210,7 @@ exports.getAll = (req, res) => {
         return res.status(200).json(all);
       }
       logger.error(`Error retrieving all Yo's: ${res.data}`);
-      return res.status(500).json(`Error retrieving all Yo's`);
+      return res.status(500).json('Error retrieving all Yo\'s');
     });
 };
 
