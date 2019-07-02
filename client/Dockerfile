@@ -8,11 +8,11 @@ USER node
 
 # Quietly Install Dependencies
 COPY --chown=node:node package*.json yarn*.* .env* ./
-RUN  yarn install --production --silent && yarn cache clean
+RUN  npm install --no-optional --silent && npm cache clean --force > "/dev/null" 2>&1
 
 # Bundle App Source
 COPY --chown=node:node . ./
-RUN yarn build
+RUN npm run build
 
 # Stage 2 - Run in Production
 FROM nginx:1.16-alpine

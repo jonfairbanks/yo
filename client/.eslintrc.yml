@@ -1,0 +1,20 @@
+extends: airbnb
+rules:
+  react/jsx-filename-extension:
+  - 1
+  - extensions:
+    - ".js"
+    - ".jsx"
+  comma-dangle: 0
+  linebreak-style: 0
+  react/destructuring-assignment: 0
+  class-methods-use-this: 0
+  prefer-stateless-function: 0
+  prefer-destructuring: 0
+  react/no-access-state-in-setstate: off
+  no-underscore-dangle: 0
+  jsx-a11y/no-noninteractive-element-interactions: 0
+  jsx-a11y/click-events-have-key-events: 0
+plugins:
+- react
+- import
