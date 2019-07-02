@@ -24,7 +24,6 @@ class Home extends Component {
       showShortenUrl: false,
       shortenUrl: "",
       originalUrl: "",
-      baseUrl: "",
       linkName: "",
       apiUrl: process.env.REACT_APP_API_URL,
       clickSubmit: true,
@@ -57,10 +56,84 @@ class Home extends Component {
     this.handleCancel = this.handleCancel.bind(this);
   }
 
-  handleUserInput(e) {
-    const name = e.target.name;
-    const value = e.target.value;
-    this.setState({ [name]: value });
+  componentDidMount() {
+    if(process.env.REACT_APP_AUTH === 'true'){
+      var lock = new Auth0Lock(
+        process.env.REACT_APP_AUTH0_CLIENT,
+        process.env.REACT_APP_AUTH0_DOMAIN,
+        {
+          allowedConnections: ["Username-Password-Authentication"],
+          rememberLastLogin: false,
+          allowForgotPassword: false,
+          allowSignUp: process.env.REACT_APP_SIGNUPS || false,
+          closable: false,
+          languageDictionary: {"title":"Yo - The URL Shortener"},
+          theme: {
+            "logo":"https://i.imgur.com/r8aUQau.png",
+            "primaryColor":"#26A69A"
+          }
+        }
+      );
+
+      lock.checkSession({}, (err, authResult) => {
+        if (err || !authResult) {
+          lock.show();
+          lock.on("authenticated", authResult => { // eslint-disable-line no-shadow
+            lock.getUserInfo(authResult.accessToken, (profile) => {
+              if (err) {
+                // Handle error
+                return;
+              }
+              localStorage.setItem("accessToken", authResult.accessToken);
+              console.log("Hello, " + profile.nickname + "!") // eslint-disable-line
+            });
+          });
+        } else {
+          // User has an active session, so use the accessToken directly.
+          lock.getUserInfo(authResult.accessToken, (err, profile) => { // eslint-disable-line
+            localStorage.setItem("accessToken", authResult.accessToken);
+            console.log("Welcome back, " + profile.nickname + "!") // eslint-disable-line
+          });
+        }
+        this.getAllYos(authResult);
+        this.getPopularYos(authResult);
+        this.getLiveYos(authResult);
+      });
+    }else {
+      this.getAllYos();
+      this.getPopularYos();
+      this.getLiveYos();
+    }
+
+    // Poll for all Yo's
+    socket.on("allYos", (all) => { this.setState({ allYos: all }) });
+
+    // Poll for popular Yo's
+    socket.on("popYos", (pop) => { this.setState({ popYos: pop }) });
+    
+    // Poll for recent Yo's
+    socket.on("liveYos", (live) => { this.setState({ liveYos: live }) });
+  }
+
+  getAllYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({allYos: res.data}) })
+  }
+
+  getPopularYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'popular', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({popYos: res.data}) })
+  }
+
+  getLiveYos(auth) {
+    var accessToken = null;
+    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
+    axios.get(this.state.apiUrl + 'recent', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
+    .then(res => { this.setState({liveYos: res.data}) })
   }
 
   extractHostname(url) {
@@ -79,6 +152,12 @@ class Home extends Component {
     var baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, "$1");
     var originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, "$1");
     if(baseUrl === originalUrl) { return true }else { return false }
+  }
+
+  handleUserInput(e) {
+    const name = e.target.name;
+    const value = e.target.value;
+    this.setState({ [name]: value });
   }
 
   hideErrorDiags() {
@@ -162,7 +241,7 @@ class Home extends Component {
     }
   }
 
-  handleKeyDown = (e) => {
+  handleKeyDown(e) {
     if (e.key === 'Enter') {
       this.handleSubmit();
     }
@@ -217,8 +296,7 @@ class Home extends Component {
         this.handleCancel()
       }, 5000)
     )
-    .catch(err => 
-      this.setState({
+    .catch(err => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
@@ -255,8 +333,7 @@ class Home extends Component {
       }),
       setTimeout(() => { this.handleCancel() }, 5000)
     )
-    .catch(err => 
-      this.setState({
+    .catch(err => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
@@ -278,6 +355,7 @@ class Home extends Component {
       editingLink: null,
       editingOriginalUrl: null
     });
+    return;
   }
 
   renderButton() {
@@ -287,6 +365,7 @@ class Home extends Component {
           className="btn waves-effect waves-light submit-btn grey-text text-darken-4"
           name="action"
           onClick={this.handleSubmit}
+          type="submit"
         >
           Create Yo Link
         </button>
@@ -310,86 +389,6 @@ class Home extends Component {
         </div>
       );
     }
-  }
-
-  getAllYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({allYos: res.data}) })
-  }
-
-  getPopularYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl + 'popular', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({popYos: res.data}) })
-  }
-
-  getLiveYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl + 'recent', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({liveYos: res.data}) })
-  }
-
-  componentDidMount() {
-    if(process.env.REACT_APP_AUTH === 'true'){
-      var lock = new Auth0Lock(
-        process.env.REACT_APP_AUTH0_CLIENT,
-        process.env.REACT_APP_AUTH0_DOMAIN,
-        {
-          allowedConnections: ["Username-Password-Authentication"],
-          rememberLastLogin: false,
-          allowForgotPassword: false,
-          allowSignUp: process.env.REACT_APP_SIGNUPS || false,
-          closable: false,
-          languageDictionary: {"title":"Yo - The URL Shortener"},
-          theme: {
-            "logo":"https://i.imgur.com/r8aUQau.png",
-            "primaryColor":"#26A69A"
-          }
-        }
-      );
-
-      lock.checkSession({}, (err, authResult) => {
-        if (err || !authResult) {
-          lock.show();
-          lock.on("authenticated", authResult => {
-            lock.getUserInfo(authResult.accessToken, (err, profile) => {
-              if (err) {
-                // Handle error
-                return;
-              }
-              localStorage.setItem("accessToken", authResult.accessToken);
-              console.log("Hello, " + profile.nickname + "!")
-            });
-          });
-        } else {
-          // User has an active session, so we can use the accessToken directly.
-          lock.getUserInfo(authResult.accessToken, (err, profile) => {
-            localStorage.setItem("accessToken", authResult.accessToken);
-            console.log("Welcome back, " + profile.nickname + "!")
-          });
-        }
-        this.getAllYos(authResult);
-        this.getPopularYos(authResult);
-        this.getLiveYos(authResult);
-      });
-    }else {
-      this.getAllYos();
-      this.getPopularYos();
-      this.getLiveYos();
-    }
-
-    // Poll for all Yo's
-    socket.on("allYos", (all) => { this.setState({ allYos: all }) });
-
-    // Poll for popular Yo's
-    socket.on("popYos", (pop) => { this.setState({ popYos: pop }) });
-    
-    // Poll for recent Yo's
-    socket.on("liveYos", (live) => { this.setState({ liveYos: live }) });
   }
 
   render() {
@@ -432,7 +431,7 @@ class Home extends Component {
               field="linkName"
               placeholder={this.state.exLinkName}
               value={this.state.linkName}
-              onChange={this.handleUserInput.bind(this)}
+              onChange={this.handleUserInput}
               onKeyDown={this.handleKeyDown}
               autoComplete="off"
               spellCheck="false"
@@ -474,9 +473,9 @@ class Home extends Component {
               <tbody>
               {
                 this.state.popYos.length > 0 
-                ? this.state.popYos.map((yo, key) => {
+                ? this.state.popYos.map((yo) => {
                   return (
-                    <tr key={key}>
+                    <tr key={yo._id}>
                       <td width="15%"><pre onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{yo.urlHits}</td>
@@ -503,10 +502,10 @@ class Home extends Component {
               <tbody>
               {
                 this.state.liveYos.length > 0 
-                ? this.state.liveYos.map((yo, key) => {
+                ? this.state.liveYos.map((yo) => {
                   var timeElapsed = moment(yo.lastAccess).from(moment().add(30, "s"));
                   return (
-                    <tr key={key}>
+                    <tr key={yo._id}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{timeElapsed}</td>
@@ -534,9 +533,9 @@ class Home extends Component {
               <tbody>
               {
                 this.state.allYos.length > 0 
-                ? this.state.allYos.map((yo, key) => {
+                ? this.state.allYos.map((yo) => {
                   return (
-                    <tr key={key}>
+                    <tr key={yo._id}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{ !yo.urlHits ? "-" : yo.urlHits}</td>
@@ -546,7 +545,7 @@ class Home extends Component {
                           <li>
                             <a 
                               onClick={
-                                e => this.setState({
+                                e => this.setState({ // eslint-disable-line no-unused-vars
                                   editingLink: yo.linkName,
                                   editingOriginalUrl: yo.originalUrl
                                 })
@@ -568,11 +567,15 @@ class Home extends Component {
             </table>
             <div id="edit" className="modal grey lighten-3">
               <div className="modal-content grey-text text-darken-3">
-                <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
-                <label className="grey-text text-darken-3" htmlFor="edit-linkName">Link Name</label>
+                <label className="grey-text text-darken-3" htmlFor="edit-linkName" id="edit-linkName-label">
+                  <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
+                  Link Name
+                </label>
                 <br/><br/>
-                <input style={{color: "#424242"}} onChange={e => this.setState({editingOriginalUrl: e.target.value})} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
-                <label className="grey-text text-darken-3" htmlFor="edit-originalUrl">Original URL</label>
+                <label className="grey-text text-darken-3" htmlFor="edit-originalUrl" id="edit-originalUrl-label">
+                  <input style={{color: "#424242"}} onChange={e => this.setState({editingOriginalUrl: e.target.value})} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                  Original URL
+                </label>
                 <br/>
               </div>
               <div className="modal-footer grey lighten-3">
@@ -580,8 +583,7 @@ class Home extends Component {
                   href="#!"
                   style={{float: "left"}}
                   className="modal-close waves-effect waves-red red darken-2 btn"
-                  onClick={e  => 
-                    this.setState({
+                  onClick={e => this.setState({ // eslint-disable-line no-unused-vars
                       alert: (
                         <SweetAlert
                           danger
@@ -609,8 +611,7 @@ class Home extends Component {
                   href="#!"
                   style={{marginLeft: "8px"}} 
                   className="modal-close waves-effect waves-teal btn"
-                  onClick={e => 
-                    this.setState({
+                  onClick={e => this.setState({ // eslint-disable-line no-unused-vars
                       alert: (
                         <SweetAlert
                           info
