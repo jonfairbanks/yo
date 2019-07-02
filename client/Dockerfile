@@ -39,7 +39,7 @@ RUN /microscanner $MICROSCANNER_TOKEN --continue-on-failure
 # Build
 FROM source as build
 COPY --chown=node:node . ./
-RUN npm run build
+RUN npm run build > "/dev/null" 2>&1
 
 # Production ENV
 FROM nginx:1.16-alpine
