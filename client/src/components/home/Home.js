@@ -1,20 +1,21 @@
-import React, { Component } from "react";
-import "./Home.css";
-import { createShortUrl } from "../../APIHelper";
+/* eslint-disable no-undef */
+import React, { Component } from 'react';
+import './Home.css';
 import Filter from 'bad-words';
 import moment from 'moment';
 import io from 'socket.io-client';
-import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import Auth0Lock from 'auth0-lock';
-import axios from "axios";
-import SweetAlert from "react-bootstrap-sweetalert";
+import axios from 'axios';
+import SweetAlert from 'react-bootstrap-sweetalert';
+import { createShortUrl } from '../../APIHelper';
 
 const socket = io(process.env.REACT_APP_SOCKET_URL);
 
-var filter = new Filter();
-var blocked = process.env.REACT_APP_BLOCKED_NAMES.split(",");
-var allowed = process.env.REACT_APP_ALLOWED_NAMES.split(",");
-filter.addWords(...blocked); 
+const filter = new Filter();
+const blocked = process.env.REACT_APP_BLOCKED_NAMES.split(',');
+const allowed = process.env.REACT_APP_ALLOWED_NAMES.split(',');
+filter.addWords(...blocked);
 filter.removeWords(...allowed);
 
 class Home extends Component {
@@ -22,23 +23,23 @@ class Home extends Component {
     super();
     this.state = {
       showShortenUrl: false,
-      shortenUrl: "",
-      originalUrl: "",
-      linkName: "",
+      shortenUrl: '',
+      originalUrl: '',
+      linkName: '',
       apiUrl: process.env.REACT_APP_API_URL,
       clickSubmit: true,
       showError: false,
-      apiError: "",
+      apiError: '',
       showApiError: false,
       showLoading: false,
-      exUrl: process.env.REACT_APP_URL_PLACEHOLDER || "https://github.com/jonfairbanks/yo",
-      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || "Yo-URL",
-      allYos: "",
-      popYos: "",
-      liveYos: "",
-      copied: "",
-      editingLink: "",
-      editingOriginalUrl: ""
+      exUrl: process.env.REACT_APP_URL_PLACEHOLDER || 'https://github.com/jonfairbanks/yo',
+      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || 'Yo-URL',
+      allYos: '',
+      popYos: '',
+      liveYos: '',
+      copied: '',
+      editingLink: '',
+      editingOriginalUrl: ''
     };
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -57,20 +58,20 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    if(process.env.REACT_APP_AUTH === 'true'){
-      var lock = new Auth0Lock(
+    if (process.env.REACT_APP_AUTH === 'true') {
+      const lock = new Auth0Lock(
         process.env.REACT_APP_AUTH0_CLIENT,
         process.env.REACT_APP_AUTH0_DOMAIN,
         {
-          allowedConnections: ["Username-Password-Authentication"],
+          allowedConnections: ['Username-Password-Authentication'],
           rememberLastLogin: false,
           allowForgotPassword: false,
           allowSignUp: process.env.REACT_APP_SIGNUPS || false,
           closable: false,
-          languageDictionary: {"title":"Yo - The URL Shortener"},
+          languageDictionary: { title: 'Yo - The URL Shortener' },
           theme: {
-            "logo":"https://i.imgur.com/r8aUQau.png",
-            "primaryColor":"#26A69A"
+            logo: 'https://i.imgur.com/r8aUQau.png',
+            primaryColor: '#26A69A'
           }
         }
       );
@@ -78,20 +79,20 @@ class Home extends Component {
       lock.checkSession({}, (err, authResult) => {
         if (err || !authResult) {
           lock.show();
-          lock.on("authenticated", authResult => { // eslint-disable-line no-shadow
+          lock.on('authenticated', (authResult) => { // eslint-disable-line no-shadow
             lock.getUserInfo(authResult.accessToken, (profile) => {
               if (err) {
                 // Handle error
                 return;
               }
-              localStorage.setItem("accessToken", authResult.accessToken);
+              localStorage.setItem('accessToken', authResult.accessToken); // eslint-disable-line no-undef
               console.log("Hello, " + profile.nickname + "!") // eslint-disable-line
             });
           });
         } else {
           // User has an active session, so use the accessToken directly.
           lock.getUserInfo(authResult.accessToken, (err, profile) => { // eslint-disable-line
-            localStorage.setItem("accessToken", authResult.accessToken);
+            localStorage.setItem('accessToken', authResult.accessToken); // eslint-disable-line no-undef
             console.log("Welcome back, " + profile.nickname + "!") // eslint-disable-line
           });
         }
@@ -99,48 +100,47 @@ class Home extends Component {
         this.getPopularYos(authResult);
         this.getLiveYos(authResult);
       });
-    }else {
+    } else {
       this.getAllYos();
       this.getPopularYos();
       this.getLiveYos();
     }
 
     // Poll for all Yo's
-    socket.on("allYos", (all) => { this.setState({ allYos: all }) });
+    socket.on('allYos', (all) => { this.setState({ allYos: all }); });
 
     // Poll for popular Yo's
-    socket.on("popYos", (pop) => { this.setState({ popYos: pop }) });
-    
+    socket.on('popYos', (pop) => { this.setState({ popYos: pop }); });
+
     // Poll for recent Yo's
-    socket.on("liveYos", (live) => { this.setState({ liveYos: live }) });
+    socket.on('liveYos', (live) => { this.setState({ liveYos: live }); });
   }
 
   getAllYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({allYos: res.data}) })
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(this.state.apiUrl, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ allYos: res.data }); });
   }
 
   getPopularYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl + 'popular', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({popYos: res.data}) })
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(`${this.state.apiUrl}popular`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ popYos: res.data }); });
   }
 
   getLiveYos(auth) {
-    var accessToken = null;
-    try{ accessToken = auth.accessToken }catch(e) { accessToken = null };
-    axios.get(this.state.apiUrl + 'recent', { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(res => { this.setState({liveYos: res.data}) })
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(`${this.state.apiUrl}recent`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ liveYos: res.data }); });
   }
 
   extractHostname(url) {
-    var hostname;
+    let hostname;
     // Find & remove protocol (http, ftp, etc.) and get hostname
-    if (url.indexOf("//") > -1) {hostname = url.split('/')[2];}
-    else {hostname = url.split('/')[0];}
+    if (url.indexOf('//') > -1) { hostname = url.split('/')[2]; } else { hostname = url.split('/')[0]; }
     // Find & remove port number
     hostname = hostname.split(':')[0];
     // Find & remove "?"
@@ -149,9 +149,9 @@ class Home extends Component {
   }
 
   checkHostname(bUrl, oUrl) {
-    var baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, "$1");
-    var originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, "$1");
-    if(baseUrl === originalUrl) { return true }else { return false }
+    const baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, '$1');
+    const originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, '$1');
+    if (baseUrl === originalUrl) { return true; } return false;
   }
 
   handleUserInput(e) {
@@ -174,60 +174,60 @@ class Home extends Component {
     if (this.state.clickSubmit && this.state.originalUrl) {
       this.setState({ showLoading: true, showShortenUrl: false });
 
-      let reqObj = {
+      const reqObj = {
         originalUrl: this.state.originalUrl,
         linkName: this.state.linkName.toLowerCase(),
         shortBaseUrl: process.env.REACT_APP_BASE_URL
       };
 
       // Ensure that links are not pointing back to Yo, essentially creating a loop.
-      if(this.checkHostname(process.env.REACT_APP_BASE_URL, reqObj.originalUrl)) {
+      if (this.checkHostname(process.env.REACT_APP_BASE_URL, reqObj.originalUrl)) {
         this.setState({
           showLoading: false,
           showApiError: true,
-          apiError: "Redirects back to Yo are not permitted."
-        })
+          apiError: 'Redirects back to Yo are not permitted.'
+        });
         this.hideErrorDiags();
         return;
       }
 
       // Ensure linkName's aren't too long (better UX)
-      if(this.state.linkName.length > 99) {
+      if (this.state.linkName.length > 99) {
         this.setState({
           showLoading: false,
           showApiError: true,
-          apiError: "Please pick a shorter link name."
-        })
+          apiError: 'Please pick a shorter link name.'
+        });
         this.hideErrorDiags();
         return;
       }
 
       // Profanity filter for linkName's
-      if(filter.isProfane(reqObj.linkName) || reqObj.linkName === "socket.io") {
+      if (filter.isProfane(reqObj.linkName) || reqObj.linkName === 'socket.io') {
         this.setState({
           showLoading: false,
           showApiError: true,
-          apiError: "This link name is not supported.",
-          originalUrl: "",
-          linkName: ""
-        })
+          apiError: 'This link name is not supported.',
+          originalUrl: '',
+          linkName: ''
+        });
         this.hideErrorDiags();
         return;
       }
 
       createShortUrl(reqObj)
-        .then(json => {
+        .then((json) => {
           setTimeout(() => {
             this.setState({
               showLoading: false,
               showShortenUrl: true,
               shortenUrl: json.data.shortUrl,
-              originalUrl: "",
-              linkName: ""
+              originalUrl: '',
+              linkName: ''
             });
           }, 0);
         })
-        .catch(error => {
+        .catch((error) => {
           this.setState({
             showLoading: false,
             showApiError: true,
@@ -250,19 +250,21 @@ class Home extends Component {
   handleCopy(yo) {
     return (
       this.state.copied !== yo._id
-      ? <CopyToClipboard 
-          text={yo.originalUrl} 
-          onCopy={() => {
-            this.setState({ copied: yo._id })
-            setTimeout(() => {
-              this.setState({ copied: "" })
-            }, 3000)
-          }}
-        >
-          <li><i style={{ "cursor":"pointer", "paddingRight":"7px" }} className="small material-icons">content_copy</i></li>
-        </CopyToClipboard>
-      : <li><i style={{ "cursor":"none", "paddingRight":"7px" }} className="small teal-text material-icons">check</i></li>
-    )
+        ? (
+          <CopyToClipboard
+            text={yo.originalUrl}
+            onCopy={() => {
+              this.setState({ copied: yo._id });
+              setTimeout(() => {
+                this.setState({ copied: '' });
+              }, 3000);
+            }}
+          >
+            <li><i style={{ cursor: 'pointer', paddingRight: '7px' }} className="small material-icons">content_copy</i></li>
+          </CopyToClipboard>
+        )
+        : <li><i style={{ cursor: 'none', paddingRight: '7px' }} className="small teal-text material-icons">check</i></li>
+    );
   }
 
   handleEdit(yo) {
@@ -273,80 +275,84 @@ class Home extends Component {
   }
 
   handleUpdate() {
-    var accessToken = null;
-    try{ accessToken = localStorage.getItem("accessToken") }catch(e) { accessToken = null };
-    var updEndpoint = this.state.apiUrl + "update/" + this.state.editingLink;
-    var body = { originalUrl: this.state.editingOriginalUrl }
-    axios.post(updEndpoint, body, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(
-      this.setState({
-        alert: (
-          <SweetAlert
-            success
-            allowEscape
-            confirmBtnCssClass="modal-close waves-effect btn"
-            title={"Updated " + this.state.editingLink + "!"}
-            onConfirm={this.handleCancel}
-          >
+    let accessToken = null;
+    try { accessToken = localStorage.getItem('accessToken'); } catch (e) { accessToken = null; } // eslint-disable-line no-undef
+    const updEndpoint = `${this.state.apiUrl}update/${this.state.editingLink}`;
+    const body = { originalUrl: this.state.editingOriginalUrl };
+    axios.post(updEndpoint, body, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then(
+        this.setState({
+          alert: (
+            <SweetAlert
+              success
+              allowEscape
+              confirmBtnCssClass="modal-close waves-effect btn"
+              title={`Updated ${this.state.editingLink}!`}
+              onConfirm={this.handleCancel}
+            >
             This link was successfully updated.
-          </SweetAlert>
-        )
-      }),
-      setTimeout(() => {
-        this.handleCancel()
-      }, 5000)
-    )
-    .catch(err => this.setState({ // eslint-disable-line no-unused-vars
+            </SweetAlert>
+          )
+        }),
+        setTimeout(() => {
+          this.handleCancel();
+        }, 5000)
+      )
+      .catch(err => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
             allowEscape
             confirmBtnCssClass="modal-close waves-effect btn"
-            title={"Internal Error"}
+            title="Internal Error"
             onConfirm={this.handleCancel}
           >
-            There was an error while updating {this.state.editingLink}.
+            There was an error while updating
+            {' '}
+            {this.state.editingLink}
+.
           </SweetAlert>
         )
-      })  
-    )
+      }));
   }
-  
+
   handleDelete() {
-    var accessToken = null;
-    try{ accessToken = localStorage.getItem("accessToken") }catch(e) { accessToken = null };
-    var delEndpoint = this.state.apiUrl + "delete/" + this.state.editingLink;
-    axios.post(delEndpoint, null, { 'headers' : {'Content-Type': 'application/json', 'Authorization': "Bearer " + accessToken} })
-    .then(
-      this.setState({
-        alert: (
-          <SweetAlert
-            success
-            allowEscape
-            confirmBtnCssClass="modal-close waves-effect btn"
-            title={"Deleted " + this.state.editingLink + "!"}
-            onConfirm={this.handleCancel}
-          >
+    let accessToken = null;
+    try { accessToken = localStorage.getItem('accessToken'); } catch (e) { accessToken = null; } // eslint-disable-line no-undef
+    const delEndpoint = `${this.state.apiUrl}delete/${this.state.editingLink}`;
+    axios.post(delEndpoint, null, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then(
+        this.setState({
+          alert: (
+            <SweetAlert
+              success
+              allowEscape
+              confirmBtnCssClass="modal-close waves-effect btn"
+              title={`Deleted ${this.state.editingLink}!`}
+              onConfirm={this.handleCancel}
+            >
             This link was successfully deleted.
-          </SweetAlert>
-        )
-      }),
-      setTimeout(() => { this.handleCancel() }, 5000)
-    )
-    .catch(err => this.setState({ // eslint-disable-line no-unused-vars
+            </SweetAlert>
+          )
+        }),
+        setTimeout(() => { this.handleCancel(); }, 5000)
+      )
+      .catch(err => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
             allowEscape
             confirmBtnCssClass="modal-close waves-effect btn"
-            title={"Internal Error"}
+            title="Internal Error"
             onConfirm={this.handleCancel}
           >
-            There was an error while deleting {this.state.editingLink}.
+            There was an error while deleting
+            {' '}
+            {this.state.editingLink}
+.
           </SweetAlert>
         )
-      })
-    )
+      }));
   }
 
   handleCancel() {
@@ -355,7 +361,6 @@ class Home extends Component {
       editingLink: null,
       editingOriginalUrl: null
     });
-    return;
   }
 
   renderButton() {
@@ -370,25 +375,24 @@ class Home extends Component {
           Create Yo Link
         </button>
       );
-    } else {
-      return (
-        <div className="loader">
-          <div className="preloader-wrapper small active">
-            <div className="spinner-layer spinner-green-only">
-              <div className="circle-clipper left">
-                <div className="circle" />
-              </div>
-              <div className="gap-patch">
-                <div className="circle" />
-              </div>
-              <div className="circle-clipper right">
-                <div className="circle" />
-              </div>
+    }
+    return (
+      <div className="loader">
+        <div className="preloader-wrapper small active">
+          <div className="spinner-layer spinner-green-only">
+            <div className="circle-clipper left">
+              <div className="circle" />
+            </div>
+            <div className="gap-patch">
+              <div className="circle" />
+            </div>
+            <div className="circle-clipper right">
+              <div className="circle" />
             </div>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
   }
 
   render() {
@@ -420,8 +424,9 @@ class Home extends Component {
               <div className="formError red-text text-darken-4">A URL is required</div>
             )}
 
-            <br/><br/>
-            
+            <br />
+            <br />
+
             <div>
               <h5 className="grey-text text-darken-2">Link Name</h5>
             </div>
@@ -441,7 +446,8 @@ class Home extends Component {
               <div className="formError red-text text-darken-4">A Link Name is required</div>
             )}
 
-            <br/><br/>
+            <br />
+            <br />
 
             {this.renderButton()}
 
@@ -451,7 +457,9 @@ class Home extends Component {
 
             {this.state.showShortenUrl && (
               <div className="shorten-title grey-text text-darken-1">
-                Shortened URL is  🡆  {` `}
+                Shortened URL is  🡆
+                {' '}
+                {' '}
                 <a href={this.state.shortenUrl} target="_blank" rel="noopener noreferrer">
                   {this.state.shortenUrl}
                 </a>
@@ -471,18 +479,16 @@ class Home extends Component {
                 </tr>
               </thead>
               <tbody>
-              {
-                this.state.popYos.length > 0 
-                ? this.state.popYos.map((yo) => {
-                  return (
+                {
+                this.state.popYos.length > 0
+                  ? this.state.popYos.map(yo => (
                     <tr key={yo._id}>
-                      <td width="15%"><pre onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}>{yo.linkName}</pre></td>
+                      <td width="15%"><pre onClick={() => window.open(yo.shortUrl, '_blank')} style={{ cursor: 'pointer' }}>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
                       <td width="10%">{yo.urlHits}</td>
                     </tr>
-                  )
-                }, this)
-                : null
+                  ), this)
+                  : null
               }
               </tbody>
             </table>
@@ -500,19 +506,19 @@ class Home extends Component {
                 </tr>
               </thead>
               <tbody>
-              {
-                this.state.liveYos.length > 0 
-                ? this.state.liveYos.map((yo) => {
-                  var timeElapsed = moment(yo.lastAccess).from(moment().add(30, "s"));
-                  return (
-                    <tr key={yo._id}>
-                      <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
-                      <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                      <td width="10%">{timeElapsed}</td>
-                    </tr>
-                  )
-                }, this)
-                : null
+                {
+                this.state.liveYos.length > 0
+                  ? this.state.liveYos.map((yo) => {
+                    const timeElapsed = moment(yo.lastAccess).from(moment().add(30, 's'));
+                    return (
+                      <tr key={yo._id}>
+                        <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{ cursor: 'pointer' }}><pre>{yo.linkName}</pre></td>
+                        <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
+                        <td width="10%">{timeElapsed}</td>
+                      </tr>
+                    );
+                  }, this)
+                  : null
               }
               </tbody>
             </table>
@@ -531,105 +537,104 @@ class Home extends Component {
                 </tr>
               </thead>
               <tbody>
-              {
-                this.state.allYos.length > 0 
-                ? this.state.allYos.map((yo) => {
-                  return (
+                {
+                this.state.allYos.length > 0
+                  ? this.state.allYos.map(yo => (
                     <tr key={yo._id}>
-                      <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{cursor: "pointer"}}><pre>{yo.linkName}</pre></td>
+                      <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{ cursor: 'pointer' }}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
-                      <td width="10%">{ !yo.urlHits ? "-" : yo.urlHits}</td>
+                      <td width="10%">{ !yo.urlHits ? '-' : yo.urlHits}</td>
                       <td>
-                        <ul style={{"display":"flex"}}>
+                        <ul style={{ display: 'flex' }}>
                           {this.handleCopy(yo)}
                           <li>
-                            <a 
+                            <a
                               onClick={
                                 e => this.setState({ // eslint-disable-line no-unused-vars
                                   editingLink: yo.linkName,
                                   editingOriginalUrl: yo.originalUrl
                                 })
                               }
-                              className="modal-trigger grey-text" 
+                              className="modal-trigger grey-text"
                               href="#edit"
                             >
-                              <i style={{ "paddingRight":"7px" }} className="small material-icons">edit</i>
+                              <i style={{ paddingRight: '7px' }} className="small material-icons">edit</i>
                             </a>
                           </li>
                         </ul>
                       </td>
                     </tr>
-                  )
-                }, this)
-                : null
+                  ), this)
+                  : null
               }
               </tbody>
             </table>
             <div id="edit" className="modal grey lighten-3">
               <div className="modal-content grey-text text-darken-3">
                 <label className="grey-text text-darken-3" htmlFor="edit-linkName" id="edit-linkName-label">
-                  <input disabled style={{cursor: "not-allowed"}} placeholder={this.state.editingLink} id="edit-linkName"/>
+                  <input disabled style={{ cursor: 'not-allowed' }} placeholder={this.state.editingLink} id="edit-linkName" />
                   Link Name
                 </label>
-                <br/><br/>
+                <br />
+                <br />
                 <label className="grey-text text-darken-3" htmlFor="edit-originalUrl" id="edit-originalUrl-label">
-                  <input style={{color: "#424242"}} onChange={e => this.setState({editingOriginalUrl: e.target.value})} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl"/>
+                  <input style={{ color: '#424242' }} onChange={e => this.setState({ editingOriginalUrl: e.target.value })} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl" />
                   Original URL
                 </label>
-                <br/>
+                <br />
               </div>
               <div className="modal-footer grey lighten-3">
-                <a 
+                <a
                   href="#!"
-                  style={{float: "left"}}
+                  style={{ float: 'left' }}
                   className="modal-close waves-effect waves-red red darken-2 btn"
                   onClick={e => this.setState({ // eslint-disable-line no-unused-vars
-                      alert: (
-                        <SweetAlert
-                          danger
-                          showCancel
-                          allowEscape
-                          confirmBtnText="Yes, delete it!"
-                          confirmBtnBsStyle="danger"
-                          confirmBtnCssClass="modal-close waves-effect waves-red red darken-2 btn"
-                          cancelBtnBsStyle="default"
-                          cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
-                          title={"Delete " + this.state.editingLink + "?"}
-                          onConfirm={this.handleDelete}
-                          onCancel={this.handleCancel}
-                        >
+                    alert: (
+                      <SweetAlert
+                        danger
+                        showCancel
+                        allowEscape
+                        confirmBtnText="Yes, delete it!"
+                        confirmBtnBsStyle="danger"
+                        confirmBtnCssClass="modal-close waves-effect waves-red red darken-2 btn"
+                        cancelBtnBsStyle="default"
+                        cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
+                        title={`Delete ${this.state.editingLink}?`}
+                        onConfirm={this.handleDelete}
+                        onCancel={this.handleCancel}
+                      >
                           Are you sure? This is permanent!
-                        </SweetAlert>
-                      )
-                    })
+                      </SweetAlert>
+                    )
+                  })
                   }
                 >
                   Delete
                 </a>
                 <a href="#!" className="modal-close waves-effect waves-white btn grey">Cancel</a>
-                <a 
+                <a
                   href="#!"
-                  style={{marginLeft: "8px"}} 
+                  style={{ marginLeft: '8px' }}
                   className="modal-close waves-effect waves-teal btn"
                   onClick={e => this.setState({ // eslint-disable-line no-unused-vars
-                      alert: (
-                        <SweetAlert
-                          info
-                          showCancel
-                          allowEscape
-                          confirmBtnText="Yes, update it!"
-                          confirmBtnBsStyle="default"
-                          confirmBtnCssClass="waves-effect waves-teal btn"
-                          cancelBtnBsStyle="default"
-                          cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
-                          title={"Update " + this.state.editingLink + "?"}
-                          onConfirm={this.handleUpdate}
-                          onCancel={this.handleCancel}
-                        >
+                    alert: (
+                      <SweetAlert
+                        info
+                        showCancel
+                        allowEscape
+                        confirmBtnText="Yes, update it!"
+                        confirmBtnBsStyle="default"
+                        confirmBtnCssClass="waves-effect waves-teal btn"
+                        cancelBtnBsStyle="default"
+                        cancelBtnCssClass="modal-close waves-effect waves-white btn grey"
+                        title={`Update ${this.state.editingLink}?`}
+                        onConfirm={this.handleUpdate}
+                        onCancel={this.handleCancel}
+                      >
                           Do you want to update the current URL?
-                        </SweetAlert>
-                      )
-                    })
+                      </SweetAlert>
+                    )
+                  })
                   }
                 >
                     Update
