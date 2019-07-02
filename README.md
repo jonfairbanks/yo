@@ -76,7 +76,7 @@ Rename the included `.env.sample` files to `.env` and update variables as approp
 | `MONGO_URI`    	| No        	| What Mongo instance to use. If the ENV is not provided, `mongodb://localhost/yo` is used.          	| `mongodb://user:password@localhost:27018/yo` 	|
 | `LOG_LOCATION` 	| No        	| Override where the Yo access log is written. By default the log is written into the app directory. 	| `/Logs/yo.log`                               	|
 | `AUTH`         	| No        	| Enforces token authentication. If enabled, Auth0 should also be enabled on the client side.        	| `true`                                       	|
-| `AUTH0_DOMAIN` 	| No        	| Required to authenticate user tokens.Should match the AUTH0_DOMAIN provided to the client.         	| `mysite.auth0.com`                           	|
+| `AUTH0_DOMAIN` 	| No        	| Required to authenticate user tokens. Should match the AUTH0_DOMAIN provided to the client.         	| `mysite.auth0.com`                           	|
 | `PORT`         	| No        	| Override the application port. Defaults to 7000.                                                   	| `7001`                                       	|
 
 #### Run Front End
