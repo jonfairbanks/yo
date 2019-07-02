@@ -1,1 +1,4 @@
 extends: airbnb
+rules:
+  eol-last: 0
+  linebreak-style: 0
