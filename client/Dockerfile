@@ -1,9 +1,6 @@
 # Base
 FROM node:12-slim as base
 ENV NODE=ENV=production
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
 EXPOSE 3000
 RUN mkdir /app && chown -R node:node /app
 WORKDIR /app
