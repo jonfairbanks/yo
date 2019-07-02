@@ -40,8 +40,7 @@ app.use((req, res, next) => {
 });
 
 const PORT = process.env.PORT || 7000;
-const server = app.listen(PORT);
-stoppable(server, 30000); // Properly handle SIGTERM and SIGKILL
+const server = stoppable(app.listen(PORT), 10000); // Properly handle SIGTERM and SIGKILL
 const io = require('socket.io').listen(server);
 
 app.io = io;
@@ -50,3 +49,5 @@ console.log(`Yo server running on Port ${PORT}`); // eslint-disable-line
 console.log(`\nApp logs are available at: \n${process.env.LOG_LOCATION}` || 'yo.log'); // eslint-disable-line
 
 require('./routes/yo')(app);
+
+module.exports = server;

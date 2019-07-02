@@ -1,13 +1,7 @@
 #!/usr/bin/env node
 
 // Constants
-const PORT = process.env.PORT || 7000;
 const server = require("../index");
-
-server.listen(PORT, () => {
-    console.log(`Yo server running on Port ${PORT}`); // eslint-disable-line
-    console.log(`\nApp logs are available at: \n${process.env.LOG_LOCATION}` || 'yo.log'); // eslint-disable-line
-});
 
 // Gracefully terminate on CTRL+C. Doesn't work when using npm start. Must use ['node'] ['./bin/www']
 process.on('SIGINT', function onSigint () {
