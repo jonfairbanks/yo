@@ -39,10 +39,10 @@ cd yo
 cd server/
 
 # Install Dependencies
-yarn install
+npm install
 
 # Start Server
-yarn start
+npm start
 ```
 
 #### Set Environment Variables
@@ -86,10 +86,10 @@ Rename the included `.env.sample` files to `.env` and update variables as approp
 cd client/
 
 # Install Dependencies
-yarn install
+npm install
 
 # Start Client
-yarn start
+npm start
 ```
 
 #### Configure Nginx
