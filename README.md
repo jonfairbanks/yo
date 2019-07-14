@@ -113,7 +113,7 @@ Server:
 ```
 location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
     proxy_set_header X-Real-IP $remote_addr;
-    rewrite ^/(.*)$ https://my-api-url.com/api/item/$1 redirect;
+    rewrite ^/(.*)$ https://my-api-url.com/api/link/$1 redirect;
 }
 location /socket.io {
     proxy_pass http://127.0.0.1:7000;
