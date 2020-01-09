@@ -11,6 +11,8 @@ Yo Dawg, heard you're tired of remembering URLs
 ![GitHub top language](https://img.shields.io/github/languages/top/jonfairbanks/yo.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jonfairbanks/yo-client.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/jonfairbanks/yo.svg)
+![Dependabot Status](https://camo.githubusercontent.com/35a144257b9aec7d472244f972d918c3926d5518/68747470733a2f2f6170692e646570656e6461626f742e636f6d2f6261646765732f7374617475733f686f73743d676974687562267265706f3d79737331342f6d757369637368617265)
+![License](https://img.shields.io/github/license/jonfairbanks/yo.svg?style=flat)
 
 Turn long, hard to remember URLs into easily sharable short-links. 
 
