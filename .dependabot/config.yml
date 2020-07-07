@@ -4,6 +4,8 @@ update_configs:
     directory: "/client"
     update_schedule: "live"
     target_branch: "develop"
+    default_assignees:
+      - "jonfairbanks"
     allowed_updates:
         - match:
             update_type: "security"
@@ -11,6 +13,8 @@ update_configs:
     directory: "/server"
     update_schedule: "live"
     target_branch: "develop"
+    default_assignees:
+      - "jonfairbanks"
     allowed_updates:
         - match:
             update_type: "security"
