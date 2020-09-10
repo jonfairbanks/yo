@@ -12,7 +12,7 @@ const authCheck = (req, res, next) => {
 
 module.exports = (app) => {
   /* Unprotected Paths */
-  app.get('/', (req, res) => { res.redirect(process.env.BASE_URL); }); // Redirect lost users
+  app.get('/', (_req, res) => { res.redirect(process.env.BASE_URL); }); // Redirect lost users
   app.get('/api/link/:name', YoCtrl.getYo, YoCtrl.emitSocketUpdate); // Redirect to a Yo
   /* Protected Paths (if enabled) */
   if (process.env.AUTH === 'true') {

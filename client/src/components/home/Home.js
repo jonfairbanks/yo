@@ -290,7 +290,7 @@ class Home extends Component {
               title={`Updated ${this.state.editingLink}!`}
               onConfirm={this.handleCancel}
             >
-            This link was successfully updated.
+              This link was successfully updated.
             </SweetAlert>
           )
         }),
@@ -310,7 +310,7 @@ class Home extends Component {
             There was an error while updating
             {' '}
             {this.state.editingLink}
-.
+            .
           </SweetAlert>
         )
       }));
@@ -331,7 +331,7 @@ class Home extends Component {
               title={`Deleted ${this.state.editingLink}!`}
               onConfirm={this.handleCancel}
             >
-            This link was successfully deleted.
+              This link was successfully deleted.
             </SweetAlert>
           )
         }),
@@ -349,7 +349,7 @@ class Home extends Component {
             There was an error while deleting
             {' '}
             {this.state.editingLink}
-.
+            .
           </SweetAlert>
         )
       }));
@@ -603,7 +603,7 @@ class Home extends Component {
                         onConfirm={this.handleDelete}
                         onCancel={this.handleCancel}
                       >
-                          Are you sure? This is permanent!
+                        Are you sure? This is permanent!
                       </SweetAlert>
                     )
                   })
@@ -631,13 +631,13 @@ class Home extends Component {
                         onConfirm={this.handleUpdate}
                         onCancel={this.handleCancel}
                       >
-                          Do you want to update the current URL?
+                        Do you want to update the current URL?
                       </SweetAlert>
                     )
                   })
                   }
                 >
-                    Update
+                  Update
                 </a>
               </div>
             </div>
