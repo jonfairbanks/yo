@@ -6,8 +6,8 @@ const authCheck = (req, res, next) => {
     const headers = { Authorization: req.headers.authorization };
     if(headers){
       axios.get(`https://${process.env.AUTH0_DOMAIN}/userinfo`, { headers })
-      .then(_res => next())
-      .catch(_err => res.status(401).json('Authentication Error'));
+      .then(next())
+      .catch(res.status(401).json('Authentication Error'));
     }
   } catch (e) { 
     res.json(401).json('Authentication Error');
