@@ -9,15 +9,36 @@ const stoppable = require('stoppable');
 require('dotenv').config();
 
 mongoose.Promise = global.Promise;
-mongoose.connect(
-  process.env.MONGO_URI || 'mongodb://localhost/yo',
-  {
-    keepAlive: true,
-    reconnectTries: 5,
-    useNewUrlParser: true,
-    useFindAndModify: false,
-  },
-);
+
+function connectToDB() {
+  mongoose.connect(
+    process.env.MONGO_URI || 'mongodb://localhost/yo',
+    {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+      useUnifiedTopology: true,
+    },
+  ).catch(
+    err => console.warn(`MongoDB connect error: ${err}`), // eslint-disable-line no-console
+  );
+}
+
+connectToDB();
+
+mongoose.connection.on('connected', () => {
+  console.log('Yo is now connected to MongoDB...'); // eslint-disable-line no-console
+});
+
+mongoose.connection.on('disconnected', (err) => {
+  console.warn(`MongoDB disconnected: ${err}`); // eslint-disable-line no-console
+  setTimeout(() => { connectToDB(); }, 3000);
+});
+
+mongoose.connection.on('error', (err) => {
+  console.warn(`MongoDB error: ${err}`); // eslint-disable-line no-console
+  setTimeout(() => { connectToDB(); }, 3000);
+});
 
 require('./models/yo');
 

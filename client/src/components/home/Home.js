@@ -91,7 +91,7 @@ class Home extends Component {
           });
         } else {
           // User has an active session, so use the accessToken directly.
-          lock.getUserInfo(authResult.accessToken, (err, profile) => { // eslint-disable-line
+          lock.getUserInfo(authResult.accessToken, (_err, profile) => { // eslint-disable-line
             localStorage.setItem('accessToken', authResult.accessToken); // eslint-disable-line no-undef
             console.log("Welcome back, " + profile.nickname + "!") // eslint-disable-line
           });
@@ -290,7 +290,7 @@ class Home extends Component {
               title={`Updated ${this.state.editingLink}!`}
               onConfirm={this.handleCancel}
             >
-            This link was successfully updated.
+              This link was successfully updated.
             </SweetAlert>
           )
         }),
@@ -310,7 +310,7 @@ class Home extends Component {
             There was an error while updating
             {' '}
             {this.state.editingLink}
-.
+            .
           </SweetAlert>
         )
       }));
@@ -331,7 +331,7 @@ class Home extends Component {
               title={`Deleted ${this.state.editingLink}!`}
               onConfirm={this.handleCancel}
             >
-            This link was successfully deleted.
+              This link was successfully deleted.
             </SweetAlert>
           )
         }),
@@ -349,7 +349,7 @@ class Home extends Component {
             There was an error while deleting
             {' '}
             {this.state.editingLink}
-.
+            .
           </SweetAlert>
         )
       }));
@@ -488,7 +488,12 @@ class Home extends Component {
                       <td width="10%">{yo.urlHits}</td>
                     </tr>
                   ), this)
-                  : null
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
+                  )
               }
               </tbody>
             </table>
@@ -518,7 +523,12 @@ class Home extends Component {
                       </tr>
                     );
                   }, this)
-                  : null
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
+                  )
               }
               </tbody>
             </table>
@@ -565,7 +575,12 @@ class Home extends Component {
                       </td>
                     </tr>
                   ), this)
-                  : null
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
+                  )
               }
               </tbody>
             </table>
@@ -603,7 +618,7 @@ class Home extends Component {
                         onConfirm={this.handleDelete}
                         onCancel={this.handleCancel}
                       >
-                          Are you sure? This is permanent!
+                        Are you sure? This is permanent!
                       </SweetAlert>
                     )
                   })
@@ -631,13 +646,13 @@ class Home extends Component {
                         onConfirm={this.handleUpdate}
                         onCancel={this.handleCancel}
                       >
-                          Do you want to update the current URL?
+                        Do you want to update the current URL?
                       </SweetAlert>
                     )
                   })
                   }
                 >
-                    Update
+                  Update
                 </a>
               </div>
             </div>

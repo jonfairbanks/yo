@@ -7,7 +7,7 @@ const Footer = () => (
     }}
     >
       <a target="_blank" href="https://fbnks.io/yo" rel="noopener noreferrer" className="grey-text text-darken-2">
-          Fairbanks.io ©
+        Fairbanks.io ©
         {' '}
         {new Date().getFullYear()}
       </a>
