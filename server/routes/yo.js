@@ -2,14 +2,14 @@ const axios = require('axios');
 const YoCtrl = require('../controllers/yo');
 
 const authCheck = (req, res, next) => {
-  try { 
+  try {
     const headers = { Authorization: req.headers.authorization };
-    if(headers){
+    if (headers) {
       axios.get(`https://${process.env.AUTH0_DOMAIN}/userinfo`, { headers })
-      .then(next())
-      .catch(res.status(401).json('Authentication Error'));
+        .then(next())
+        .catch(res.status(401).json('Authentication Error'));
     }
-  } catch (e) { 
+  } catch (e) {
     res.json(401).json('Authentication Error');
   }
 };
