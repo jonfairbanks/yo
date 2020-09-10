@@ -91,7 +91,7 @@ class Home extends Component {
           });
         } else {
           // User has an active session, so use the accessToken directly.
-          lock.getUserInfo(authResult.accessToken, (err, profile) => { // eslint-disable-line
+          lock.getUserInfo(authResult.accessToken, (_err, profile) => { // eslint-disable-line
             localStorage.setItem('accessToken', authResult.accessToken); // eslint-disable-line no-undef
             console.log("Welcome back, " + profile.nickname + "!") // eslint-disable-line
           });
@@ -488,7 +488,10 @@ class Home extends Component {
                       <td width="10%">{yo.urlHits}</td>
                     </tr>
                   ), this)
-                  : null
+                  : <div>
+                      <h5>No Yo's Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
               }
               </tbody>
             </table>
@@ -518,7 +521,10 @@ class Home extends Component {
                       </tr>
                     );
                   }, this)
-                  : null
+                  : <div>
+                      <h5>No Yo's Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
               }
               </tbody>
             </table>
@@ -565,7 +571,10 @@ class Home extends Component {
                       </td>
                     </tr>
                   ), this)
-                  : null
+                  : <div>
+                      <h5>No Yo's Found!</h5>
+                      <p>Try creating a new Yo for it to show here</p>
+                    </div>
               }
               </tbody>
             </table>
