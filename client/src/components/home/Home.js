@@ -488,10 +488,12 @@ class Home extends Component {
                       <td width="10%">{yo.urlHits}</td>
                     </tr>
                   ), this)
-                  : <div>
-                      <h5>No Yo's Found!</h5>
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
                       <p>Try creating a new Yo for it to show here</p>
                     </div>
+                  )
               }
               </tbody>
             </table>
@@ -521,10 +523,12 @@ class Home extends Component {
                       </tr>
                     );
                   }, this)
-                  : <div>
-                      <h5>No Yo's Found!</h5>
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
                       <p>Try creating a new Yo for it to show here</p>
                     </div>
+                  )
               }
               </tbody>
             </table>
@@ -571,10 +575,12 @@ class Home extends Component {
                       </td>
                     </tr>
                   ), this)
-                  : <div>
-                      <h5>No Yo's Found!</h5>
+                  : (
+                    <div>
+                      <h5>No Yo&apos;s Found!</h5>
                       <p>Try creating a new Yo for it to show here</p>
                     </div>
+                  )
               }
               </tbody>
             </table>
