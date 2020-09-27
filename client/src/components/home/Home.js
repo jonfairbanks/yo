@@ -13,8 +13,8 @@ import { createShortUrl } from '../../APIHelper';
 const socket = io(process.env.REACT_APP_SOCKET_URL);
 
 const filter = new Filter();
-const blocked = process.env.REACT_APP_BLOCKED_NAMES.split(',');
-const allowed = process.env.REACT_APP_ALLOWED_NAMES.split(',');
+const blocked = process.env.REACT_APP_BLOCKED_NAMES ? process.env.REACT_APP_BLOCKED_NAMES.split(',') : [];
+const allowed = process.env.REACT_APP_ALLOWED_NAMES ? process.env.REACT_APP_ALLOWED_NAMES.split(',') : [];
 filter.addWords(...blocked);
 filter.removeWords(...allowed);
 
