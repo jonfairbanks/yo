@@ -179,70 +179,79 @@ exports.getRecent = (req, res) => {
 };
 
 // Get popular Yos
-exports.getPopular = (req, res) => {
+exports.getPopular = (_req, res) => {
   Yo.find({}).sort({ urlHits: -1 }).limit(10)
     .then((pop) => {
       if (pop) {
         return res.status(200).json(pop);
       }
+    }).catch(() => {
       logger.error(`Error retrieving popular Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving popular Yo\'s');
     });
 };
 
 // Get latest Yos
-exports.getLatest = (req, res) => {
+exports.getLatest = (_req, res) => {
   Yo.find({}).sort({ createdAt: -1 }).limit(10)
     .then((latest) => {
       if (latest) {
         return res.status(200).json(latest);
       }
+    }).catch(() => {
       logger.error(`Error retrieving the latest Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving the latest Yo\'s');
     });
 };
 
 // Get all Yos
-exports.getAll = (req, res) => {
+exports.getAll = (_req, res) => {
   Yo.find({}).sort({ linkName: 1 })
     .then((all) => {
       if (all) {
         return res.status(200).json(all);
       }
+    }).catch(() => {
       logger.error(`Error retrieving all Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving all Yo\'s');
     });
 };
 
 // Manage socket.io events
-exports.emitSocketUpdate = (req, res) => {
+exports.emitSocketUpdate = (_req, res) => {
   // All
   Yo.find({}).sort({ linkName: 1 })
     .then((all) => {
       if (all) {
-        req.app.io.emit('allYos', all);
+        _req.app.io.emit('allYos', all);
       } else {
         logger.error(`Error retrieving all Yo's: ${res.data}`);
       }
+    }).catch(() => {
+      logger.error(`Error retrieving all Yo's: ${res.data}`);
     });
 
   // Live
   Yo.find({}).sort({ lastAccess: -1 }).limit(10)
     .then((latest) => {
       if (latest) {
-        req.app.io.emit('liveYos', latest);
+        _req.app.io.emit('liveYos', latest);
       } else {
         logger.error(`Error retrieving the latest Yo's: ${res.data}`);
       }
+    }).catch(() => {
+      logger.error(`Error retrieving latest Yo's: ${res.data}`);
     });
 
   // Popular
   Yo.find({}).sort({ urlHits: -1 }).limit(10)
     .then((pop) => {
       if (pop) {
-        req.app.io.emit('popYos', pop);
+        _req.app.io.emit('popYos', pop);
       } else {
         logger.error(`Error retrieving popular Yo's: ${res.data}`);
       }
+    }).catch(() => {
+      logger.error(`Error retrieving popular Yo's: ${res.data}`);
     });
 };
