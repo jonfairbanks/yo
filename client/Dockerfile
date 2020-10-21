@@ -1,6 +1,6 @@
 # Base
 FROM node:12-slim as base
-ENV NODE=ENV=production
+ENV NODE_ENV=production
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
@@ -39,9 +39,13 @@ ADD https://get.aquasec.com/microscanner /
 RUN chmod +x /microscanner
 RUN /microscanner $MICROSCANNER_TOKEN --continue-on-failure
 
+# Build ENV
+FROM audit as build
+RUN npm run build
+
 # Production ENV
 FROM nginx:1.16-alpine
-COPY . /usr/share/nginx/html
+COPY --from=build ./app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/sites-enabled/
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
