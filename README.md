@@ -98,40 +98,44 @@ npm start
 
 Client:
 ```
-location /manifest.json {
+server {
+    location /manifest.json {
     proxy_pass http://127.0.0.1:3000/manifest.json;
-}
-location / {
-    proxy_pass http://127.0.0.1:3000/;
-    proxy_set_header X-Real-IP $remote_addr;
-    # Upgrade for Websockets
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
+    }
+    location / {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_set_header X-Real-IP $remote_addr;
+        # Upgrade for Websockets
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
 }
 ```
 
 Server:
 ```
-location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
+server {
+    location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
     proxy_set_header X-Real-IP $remote_addr;
     rewrite ^/(.*)$ https://my-api-url.com/api/link/$1 redirect;
-}
-location /socket.io {
-    proxy_pass http://127.0.0.1:7000;
-    proxy_set_header x-real-ip $remote_addr;
-    # Upgrade for Websockets
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-}
-location / {
-    proxy_pass http://127.0.0.1:7000;
-    proxy_set_header X-Real-IP $remote_addr;
-    # Upgrade for Websockets
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
+    }
+    location /socket.io {
+        proxy_pass http://127.0.0.1:7000;
+        proxy_set_header x-real-ip $remote_addr;
+        # Upgrade for Websockets
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+    location / {
+        proxy_pass http://127.0.0.1:7000;
+        proxy_set_header X-Real-IP $remote_addr;
+        # Upgrade for Websockets
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
 }
 ```
 
