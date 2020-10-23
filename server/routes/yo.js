@@ -2,20 +2,20 @@ const axios = require('axios');
 const YoCtrl = require('../controllers/yo');
 
 const authCheck = (req, res, next) => {
-  console.log(`Checking auth status @ ${Date.now()}`)
+  console.log(`Checking auth status @ ${Date.now()}`); // eslint-disable-line
   let headers = null;
-  if(process.env.AUTH === 'true' && req.headers && req.headers.authorization) {
+  if (process.env.AUTH === 'true' && req.headers && req.headers.authorization) {
     headers = { Authorization: req.headers.authorization };
   } else {
     res.status(401).json('Authentication Error');
   }
 
-  if(headers) {
+  if (headers) {
     axios.get(`https://${process.env.AUTH0_DOMAIN}/userinfo`, { headers })
-      .then(x => console.log(`Authentication successful as ${x.data.nickname}`))
+      .then(x => console.log(`Authentication successful as ${x.data.nickname}`)) // eslint-disable-line
       .then(next())
       .catch(() => {
-        res.status(401).json('Authentication Error')
+        res.status(401).json('Authentication Error');
       });
   }
 };
@@ -25,7 +25,7 @@ module.exports = (app) => {
   app.get('/', (_req, res) => { res.redirect(process.env.BASE_URL); }); // Redirect lost users
   app.get('/api/link/:name', YoCtrl.getYo, YoCtrl.emitSocketUpdate); // Redirect to a Yo
   /* Protected Paths (if enabled) */
-  if(process.env.AUTH === 'true') {
+  if (process.env.AUTH === 'true') {
     console.log('\n** API Authentication Enabled **\n'); // eslint-disable-line
     app.use(authCheck);
   }

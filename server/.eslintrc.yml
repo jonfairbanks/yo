@@ -2,3 +2,4 @@ extends: airbnb
 rules:
   eol-last: 0
   linebreak-style: 0
+  consistent-return: 0

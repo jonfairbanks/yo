@@ -167,7 +167,7 @@ exports.getStats = (req, res) => {
 };
 
 // Get recent Yos
-exports.getRecent = (req, res) => {
+exports.getRecent = (_req, res) => {
   Yo.find({}).sort({ lastAccess: -1 }).limit(10)
     .then((rec) => {
       if (rec) {
@@ -185,7 +185,8 @@ exports.getPopular = (_req, res) => {
       if (pop) {
         return res.status(200).json(pop);
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       logger.error(`Error retrieving popular Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving popular Yo\'s');
     });
@@ -198,7 +199,8 @@ exports.getLatest = (_req, res) => {
       if (latest) {
         return res.status(200).json(latest);
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       logger.error(`Error retrieving the latest Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving the latest Yo\'s');
     });
@@ -239,7 +241,8 @@ exports.emitSocketUpdate = (_req, res) => {
       } else {
         logger.error(`Error retrieving the latest Yo's: ${res.data}`);
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       logger.error(`Error retrieving latest Yo's: ${res.data}`);
     });
 
@@ -251,7 +254,8 @@ exports.emitSocketUpdate = (_req, res) => {
       } else {
         logger.error(`Error retrieving popular Yo's: ${res.data}`);
       }
-    }).catch(() => {
+    })
+    .catch(() => {
       logger.error(`Error retrieving popular Yo's: ${res.data}`);
     });
 };
