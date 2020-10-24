@@ -2,7 +2,7 @@
   "name": "yo-url-shortener-client",
   "description": "Yo Dawg, heard you're tired of remembering URLs",
   "repository": "https://github.com/jonfairbanks/yo.git",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": "Jon Fairbanks",
   "license": "UNLICENSED",
   "private": true,
@@ -23,12 +23,12 @@
     "materialize-css": "^1.0.0",
     "moment": "^2.29.0",
     "querystringify": "^2.1.1",
-    "react": "^16.8.6",
+    "react": "^16.14.0",
     "react-bootstrap-sweetalert": "^5.2.0",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
-    "react-scripts": "^3.4.3",
+    "react-scripts": "^3.4.4",
     "socket.io-client": "^2.2.0"
   },
   "browserslist": [
