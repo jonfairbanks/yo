@@ -6,15 +6,19 @@ update_configs:
     target_branch: "develop"
     default_assignees:
       - "jonfairbanks"
-    allowed_updates:
-        - match:
-            update_type: "security"
+    automerged_updates:
+      - match:
+          dependency_type: "production"
+          update_type: "semver:patch"
+    version_requirement_updates: "increase_versions"
   - package_manager: "javascript"
     directory: "/server"
     update_schedule: "live"
     target_branch: "develop"
     default_assignees:
       - "jonfairbanks"
-    allowed_updates:
-        - match:
-            update_type: "security"
+    automerged_updates:
+      - match:
+          dependency_type: "production"
+          update_type: "semver:patch"
+    version_requirement_updates: "increase_versions"
