@@ -16,20 +16,20 @@
     "lint-fix": "./node_modules/eslint/bin/eslint.js . --fix"
   },
   "dependencies": {
-    "auth0-lock": "^11.27.0",
-    "axios": "^0.20.0",
+    "auth0-lock": "^11.29.1",
+    "axios": "^0.21.1",
     "bad-words": "^3.0.2",
     "fstream": "^1.0.12",
     "materialize-css": "^1.0.0",
-    "moment": "^2.29.0",
+    "moment": "^2.29.1",
     "querystringify": "^2.1.1",
     "react": "^16.14.0",
     "react-bootstrap-sweetalert": "^5.2.0",
-    "react-copy-to-clipboard": "^5.0.1",
+    "react-copy-to-clipboard": "^5.0.3",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
     "react-scripts": "^3.4.4",
-    "socket.io-client": "^2.2.0"
+    "socket.io-client": "^4.0.1"
   },
   "browserslist": [
     ">0.2%",
@@ -40,7 +40,7 @@
   "devDependencies": {
     "eslint": "^6.6.0",
     "eslint-config-airbnb": "^17.1.0",
-    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-react": "^7.21.2"
   }
