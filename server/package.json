@@ -30,7 +30,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@babel/runtime": "^7.4.5",
+    "@babel/runtime": "^7.13.16",
     "eslint": "^6.6.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.18.0",
