@@ -21,7 +21,7 @@
     "bad-words": "^3.0.2",
     "fstream": "^1.0.12",
     "materialize-css": "^1.0.0",
-    "moment": "^2.29.0",
+    "moment": "^2.29.1",
     "querystringify": "^2.1.1",
     "react": "^16.14.0",
     "react-bootstrap-sweetalert": "^5.2.0",
