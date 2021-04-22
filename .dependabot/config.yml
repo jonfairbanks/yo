@@ -8,8 +8,7 @@ update_configs:
       - "jonfairbanks"
     automerged_updates:
       - match:
-          dependency_type: "production"
-          update_type: "semver:patch"
+          update_type: "security:patch"
     version_requirement_updates: "increase_versions"
   - package_manager: "javascript"
     directory: "/server"
@@ -19,6 +18,5 @@ update_configs:
       - "jonfairbanks"
     automerged_updates:
       - match:
-          dependency_type: "production"
-          update_type: "semver:patch"
+          update_type: "security:patch"
     version_requirement_updates: "increase_versions"
