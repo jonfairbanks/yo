@@ -2,7 +2,7 @@
   "name": "yo-url-shortener-client",
   "description": "Yo Dawg, heard you're tired of remembering URLs",
   "repository": "https://github.com/jonfairbanks/yo.git",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Jon Fairbanks",
   "license": "UNLICENSED",
   "private": true,
@@ -16,7 +16,7 @@
     "lint-fix": "./node_modules/eslint/bin/eslint.js . --fix"
   },
   "dependencies": {
-    "auth0-lock": "^11.29.1",
+    "auth0-lock": "^11.30.0",
     "axios": "^0.21.1",
     "bad-words": "^3.0.4",
     "fstream": "^1.0.12",
@@ -29,7 +29,7 @@
     "react-dom": "^17.0.2",
     "react-router-dom": "^5.0.0",
     "react-scripts": "^4.0.3",
-    "socket.io-client": "^4.0.1"
+    "socket.io-client": "^4.0.2"
   },
   "browserslist": [
     ">0.2%",
@@ -38,8 +38,8 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "eslint": "^6.6.0",
-    "eslint-config-airbnb": "^17.1.0",
+    "eslint": "^7.25.0",
+    "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.23.2"
