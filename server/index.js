@@ -62,7 +62,7 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 7000;
 const server = stoppable(app.listen(PORT), 10000); // Properly handle SIGTERM and SIGKILL
-const io = require('socket.io').listen(server);
+const io = require('socket.io')(server)
 
 app.io = io;
 
