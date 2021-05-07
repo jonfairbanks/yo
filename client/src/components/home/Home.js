@@ -116,57 +116,10 @@ class Home extends Component {
     socket.on('liveYos', (live) => { this.setState({ liveYos: live }); });
   }
 
-  getAllYos(auth) {
-    let accessToken = null;
-    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
-    axios.get(this.state.apiUrl, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
-      .then((res) => { this.setState({ allYos: res.data }); });
-  }
-
-  getPopularYos(auth) {
-    let accessToken = null;
-    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
-    axios.get(`${this.state.apiUrl}popular`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
-      .then((res) => { this.setState({ popYos: res.data }); });
-  }
-
-  getLiveYos(auth) {
-    let accessToken = null;
-    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
-    axios.get(`${this.state.apiUrl}recent`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
-      .then((res) => { this.setState({ liveYos: res.data }); });
-  }
-
-  extractHostname(url) {
-    let hostname;
-    // Find & remove protocol (http, ftp, etc.) and get hostname
-    if (url.indexOf('//') > -1) { hostname = url.split('/')[2]; } else { hostname = url.split('/')[0]; }
-    // Find & remove port number
-    hostname = hostname.split(':')[0];
-    // Find & remove "?"
-    hostname = hostname.split('?')[0];
-    return hostname;
-  }
-
-  checkHostname(bUrl, oUrl) {
-    const baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, '$1');
-    const originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, '$1');
-    if (baseUrl === originalUrl) { return true; } return false;
-  }
-
   handleUserInput(e) {
     const name = e.target.name;
     const value = e.target.value;
     this.setState({ [name]: value });
-  }
-
-  hideErrorDiags() {
-    setTimeout(() => {
-      this.setState({
-        showApiError: false,
-        showError: false
-      });
-    }, 5000);
   }
 
   handleSubmit() {
@@ -298,7 +251,7 @@ class Home extends Component {
           this.handleCancel();
         }, 5000)
       )
-      .catch(err => this.setState({ // eslint-disable-line no-unused-vars
+      .catch((err) => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
@@ -337,7 +290,7 @@ class Home extends Component {
         }),
         setTimeout(() => { this.handleCancel(); }, 5000)
       )
-      .catch(err => this.setState({ // eslint-disable-line no-unused-vars
+      .catch((err) => this.setState({ // eslint-disable-line no-unused-vars
         alert: (
           <SweetAlert
             warning
@@ -361,6 +314,53 @@ class Home extends Component {
       editingLink: null,
       editingOriginalUrl: null
     });
+  }
+
+  getAllYos(auth) {
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(this.state.apiUrl, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ allYos: res.data }); });
+  }
+
+  getPopularYos(auth) {
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(`${this.state.apiUrl}popular`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ popYos: res.data }); });
+  }
+
+  getLiveYos(auth) {
+    let accessToken = null;
+    try { accessToken = auth.accessToken; } catch (e) { accessToken = null; }
+    axios.get(`${this.state.apiUrl}recent`, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` } })
+      .then((res) => { this.setState({ liveYos: res.data }); });
+  }
+
+  extractHostname(url) {
+    let hostname;
+    // Find & remove protocol (http, ftp, etc.) and get hostname
+    if (url.indexOf('//') > -1) { hostname = url.split('/')[2]; } else { hostname = url.split('/')[0]; }
+    // Find & remove port number
+    hostname = hostname.split(':')[0];
+    // Find & remove "?"
+    hostname = hostname.split('?')[0];
+    return hostname;
+  }
+
+  checkHostname(bUrl, oUrl) {
+    const baseUrl = this.extractHostname(bUrl).replace(/\\(.)/mg, '$1');
+    const originalUrl = this.extractHostname(oUrl).replace(/\\(.)/mg, '$1');
+    if (baseUrl === originalUrl) { return true; } return false;
+  }
+
+  hideErrorDiags() {
+    setTimeout(() => {
+      this.setState({
+        showApiError: false,
+        showError: false
+      });
+    }, 5000);
   }
 
   renderButton() {
@@ -481,7 +481,7 @@ class Home extends Component {
               <tbody>
                 {
                 this.state.popYos.length > 0
-                  ? this.state.popYos.map(yo => (
+                  ? this.state.popYos.map((yo) => (
                     <tr key={yo._id}>
                       <td width="15%"><pre onClick={() => window.open(yo.shortUrl, '_blank')} style={{ cursor: 'pointer' }}>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
@@ -549,7 +549,7 @@ class Home extends Component {
               <tbody>
                 {
                 this.state.allYos.length > 0
-                  ? this.state.allYos.map(yo => (
+                  ? this.state.allYos.map((yo) => (
                     <tr key={yo._id}>
                       <td width="15%" onClick={() => window.open(yo.shortUrl, '_blank')} style={{ cursor: 'pointer' }}><pre>{yo.linkName}</pre></td>
                       <td width="75%"><a className="grey-text text-darken-2" href={yo.shortUrl} target="_blank" rel="noopener noreferrer">{yo.originalUrl}</a></td>
@@ -560,7 +560,7 @@ class Home extends Component {
                           <li>
                             <a
                               onClick={
-                                e => this.setState({ // eslint-disable-line no-unused-vars
+                                (e) => this.setState({ // eslint-disable-line no-unused-vars
                                   editingLink: yo.linkName,
                                   editingOriginalUrl: yo.originalUrl
                                 })
@@ -593,7 +593,7 @@ class Home extends Component {
                 <br />
                 <br />
                 <label className="grey-text text-darken-3" htmlFor="edit-originalUrl" id="edit-originalUrl-label">
-                  <input style={{ color: '#424242' }} onChange={e => this.setState({ editingOriginalUrl: e.target.value })} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl" />
+                  <input style={{ color: '#424242' }} onChange={(e) => this.setState({ editingOriginalUrl: e.target.value })} defaultValue={this.state.editingOriginalUrl} id="edit-originalUrl" />
                   Original URL
                 </label>
                 <br />
@@ -603,7 +603,7 @@ class Home extends Component {
                   href="#!"
                   style={{ float: 'left' }}
                   className="modal-close waves-effect waves-red red darken-2 btn"
-                  onClick={e => this.setState({ // eslint-disable-line no-unused-vars
+                  onClick={(e) => this.setState({ // eslint-disable-line no-unused-vars
                     alert: (
                       <SweetAlert
                         danger
@@ -621,8 +621,7 @@ class Home extends Component {
                         Are you sure? This is permanent!
                       </SweetAlert>
                     )
-                  })
-                  }
+                  })}
                 >
                   Delete
                 </a>
@@ -631,7 +630,7 @@ class Home extends Component {
                   href="#!"
                   style={{ marginLeft: '8px' }}
                   className="modal-close waves-effect waves-teal btn"
-                  onClick={e => this.setState({ // eslint-disable-line no-unused-vars
+                  onClick={(e) => this.setState({ // eslint-disable-line no-unused-vars
                     alert: (
                       <SweetAlert
                         info
@@ -649,8 +648,7 @@ class Home extends Component {
                         Do you want to update the current URL?
                       </SweetAlert>
                     )
-                  })
-                  }
+                  })}
                 >
                   Update
                 </a>
