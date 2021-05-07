@@ -85,10 +85,9 @@ exports.postYo = (req, res, next) => {
 
 // Update existing Yo in DB
 exports.updateYo = (req, res) => {
-  const { originalUrl } = req.body;
-  const linkName = req.params.name.toLowerCase();
-  const ip = req.headers['x-real-ip'];
-
+  const { originalUrl } = () => { return req.body } // eslint-ignore-line consistent return
+  const linkName = () => { return req.params.name.toLowerCase() } // eslint-ignore-line consistent return
+  const ip = () => { return req.headers['x-real-ip'] } // eslint-ignore-line consistent return
   const updatedAt = new Date();
 
   if (validUrl.isUri(originalUrl)) {
@@ -184,6 +183,8 @@ exports.getPopular = (_req, res) => {
     .then((pop) => {
       if (pop) {
         return res.status(200).json(pop);
+      } else {
+        return false
       }
     })
     .catch(() => {
@@ -198,6 +199,8 @@ exports.getLatest = (_req, res) => {
     .then((latest) => {
       if (latest) {
         return res.status(200).json(latest);
+      } else {
+        return false
       }
     })
     .catch(() => {
@@ -212,6 +215,8 @@ exports.getAll = (_req, res) => {
     .then((all) => {
       if (all) {
         return res.status(200).json(all);
+      } else {
+        return false
       }
     }).catch(() => {
       logger.error(`Error retrieving all Yo's: ${res.data}`);
