@@ -5,7 +5,6 @@ const Yo = mongoose.model('yo');
 const validUrl = require('valid-url');
 const logger = require('../services/logger');
 
-
 // Get a single Yo from DB and redirect
 exports.getYo = (req, res) => {
   const ip = req.headers['x-real-ip'];
@@ -85,9 +84,9 @@ exports.postYo = (req, res, next) => {
 
 // Update existing Yo in DB
 exports.updateYo = (req, res) => {
-  const { originalUrl } = () => { return req.body } // eslint-ignore-line consistent return
-  const linkName = () => { return req.params.name.toLowerCase() } // eslint-ignore-line consistent return
-  const ip = () => { return req.headers['x-real-ip'] } // eslint-ignore-line consistent return
+  const { originalUrl } = () => req.body; // eslint-ignore-line consistent return
+  const linkName = () => req.params.name.toLowerCase(); // eslint-ignore-line consistent return
+  const ip = () => req.headers['x-real-ip']; // eslint-ignore-line consistent return
   const updatedAt = new Date();
 
   if (validUrl.isUri(originalUrl)) {
@@ -183,9 +182,8 @@ exports.getPopular = (_req, res) => {
     .then((pop) => {
       if (pop) {
         return res.status(200).json(pop);
-      } else {
-        return false
       }
+      return false;
     })
     .catch(() => {
       logger.error(`Error retrieving popular Yo's: ${res.data}`);
@@ -199,9 +197,8 @@ exports.getLatest = (_req, res) => {
     .then((latest) => {
       if (latest) {
         return res.status(200).json(latest);
-      } else {
-        return false
       }
+      return false;
     })
     .catch(() => {
       logger.error(`Error retrieving the latest Yo's: ${res.data}`);
@@ -215,9 +212,8 @@ exports.getAll = (_req, res) => {
     .then((all) => {
       if (all) {
         return res.status(200).json(all);
-      } else {
-        return false
       }
+      return false;
     }).catch(() => {
       logger.error(`Error retrieving all Yo's: ${res.data}`);
       return res.status(500).json('Error retrieving all Yo\'s');
