@@ -20,7 +20,7 @@
     "dotenv": "^9.0.0",
     "express": "^4.16.4",
     "helmet": "^4.6.0",
-    "mongoose": "^5.12.7",
+    "mongoose": "^5.12.8",
     "path-parser": "^6.1.0",
     "redis": "^3.1.2",
     "socket.io": "^4.0.2",
