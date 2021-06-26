@@ -1,0 +1,8 @@
+window.REACT_APP_API_URL="http:192.168.1.4:7000/api/"
+window.REACT_APP_SOCKET_URL="http://192.168.1.4:7000"
+window.REACT_APP_BASE_URL="http://192.168.1.4:3000"
+window.REACT_APP_URL_PLACEHOLDER="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+window.REACT_APP_NAME_PLACEHOLDER="Rick"
+window.REACT_APP_AUTH0_CLIENT="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+window.REACT_APP_AUTH0_DOMAIN="xxxxxxxxx.auth0.com"
+window.REACT_APP_AUTH="false"

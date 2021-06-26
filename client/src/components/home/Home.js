@@ -10,7 +10,7 @@ import axios from 'axios';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import { createShortUrl } from '../../APIHelper';
 
-const socket = io(process.env.REACT_APP_SOCKET_URL);
+const socket = io(process.env.REACT_APP_SOCKET_URL ? process.env.REACT_APP_SOCKET_URL : window.REACT_APP_SOCKET_URL);
 
 const filter = new Filter();
 const blocked = process.env.REACT_APP_BLOCKED_NAMES ? process.env.REACT_APP_BLOCKED_NAMES.split(',') : [];
@@ -26,14 +26,14 @@ class Home extends Component {
       shortenUrl: '',
       originalUrl: '',
       linkName: '',
-      apiUrl: process.env.REACT_APP_API_URL,
+      apiUrl: process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : window.REACT_APP_API_URL,
       clickSubmit: true,
       showError: false,
       apiError: '',
       showApiError: false,
       showLoading: false,
-      exUrl: process.env.REACT_APP_URL_PLACEHOLDER || 'https://github.com/jonfairbanks/yo',
-      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER || 'Yo-URL',
+      exUrl: process.env.REACT_APP_URL_PLACEHOLDER ? process.env.REACT_APP_URL_PLACEHOLDER : window.REACT_APP_URL_PLACEHOLDER || 'https://github.com/jonfairbanks/yo',
+      exLinkName: process.env.REACT_APP_NAME_PLACEHOLDER ? process.env.REACT_APP_NAME_PLACEHOLDER : window.REACT_APP_NAME_PLACEHOLDER || 'Yo-URL',
       allYos: '',
       popYos: '',
       liveYos: '',
@@ -58,15 +58,16 @@ class Home extends Component {
   }
 
   componentDidMount() {
-    if (process.env.REACT_APP_AUTH === 'true') {
+    const authEnabled = process.env.REACT_APP_AUTH ? process.env.REACT_APP_AUTH : window.REACT_APP_AUTH
+    if (authEnabled === 'true') {
       const lock = new Auth0Lock(
-        process.env.REACT_APP_AUTH0_CLIENT,
-        process.env.REACT_APP_AUTH0_DOMAIN,
+        process.env.REACT_APP_AUTH0_CLIENT ? process.env.REACT_APP_AUTH0_CLIENT : window.REACT_APP_AUTH0_CLIENT,
+        process.env.REACT_APP_AUTH0_DOMAIN ? process.env.REACT_APP_AUTH0_DOMAIN : window.REACT_APP_AUTH0_DOMAIN,
         {
           allowedConnections: ['Username-Password-Authentication'],
           rememberLastLogin: false,
           allowForgotPassword: false,
-          allowSignUp: process.env.REACT_APP_SIGNUPS || false,
+          allowSignUp: process.env.REACT_APP_SIGNUPS ? process.env.REACT_APP_SIGNUPS : window.REACT_APP_SIGNUPS || false,
           closable: false,
           languageDictionary: { title: 'Yo - The URL Shortener' },
           theme: {
@@ -130,11 +131,11 @@ class Home extends Component {
       const reqObj = {
         originalUrl: this.state.originalUrl,
         linkName: this.state.linkName.toLowerCase(),
-        shortBaseUrl: process.env.REACT_APP_BASE_URL
+        shortBaseUrl: process.env.REACT_APP_BASE_URL ? process.env.REACT_APP_BASE_URL : window.REACT_APP_BASE_URL
       };
 
       // Ensure that links are not pointing back to Yo, essentially creating a loop.
-      if (this.checkHostname(process.env.REACT_APP_BASE_URL, reqObj.originalUrl)) {
+      if (this.checkHostname(process.env.REACT_APP_BASE_URL ? process.env.REACT_APP_BASE_URL : window.REACT_APP_BASE_URL, reqObj.originalUrl)) {
         this.setState({
           showLoading: false,
           showApiError: true,
