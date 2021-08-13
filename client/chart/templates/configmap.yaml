@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+data:
+  config.js: |
+    window.REACT_APP_API_URL="{{ .Values.apiURL }}"
+    window.REACT_APP_SOCKET_URL="{{ .Values.socketURL }}"
+    window.REACT_APP_BASE_URL="{{ .Values.baseURL }}"
+    window.REACT_APP_URL_PLACEHOLDER="{{ .Values.urlPlaceholder }}"
+    window.REACT_APP_NAME_PLACEHOLDER="{{ .Values.namePlaceholder }}"
+    window.REACT_APP_AUTH="{{ .Values.auth }}"
+    window.REACT_APP_AUTH0_CLIENT="{{ .Values.auth0Client }}"
+    window.REACT_APP_AUTH0_DOMAIN="{{ .Values.auth0Domain }}"
