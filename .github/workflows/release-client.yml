@@ -58,14 +58,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Cache Docker Layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache-client
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
@@ -79,8 +71,6 @@ jobs:
           file: ./client/Dockerfile
           push: true
           tags: ${{ steps.tag-images.outputs.tags }}
-          cache-from: type=local,src=/tmp/.buildx-cache-client
-          cache-to: type=local,dest=/tmp/.buildx-cache-client
 
       - name: Push Helm Chart to Github Container Registry
         id: push-helm-github
