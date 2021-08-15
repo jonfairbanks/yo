@@ -46,8 +46,6 @@ RUN npm run build
 # Production ENV
 FROM nginx:1.16-alpine
 COPY --from=build ./app/build /usr/share/nginx/html
-RUN pwd
-RUN ls
 COPY nginx.conf /etc/nginx/sites-enabled/
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
