@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.cache
+*.md
+*.example
+LICENSE
+logo.*
+*.yaml
+*.png
+*.gif
+*.jpg
+*.bmpr
+*.sample
+.env*
+.prettier*
