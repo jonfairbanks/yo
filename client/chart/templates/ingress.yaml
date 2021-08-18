@@ -42,15 +42,15 @@ spec:
             path: "/api"
             backend:
               service:
-                name: {{ $apiServiceName }}
+                name: {{ .Values.apiServiceName }}
                 port: 
-                  number: {{ $apiServicePort }}
+                  number: {{ .Values.apiServicePort }}
           - pathType: Prefix
             path: "/socket.io"
             backend:
               service:
-                name: {{ $apiServiceName }}
+                name: {{ .Values.apiServiceName }}
                 port: 
-                  number: {{ $apiServicePort }}
+                  number: {{ .Values.apiServicePort }}
   {{- end }}
 {{- end }}
