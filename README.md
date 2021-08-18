@@ -145,7 +145,7 @@ server {
 
 By default, the Yo backend API is open which would allow anyone who knew your API endpoint to list, edit or even delete links if they chose. To prevent this, you can enable Auth0 authentication for requests between the client and server.
 
-- Sign up for an Auth0 account @ https://auth0.com
+- Sign up for an [Auth0](https://auth0.com) account
 - Create and Setup a Regular Web Application. Configure it as you see fit.
 - In the Yo config.js files, set the Client and/or Domain provided by Auth0.
 - Before leaving Auth0, create a user account for your application under User & Roles.
@@ -179,4 +179,5 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 
 ## Contributers
 
-Jon Fairbanks - Maintainer
+[Jon Fairbanks](https://github.com/jonfairbanks/) - Maintainer
+[Brandon Sorgdrager](https://github.com/bsord/) - Contributer
