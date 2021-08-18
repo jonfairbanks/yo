@@ -1,6 +1,8 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "yo-client.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
+{{- $apiServiceName := .Values.apiServiceName -}}
+{{- $apiServicePort := .Values.apiServicePort -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
 {{- else -}}
@@ -42,15 +44,15 @@ spec:
             path: "/api"
             backend:
               service:
-                name: {{ .Values.apiServiceName }}
+                name: {{ $apiServiceName }}
                 port: 
-                  number: {{ .Values.apiServicePort }}
+                  number: {{ $apiServicePort }}
           - pathType: Prefix
             path: "/socket.io"
             backend:
               service:
-                name: {{ .Values.apiServiceName }}
+                name: {{ $apiServiceName }}
                 port: 
-                  number: {{ .Values.apiServicePort }}
+                  number: {{ $apiServicePort }}
   {{- end }}
 {{- end }}
