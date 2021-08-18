@@ -22,7 +22,7 @@ Turn long, hard to remember URLs into easily sharable short-links.
 
 The following will need to be installed before proceeding:
 
-- Node v8+
+- Node v14+
 - Mongo DB
 - Nginx
 
