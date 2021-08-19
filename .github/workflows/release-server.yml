@@ -38,7 +38,7 @@ jobs:
         uses: EndBug/add-and-commit@v7.2.1
         with:
           message: "yo-api v${{ steps.update-versions.outputs.version }}"
-          push: "origin master --force"
+          push: "origin ${{ github.event.repository.default_branch }} --force"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
