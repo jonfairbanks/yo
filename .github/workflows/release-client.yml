@@ -109,6 +109,14 @@ jobs:
       #     force: true
       #     chart-folder: ./client/chart
 
+      - name: Initiate Helm sync
+        id: helm-sync
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          repo: jonfairbanks/helm-charts
+          workflow: Helm repo index
+
       - uses: act10ns/slack@v1
         with:
           status: ${{ job.status }}
