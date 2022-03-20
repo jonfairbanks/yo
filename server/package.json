@@ -2,7 +2,7 @@
   "name": "yo-url-shortener-api",
   "description": "Yo Dawg, heard you're tired of remembering URLs",
   "repository": "https://github.com/jonfairbanks/yo.git",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "author": "Jon Fairbanks",
   "license": "UNLICENSED",
   "private": true,
