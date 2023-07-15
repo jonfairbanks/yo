@@ -15,8 +15,6 @@ function connectToDB() {
     process.env.MONGO_URI || 'mongodb://localhost/yo',
     {
       useNewUrlParser: true,
-      useCreateIndex: true,
-      useFindAndModify: false,
       useUnifiedTopology: true,
     },
   ).catch(

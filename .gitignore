@@ -10,3 +10,5 @@ client/src/config/config.js
 server/.env
 client/.env
 build/
+server/yo-api.log
+server/yo.log
