@@ -413,7 +413,6 @@ class Home extends Component {
             </div>
             <input
               name="originalUrl"
-              field="originalUrl"
               placeholder={this.state.exUrl}
               value={this.state.originalUrl}
               onChange={this.handleUserInput.bind(this)}
@@ -434,7 +433,6 @@ class Home extends Component {
             <input
               data-length="99"
               name="linkName"
-              field="linkName"
               placeholder={this.state.exLinkName}
               value={this.state.linkName}
               onChange={this.handleUserInput}

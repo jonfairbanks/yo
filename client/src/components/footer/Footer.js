@@ -1,6 +1,7 @@
+/* eslint-disable semi */
 import React from 'react';
 
-const Footer = () => (
+function Footer() {
   <div className="footer grey-text text-darken-4">
     <div style={{
       backgroundColor: '#424242', paddingBottom: '15px', paddingTop: '15px', border: '1px solid #404040'
@@ -13,6 +14,6 @@ const Footer = () => (
       </a>
     </div>
   </div>
-);
+}
 
 export default Footer;
