@@ -246,3 +246,27 @@ resource "aws_route53_record" "yo-api-cname" {
   ttl     = 300
   records = [aws_api_gateway_domain_name.yo-api-domain.cloudfront_domain_name]
 }
+
+/* ------------------------- */
+/* Output Variables          */
+/* ------------------------- */
+
+output "api_gateway_url" {
+  description = "The URL of the API Gateway"
+  value       = "${aws_api_gateway_deployment.yo-api-deployment.invoke_url}"
+}
+
+output "lambda_function_arn" {
+  description = "The ARN of the Lambda function"
+  value       = "${aws_lambda_function.yo-api-lambda.arn}"
+}
+
+output "cloudwatch_log_group" {
+  description = "The CloudWatch log group name"
+  value       = aws_cloudwatch_log_group.yo-api-loggroup.name
+}
+
+output "route53_record" {
+  description = "The Route 53 DNS record"
+  value       = aws_route53_record.yo-api-cname.fqdn
+}
