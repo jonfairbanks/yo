@@ -62,6 +62,12 @@ resource "aws_lambda_function" "yo-api-lambda" {
 
   description = "yo-api:${var.environment}"
 
+  environment {
+    variables = {
+      ENV_VAR_NAME = "value"
+    }
+  }
+
   tags = {
     environment = var.environment
     service     = "yo-api"
