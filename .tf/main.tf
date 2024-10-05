@@ -120,149 +120,106 @@ data "aws_acm_certificate" "issued" {
 }
 
 /* ------------------------- */
-/* VPC and Subnets           */
+/* API Gateway Rest API      */
 /* ------------------------- */
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-}
-
-resource "aws_subnet" "public_subnet_a" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
-  map_public_ip_on_launch = true
-}
-
-resource "aws_subnet" "public_subnet_b" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1b"
-  map_public_ip_on_launch = true
+resource "aws_api_gateway_rest_api" "yo-api" {
+  name        = "yo-api-${var.environment}"
+  description = "API Gateway for yo-api-${var.environment}"
 }
 
 /* ------------------------- */
-/* Internet Gateway and Routing */
+/* API Gateway Resource      */
 /* ------------------------- */
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_route_table" "public_route_table" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-}
-
-resource "aws_route_table_association" "public_subnet_a_association" {
-  subnet_id      = aws_subnet.public_subnet_a.id
-  route_table_id = aws_route_table.public_route_table.id
-}
-
-resource "aws_route_table_association" "public_subnet_b_association" {
-  subnet_id      = aws_subnet.public_subnet_b.id
-  route_table_id = aws_route_table.public_route_table.id
+resource "aws_api_gateway_resource" "yo-api-resource" {
+  rest_api_id = aws_api_gateway_rest_api.yo-api.id
+  parent_id   = aws_api_gateway_rest_api.yo-api.root_resource_id
+  path_part   = "{proxy+}"
 }
 
 /* ------------------------- */
-/* Security Group             */
+/* API Gateway Method        */
 /* ------------------------- */
 
-resource "aws_security_group" "allow_https" {
-  name        = "allow_https"
-  description = "Allow HTTPS traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1" // Allow all outbound traffic
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_api_gateway_method" "yo-api-any-method" {
+  rest_api_id   = aws_api_gateway_rest_api.yo-api.id
+  resource_id   = aws_api_gateway_resource.yo-api-resource.id
+  http_method   = "ANY"
+  authorization = "NONE"
 }
 
 /* ------------------------- */
-/* Application Load Balancer  */
+/* API Gateway Integration   */
 /* ------------------------- */
 
-resource "aws_lb" "yo-api-lb" {
-  name               = "yo-api-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.allow_https.id]
-  subnets            = [
-    aws_subnet.public_subnet_a.id,
-    aws_subnet.public_subnet_b.id
+resource "aws_api_gateway_integration" "yo-api-lambda-integration" {
+  rest_api_id = aws_api_gateway_rest_api.yo-api.id
+  resource_id = aws_api_gateway_resource.yo-api-resource.id
+  http_method = aws_api_gateway_method.yo-api-any-method.http_method
+  integration_http_method = "POST"
+  type = "AWS_PROXY"
+  uri  = aws_lambda_function.yo-api-lambda.invoke_arn
+}
+
+/* ------------------------- */
+/* API Gateway Deployment    */
+/* ------------------------- */
+
+resource "aws_api_gateway_deployment" "yo-api-deployment" {
+  rest_api_id = aws_api_gateway_rest_api.yo-api.id
+  stage_name  = var.environment
+
+  depends_on = [
+    aws_api_gateway_integration.yo-api-lambda-integration
   ]
 }
 
 /* ------------------------- */
-/* Target Group and Listener */
+/* API Gateway Domain Name   */
 /* ------------------------- */
 
-resource "aws_lb_target_group" "yo-api-tg" {
-  name        = "yo-api-lambda-tg"
-  target_type = "lambda"
-  vpc_id      = aws_vpc.main.id
-
-  health_check {
-    enabled             = true
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-  }
-}
-
-resource "aws_lb_target_group_attachment" "yo-api-tga" {
-  target_group_arn = aws_lb_target_group.yo-api-tg.arn
-  target_id        = aws_lambda_function.yo-api-lambda.arn
-}
-
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.yo-api-lb.arn
-  port              = 443
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.issued.arn
-
-  default_action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.yo-api-tg.arn
-  }
+resource "aws_api_gateway_domain_name" "yo-api-domain" {
+  domain_name = "yo-api.${var.root_domain}"
+  certificate_arn = data.aws_acm_certificate.issued.arn
 }
 
 /* ------------------------- */
-/* Route 53 CNAME Records    */
+/* API Gateway Base Path     */
+/* ------------------------- */
+
+resource "aws_api_gateway_base_path_mapping" "yo-api-base-path" {
+  domain_name = aws_api_gateway_domain_name.yo-api-domain.domain_name
+  api_id = aws_api_gateway_rest_api.yo-api.id
+  stage_name  = aws_api_gateway_deployment.yo-api-deployment.stage_name
+}
+
+/* ------------------------------ */
+/* API Gateway Lambda Permissions */
+/* ------------------------------ */
+
+resource "aws_lambda_permission" "allow_api_gateway" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.yo-api-lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # This is the source ARN for the API Gateway
+  source_arn = "${aws_api_gateway_rest_api.yo-api.execution_arn}/*/*"
+}
+
+/* ------------------------- */
+/* Route 53 API Gateway CNAME */
 /* ------------------------- */
 
 resource "aws_route53_zone" "existing_zone" {
   name = var.root_domain
 }
 
-resource "aws_route53_record" "test-cname" {
-  zone_id  = aws_route53_zone.existing_zone.zone_id
-  name     = "test"
-  type     = "CNAME"
-  ttl      = 300
-  records  = [aws_lambda_function_url.yo-api-lambda-function-url.function_url] # Points direct to function url
-}
-
 resource "aws_route53_record" "yo-api-cname" {
-  zone_id  = aws_route53_zone.existing_zone.zone_id
-  name     = "yo-api"
-  type     = "CNAME"
-  ttl      = 300
-  records  = [aws_lb.yo-api-lb.dns_name] # Points to ALB instance
+  zone_id = aws_route53_zone.existing_zone.zone_id
+  name    = "yo-api.${var.root_domain}"
+  type    = "CNAME"
+  ttl     = 300
+  records = [aws_api_gateway_domain_name.yo-api-domain.cloudfront_domain_name]
 }
