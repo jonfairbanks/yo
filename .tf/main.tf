@@ -68,13 +68,13 @@ resource "aws_lambda_function" "yo-api-lambda" {
   }
 }
 
-resource "aws_lambda_function_url" "yo-api-lambda-function-url" {
-  function_name      = aws_lambda_function.yo-api-lambda.id
-  authorization_type = "NONE"
-  cors {
-    allow_origins = ["*"]
-  }
-}
+# resource "aws_lambda_function_url" "yo-api-lambda-function-url" {
+#   function_name      = aws_lambda_function.yo-api-lambda.id
+#   authorization_type = "NONE"
+#   cors {
+#     allow_origins = ["*"]
+#   }
+# }
 
 /* ------------------------- */
 /* CloudWatch Log Group      */
@@ -129,38 +129,54 @@ resource "aws_api_gateway_rest_api" "yo-api" {
 }
 
 /* ------------------------- */
-/* API Gateway Resource      */
+/* API Gateway Catch-All     */
 /* ------------------------- */
 
-resource "aws_api_gateway_resource" "yo-api-resource" {
-  rest_api_id = aws_api_gateway_rest_api.yo-api.id
-  parent_id   = aws_api_gateway_rest_api.yo-api.root_resource_id
-  path_part   = "{proxy+}"
-}
+# resource "aws_api_gateway_resource" "yo-api-resource" {
+#   rest_api_id = aws_api_gateway_rest_api.yo-api.id
+#   parent_id   = aws_api_gateway_rest_api.yo-api.root_resource_id
+#   path_part   = "{proxy+}"
+# }
 
 /* ------------------------- */
 /* API Gateway Method        */
 /* ------------------------- */
 
-resource "aws_api_gateway_method" "yo-api-any-method" {
+resource "aws_api_gateway_method" "root_method" {
   rest_api_id   = aws_api_gateway_rest_api.yo-api.id
-  resource_id   = aws_api_gateway_resource.yo-api-resource.id
+  resource_id   = aws_api_gateway_rest_api.yo-api.root_resource_id  # This refers to the root "/"
   http_method   = "ANY"
   authorization = "NONE"
 }
+
+# resource "aws_api_gateway_method" "yo-api-any-method" {
+#   rest_api_id   = aws_api_gateway_rest_api.yo-api.id
+#   resource_id   = aws_api_gateway_resource.yo-api-resource.id
+#   http_method   = "ANY"
+#   authorization = "NONE"
+# }
 
 /* ------------------------- */
 /* API Gateway Integration   */
 /* ------------------------- */
 
-resource "aws_api_gateway_integration" "yo-api-lambda-integration" {
-  rest_api_id = aws_api_gateway_rest_api.yo-api.id
-  resource_id = aws_api_gateway_resource.yo-api-resource.id
-  http_method = aws_api_gateway_method.yo-api-any-method.http_method
+resource "aws_api_gateway_integration" "yo-api-root-integration" {
+  rest_api_id             = aws_api_gateway_rest_api.yo-api.id
+  resource_id             = aws_api_gateway_rest_api.yo-api.root_resource_id
+  http_method             = aws_api_gateway_method.root_method.http_method
   integration_http_method = "POST"
-  type = "AWS_PROXY"
-  uri  = aws_lambda_function.yo-api-lambda.invoke_arn
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.yo-api-lambda.invoke_arn
 }
+
+# resource "aws_api_gateway_integration" "yo-api-lambda-integration" {
+#   rest_api_id = aws_api_gateway_rest_api.yo-api.id
+#   resource_id = aws_api_gateway_resource.yo-api-resource.id
+#   http_method = aws_api_gateway_method.yo-api-any-method.http_method
+#   integration_http_method = "POST"
+#   type = "AWS_PROXY"
+#   uri  = aws_lambda_function.yo-api-lambda.invoke_arn
+# }
 
 /* ------------------------- */
 /* API Gateway Deployment    */
@@ -171,7 +187,7 @@ resource "aws_api_gateway_deployment" "yo-api-deployment" {
   stage_name  = var.environment
 
   depends_on = [
-    aws_api_gateway_integration.yo-api-lambda-integration
+    aws_api_gateway_integration.yo-api-root-integration
   ]
 }
 
@@ -192,6 +208,7 @@ resource "aws_api_gateway_base_path_mapping" "yo-api-base-path" {
   domain_name = aws_api_gateway_domain_name.yo-api-domain.domain_name
   api_id = aws_api_gateway_rest_api.yo-api.id
   stage_name  = aws_api_gateway_deployment.yo-api-deployment.stage_name
+  base_path = "" # Blank base path sets path as /
 }
 
 /* ------------------------------ */
