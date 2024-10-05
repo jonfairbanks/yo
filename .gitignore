@@ -20,3 +20,4 @@ server/yo.log
 .tf/terraform.tfstate
 .tf/tfplan
 *.zip
+/server/dist
