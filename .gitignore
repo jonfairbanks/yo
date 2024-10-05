@@ -12,3 +12,11 @@ client/.env
 build/
 server/yo-api.log
 server/yo.log
+.tf/.terraform.lock.hcl
+.tf/.terraform/providers/registry.terraform.io/hashicorp/aws/4.47.0/darwin_arm64/terraform-provider-aws_v4.47.0_x5
+.tf/.terraform/terraform.tfstate
+.tf/setup-s3-state-buckets/.terraform/providers/registry.terraform.io/hashicorp/aws/5.70.0/darwin_arm64/LICENSE.txt
+.tf/setup-s3-state-buckets/.terraform/providers/registry.terraform.io/hashicorp/aws/5.70.0/darwin_arm64/terraform-provider-aws_v5.70.0_x5
+.tf/terraform.tfstate
+.tf/tfplan
+*.zip
