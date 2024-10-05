@@ -10,7 +10,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "yo-api-state-${var.environment}"              # This will be changed as part of terraform init
+    bucket = "yo-api-state-${var.environment}" # This will be changed as part of terraform init
     key    = "default/terraform.tfstate" # This will be changed as part of terraform init
     region = "us-east-1"
   }
@@ -21,7 +21,7 @@ provider "aws" {
 }
 
 /* ------------------------- */
-/* Lambda Role           */
+/* Lambda Role               */
 /* ------------------------- */
 
 resource "aws_iam_role" "yo-api-lambda-role" {
@@ -42,7 +42,7 @@ resource "aws_iam_role" "yo-api-lambda-role" {
   })
 
   tags = {
-    environment = "${var.environment}"
+    environment = var.environment
     service     = "yo-api"
   }
 }
@@ -63,7 +63,7 @@ resource "aws_lambda_function" "yo-api-lambda" {
   description = "yo-api:${var.environment}"
 
   tags = {
-    environment = "${var.environment}"
+    environment = var.environment
     service     = "yo-api"
   }
 }
@@ -83,8 +83,9 @@ resource "aws_lambda_function_url" "yo-api-lambda-function-url" {
 resource "aws_cloudwatch_log_group" "yo-api-loggroup" {
   name              = "/aws/lambda/${aws_lambda_function.yo-api-lambda.function_name}"
   retention_in_days = 3
+
   tags = {
-    environment = "${var.environment}"
+    environment = var.environment
     service     = "yo-api"
   }
 }
@@ -119,16 +120,12 @@ data "aws_acm_certificate" "issued" {
 }
 
 /* ------------------------- */
-/* VPC                       */
+/* VPC and Subnets           */
 /* ------------------------- */
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
-
-/* ------------------------- */
-/* Subnets                   */
-/* ------------------------- */
 
 resource "aws_subnet" "public_subnet_a" {
   vpc_id            = aws_vpc.main.id
@@ -145,7 +142,34 @@ resource "aws_subnet" "public_subnet_b" {
 }
 
 /* ------------------------- */
-/* Security Group          */
+/* Internet Gateway and Routing */
+/* ------------------------- */
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+}
+
+resource "aws_route_table_association" "public_subnet_a_association" {
+  subnet_id      = aws_subnet.public_subnet_a.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "public_subnet_b_association" {
+  subnet_id      = aws_subnet.public_subnet_b.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+/* ------------------------- */
+/* Security Group             */
 /* ------------------------- */
 
 resource "aws_security_group" "allow_https" {
@@ -157,14 +181,14 @@ resource "aws_security_group" "allow_https" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks  = ["0.0.0.0/0"] // Adjust this as necessary for your security requirements
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1" // Allow all outbound traffic
-    cidr_blocks  = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -178,15 +202,20 @@ resource "aws_lb" "yo-api-lb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_https.id]
   subnets            = [
-    aws_subnet.public_subnet_a.id, 
+    aws_subnet.public_subnet_a.id,
     aws_subnet.public_subnet_b.id
   ]
 }
+
+/* ------------------------- */
+/* Target Group and Listener */
+/* ------------------------- */
 
 resource "aws_lb_target_group" "yo-api-tg" {
   name        = "yo-api-lambda-tg"
   target_type = "lambda"
   vpc_id      = aws_vpc.main.id
+
   health_check {
     enabled             = true
     interval            = 30
@@ -200,10 +229,6 @@ resource "aws_lb_target_group_attachment" "yo-api-tga" {
   target_group_arn = aws_lb_target_group.yo-api-tg.arn
   target_id        = aws_lambda_function.yo-api-lambda.arn
 }
-
-/* ------------------------- */
-/* HTTPS Listener           */
-/* ------------------------- */
 
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.yo-api-lb.arn
@@ -219,7 +244,7 @@ resource "aws_lb_listener" "https" {
 }
 
 /* ------------------------- */
-/* Route 53 CNAME Record     */
+/* Route 53 CNAME Records    */
 /* ------------------------- */
 
 resource "aws_route53_zone" "existing_zone" {
