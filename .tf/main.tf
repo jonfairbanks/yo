@@ -191,9 +191,9 @@ resource "aws_api_gateway_integration" "yo_api_catch_all_integration" {
   rest_api_id             = aws_api_gateway_rest_api.yo_api.id
   resource_id             = aws_api_gateway_resource.yo_api_catch_all.id
   http_method             = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  type                    = "MOCK"  # Use MOCK integration type
+  type                    = "MOCK"
   request_templates = {
-    "application/json" = "{\"statusCode\": 404}"  # Respond with a 404 status
+    "application/json" = "{\"statusCode\": 404}"
   }
 }
 
