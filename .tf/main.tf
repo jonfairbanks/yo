@@ -24,8 +24,8 @@ provider "aws" {
 /* Lambda Role               */
 /* ------------------------- */
 
-resource "aws_iam_role" "yo-api-lambda-role" {
-  name = "yo-api-lambda-role-${var.environment}"
+resource "aws_iam_role" "yo_api_lambda_role" {
+  name = "yo_api_lambda_role_${var.environment}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -51,10 +51,10 @@ resource "aws_iam_role" "yo-api-lambda-role" {
 /* Lambda Function           */
 /* ------------------------- */
 
-resource "aws_lambda_function" "yo-api-lambda" {
+resource "aws_lambda_function" "yo_api_lambda" {
   filename      = "../server/dist/yo-api-${var.lambdasVersion}.zip"
-  function_name = "yo-api-lambda-${var.environment}"
-  role          = aws_iam_role.yo-api-lambda-role.arn
+  function_name = "yo_api_lambda_${var.environment}"
+  role          = aws_iam_role.yo_api_lambda_role.arn
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   memory_size   = 128
@@ -74,8 +74,8 @@ resource "aws_lambda_function" "yo-api-lambda" {
   }
 }
 
-# resource "aws_lambda_function_url" "yo-api-lambda-function-url" {
-#   function_name      = aws_lambda_function.yo-api-lambda.id
+# resource "aws_lambda_function_url" "yo_api_lambda_function_url" {
+#   function_name      = aws_lambda_function.yo_api_lambda.id
 #   authorization_type = "NONE"
 #   cors {
 #     allow_origins = ["*"]
@@ -86,8 +86,8 @@ resource "aws_lambda_function" "yo-api-lambda" {
 /* CloudWatch Log Group      */
 /* ------------------------- */
 
-resource "aws_cloudwatch_log_group" "yo-api-loggroup" {
-  name              = "/aws/lambda/${aws_lambda_function.yo-api-lambda.function_name}"
+resource "aws_cloudwatch_log_group" "yo_api_loggroup" {
+  name              = "/aws/lambda/${aws_lambda_function.yo_api_lambda.function_name}"
   retention_in_days = 3
 
   tags = {
@@ -96,23 +96,23 @@ resource "aws_cloudwatch_log_group" "yo-api-loggroup" {
   }
 }
 
-data "aws_iam_policy_document" "yo-api-lambda-policy" {
+data "aws_iam_policy_document" "yo_api_lambda_policy" {
   statement {
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
     resources = [
-      aws_cloudwatch_log_group.yo-api-loggroup.arn,
-      "${aws_cloudwatch_log_group.yo-api-loggroup.arn}:*"
+      aws_cloudwatch_log_group.yo_api_loggroup.arn,
+      "${aws_cloudwatch_log_group.yo_api_loggroup.arn}:*"
     ]
   }
 }
 
-resource "aws_iam_role_policy" "yo-api-lambda-role-policy" {
-  policy = data.aws_iam_policy_document.yo-api-lambda-policy.json
-  role   = aws_iam_role.yo-api-lambda-role.id
-  name   = "yo-api-lambda-policy"
+resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
+  policy = data.aws_iam_policy_document.yo_api_lambda_policy.json
+  role   = aws_iam_role.yo_api_lambda_role.id
+  name   = "yo_api_lambda_policy"
 }
 
 /* ------------------------- */
@@ -129,71 +129,96 @@ data "aws_acm_certificate" "issued" {
 /* API Gateway Rest API      */
 /* ------------------------- */
 
-resource "aws_api_gateway_rest_api" "yo-api" {
+resource "aws_api_gateway_rest_api" "yo_api" {
   name        = "yo-api-${var.environment}"
   description = "API Gateway for yo-api-${var.environment}"
+
+  tags = {
+    environment = var.environment
+    service     = "yo-api"
+  }
 }
 
 /* ------------------------- */
 /* API Gateway Catch-All     */
 /* ------------------------- */
 
-# resource "aws_api_gateway_resource" "yo-api-resource" {
-#   rest_api_id = aws_api_gateway_rest_api.yo-api.id
-#   parent_id   = aws_api_gateway_rest_api.yo-api.root_resource_id
-#   path_part   = "{proxy+}"
-# }
+resource "aws_api_gateway_resource" "yo_api_catch_all" {
+  rest_api_id = aws_api_gateway_rest_api.yo_api.id
+  parent_id   = aws_api_gateway_rest_api.yo_api.root_resource_id
+  path_part   = "{proxy+}"
+}
 
 /* ------------------------- */
-/* API Gateway Method        */
+/* API Gateway Methods       */
 /* ------------------------- */
 
-resource "aws_api_gateway_method" "root_method" {
-  rest_api_id   = aws_api_gateway_rest_api.yo-api.id
-  resource_id   = aws_api_gateway_rest_api.yo-api.root_resource_id  # This refers to the root "/"
+resource "aws_api_gateway_method" "yo_api_root_method" {
+  rest_api_id   = aws_api_gateway_rest_api.yo_api.id
+  resource_id   = aws_api_gateway_rest_api.yo_api.root_resource_id  # This refers to the root "/"
   http_method   = "ANY"
   authorization = "NONE"
 }
 
-# resource "aws_api_gateway_method" "yo-api-any-method" {
-#   rest_api_id   = aws_api_gateway_rest_api.yo-api.id
-#   resource_id   = aws_api_gateway_resource.yo-api-resource.id
-#   http_method   = "ANY"
-#   authorization = "NONE"
-# }
-
-/* ------------------------- */
-/* API Gateway Integration   */
-/* ------------------------- */
-
-resource "aws_api_gateway_integration" "yo-api-root-integration" {
-  rest_api_id             = aws_api_gateway_rest_api.yo-api.id
-  resource_id             = aws_api_gateway_rest_api.yo-api.root_resource_id
-  http_method             = aws_api_gateway_method.root_method.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.yo-api-lambda.invoke_arn
+resource "aws_api_gateway_method" "yo_api_catch_all_method" {
+  rest_api_id   = aws_api_gateway_rest_api.yo_api.id
+  resource_id   = aws_api_gateway_resource.yo_api_catch_all.id
+  http_method   = "ANY"
+  authorization = "NONE"
 }
 
-# resource "aws_api_gateway_integration" "yo-api-lambda-integration" {
-#   rest_api_id = aws_api_gateway_rest_api.yo-api.id
-#   resource_id = aws_api_gateway_resource.yo-api-resource.id
-#   http_method = aws_api_gateway_method.yo-api-any-method.http_method
-#   integration_http_method = "POST"
-#   type = "AWS_PROXY"
-#   uri  = aws_lambda_function.yo-api-lambda.invoke_arn
-# }
+resource "aws_api_gateway_method_response" "yo_api_catch_all_method_response" {
+  rest_api_id = aws_api_gateway_rest_api.yo_api.id
+  resource_id = aws_api_gateway_resource.yo_api_catch_all.id
+  http_method = aws_api_gateway_method.yo_api_catch_all_method.http_method
+  status_code = "404"
+}
+
+/* ------------------------- */
+/* API Gateway Integrations  */
+/* ------------------------- */
+
+resource "aws_api_gateway_integration" "yo_api_root_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.yo_api.id
+  resource_id             = aws_api_gateway_rest_api.yo_api.root_resource_id
+  http_method             = aws_api_gateway_method.yo_api_root_method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.yo_api_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "yo_api_catch_all_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.yo_api.id
+  resource_id             = aws_api_gateway_resource.yo_api_catch_all.id
+  http_method             = aws_api_gateway_method.yo_api_catch_all_method.http_method
+  type                    = "MOCK"  # Use MOCK integration type
+  request_templates = {
+    "application/json" = "{\"statusCode\": 404}"  # Respond with a 404 status
+  }
+}
+
+resource "aws_api_gateway_integration_response" "yo_api_catch_all_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.yo_api.id
+  resource_id = aws_api_gateway_resource.yo_api_catch_all.id
+  http_method = aws_api_gateway_method.yo_api_catch_all_method.http_method
+  status_code = "404"
+  response_templates = {
+    "application/json" = "{\"message\":\"Not Found\"}"
+  }
+}
 
 /* ------------------------- */
 /* API Gateway Deployment    */
 /* ------------------------- */
 
-resource "aws_api_gateway_deployment" "yo-api-deployment" {
-  rest_api_id = aws_api_gateway_rest_api.yo-api.id
+resource "aws_api_gateway_deployment" "yo_api_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.yo_api.id
   stage_name  = var.environment
 
   depends_on = [
-    aws_api_gateway_integration.yo-api-root-integration
+    aws_api_gateway_integration.yo_api_root_integration,
+    aws_api_gateway_integration_response.yo_api_catch_all_integration_response
+
   ]
 }
 
@@ -201,7 +226,7 @@ resource "aws_api_gateway_deployment" "yo-api-deployment" {
 /* API Gateway Domain Name   */
 /* ------------------------- */
 
-resource "aws_api_gateway_domain_name" "yo-api-domain" {
+resource "aws_api_gateway_domain_name" "yo_api_domain" {
   domain_name = "yo-api.${var.root_domain}"
   certificate_arn = data.aws_acm_certificate.issued.arn
 }
@@ -210,10 +235,10 @@ resource "aws_api_gateway_domain_name" "yo-api-domain" {
 /* API Gateway Base Path     */
 /* ------------------------- */
 
-resource "aws_api_gateway_base_path_mapping" "yo-api-base-path" {
-  domain_name = aws_api_gateway_domain_name.yo-api-domain.domain_name
-  api_id = aws_api_gateway_rest_api.yo-api.id
-  stage_name  = aws_api_gateway_deployment.yo-api-deployment.stage_name
+resource "aws_api_gateway_base_path_mapping" "yo_api_base_path" {
+  domain_name = aws_api_gateway_domain_name.yo_api_domain.domain_name
+  api_id = aws_api_gateway_rest_api.yo_api.id
+  stage_name  = aws_api_gateway_deployment.yo_api_deployment.stage_name
   base_path = "" # Blank base path sets path as /
 }
 
@@ -224,11 +249,11 @@ resource "aws_api_gateway_base_path_mapping" "yo-api-base-path" {
 resource "aws_lambda_permission" "allow_api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.yo-api-lambda.function_name
+  function_name = aws_lambda_function.yo_api_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
   # This is the source ARN for the API Gateway
-  source_arn = "${aws_api_gateway_rest_api.yo-api.execution_arn}/*/*"
+  source_arn = "${aws_api_gateway_rest_api.yo_api.execution_arn}/*/*"
 }
 
 /* ------------------------- */
@@ -239,12 +264,12 @@ resource "aws_route53_zone" "existing_zone" {
   name = var.root_domain
 }
 
-resource "aws_route53_record" "yo-api-cname" {
+resource "aws_route53_record" "yo_api_cname" {
   zone_id = aws_route53_zone.existing_zone.zone_id
   name    = "yo-api.${var.root_domain}"
   type    = "CNAME"
   ttl     = 300
-  records = [aws_api_gateway_domain_name.yo-api-domain.cloudfront_domain_name]
+  records = [aws_api_gateway_domain_name.yo_api_domain.cloudfront_domain_name]
 }
 
 /* ------------------------- */
@@ -253,20 +278,20 @@ resource "aws_route53_record" "yo-api-cname" {
 
 output "api_gateway_url" {
   description = "The URL of the API Gateway"
-  value       = "${aws_api_gateway_deployment.yo-api-deployment.invoke_url}"
+  value       = "${aws_api_gateway_deployment.yo_api_deployment.invoke_url}"
 }
 
 output "lambda_function_arn" {
   description = "The ARN of the Lambda function"
-  value       = "${aws_lambda_function.yo-api-lambda.arn}"
+  value       = "${aws_lambda_function.yo_api_lambda.arn}"
 }
 
 output "cloudwatch_log_group" {
   description = "The CloudWatch log group name"
-  value       = aws_cloudwatch_log_group.yo-api-loggroup.name
+  value       = aws_cloudwatch_log_group.yo_api_loggroup.name
 }
 
 output "route53_record" {
   description = "The Route 53 DNS record"
-  value       = aws_route53_record.yo-api-cname.fqdn
+  value       = aws_route53_record.yo_api_cname.fqdn
 }
