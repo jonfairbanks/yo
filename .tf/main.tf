@@ -220,6 +220,10 @@ resource "aws_api_gateway_deployment" "yo_api_deployment" {
   ]
 }
 
+/* ---------------------------------- */
+/* API Gateway Logging Configuration  */
+/* ---------------------------------- */
+
 resource "aws_api_gateway_stage" "yo_api_stage" {
   rest_api_id  = aws_api_gateway_rest_api.yo_api.id
   deployment_id = aws_api_gateway_deployment.yo_api_deployment.id
