@@ -1,0 +1,54 @@
+name: Deploy AWS Lambda via Terraform
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' }}
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Setup deployment variables
+      id: setup-vars
+      run: |
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          echo "Branch: $BRANCH_NAME"
+          if [ "$BRANCH_NAME" = "develop" ]; then
+            echo "Using Development"
+            echo "environment=development" >> $GITHUB_OUTPUT
+            echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
+            echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH_NAME" = "main" ]; then
+            echo "Using Production"
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
+            echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
+          fi
+
+    - name: Verify credentials
+      run: |
+        echo "Selected Environment: ${{ steps.setup-vars.outputs.environment }}"
+        echo "Selected Key: ${{ steps.setup-vars.outputs.aws_key }}"
+        echo "Selected Secret: ${{ steps.setup-vars.outputs.aws_secret }}"
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ steps.setup-vars.outputs.aws_key }}
+        aws-secret-access-key: ${{ steps.setup-vars.outputs.aws_secret }}
+        aws-region: us-east-1
+
+    - name: Run Deploy Script
+      run: |
+        cd .tf/
+        echo "Deploying to environment: ${{ steps.setup-vars.outputs.environment }}"
+        ./deploy.sh "${{ steps.setup-vars.outputs.environment }}"
