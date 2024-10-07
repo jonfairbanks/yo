@@ -213,10 +213,9 @@ resource "aws_api_gateway_integration_response" "yo_api_catch_all_integration_re
 
 resource "aws_api_gateway_deployment" "yo_api_deployment" {
   rest_api_id = aws_api_gateway_rest_api.yo_api.id
-  stage_name  = var.environment
-
   depends_on = [
     aws_api_gateway_integration.yo_api_root_integration,
+    aws_api_gateway_integration.yo_api_catch_all_integration,
     aws_api_gateway_integration_response.yo_api_catch_all_integration_response
 
   ]
