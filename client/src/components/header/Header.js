@@ -1,8 +1,9 @@
+/* eslint-disable semi */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Header.css';
 
-const Header = () => (
+function Header() {
   <nav className="z-depth-0">
     <div className="nav-wrapper grey darken-3">
       <Link
@@ -17,6 +18,6 @@ const Header = () => (
       </Link>
     </div>
   </nav>
-);
+}
 
 export default Header;
