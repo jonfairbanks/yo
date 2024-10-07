@@ -217,8 +217,104 @@ resource "aws_api_gateway_deployment" "yo_api_deployment" {
     aws_api_gateway_integration.yo_api_root_integration,
     aws_api_gateway_integration.yo_api_catch_all_integration,
     aws_api_gateway_integration_response.yo_api_catch_all_integration_response
-
   ]
+}
+
+resource "aws_api_gateway_stage" "yo_api_stage" {
+  rest_api_id  = aws_api_gateway_rest_api.yo_api.id
+  deployment_id = aws_api_gateway_deployment.yo_api_deployment.id
+  stage_name   = var.environment
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.yo_api_gw_logs.arn
+    format          = jsonencode({
+      requestId       = "$context.requestId"
+      ip              = "$context.identity.sourceIp"
+      caller          = "$context.identity.caller"
+      user            = "$context.identity.user"
+      requestTime     = "$context.requestTime"
+      httpMethod      = "$context.httpMethod"
+      resourcePath    = "$context.resourcePath"
+      status          = "$context.status"
+      protocol        = "$context.protocol"
+      responseLength  = "$context.responseLength"
+    })
+  }
+
+  xray_tracing_enabled = true
+
+  depends_on = [
+    aws_api_gateway_deployment.yo_api_deployment
+  ]
+}
+
+resource "aws_api_gateway_method_settings" "yo_api_settings" {
+  rest_api_id = aws_api_gateway_rest_api.yo_api.id
+  stage_name  = aws_api_gateway_stage.yo_api_stage.stage_name
+  method_path = "*/*"
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "INFO"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "yo_api_gw_logs" {
+  name              = "/aws/apigateway/${aws_api_gateway_rest_api.yo_api.id}/${var.environment}"
+  retention_in_days = 3
+
+  tags = {
+    environment = var.environment
+    service     = "yo-api"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "yo_api_gw_loggroup" {
+  name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.yo_api.id}/${aws_api_gateway_stage.yo_api_stage.stage_name}"
+  retention_in_days = 3
+}
+
+data "aws_iam_policy_document" "yo_api_gw_logging_policy" {
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:*:*:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "yo_api_gw_logging_role_policy" {
+  role   = aws_iam_role.yo_api_lambda_role.id
+  policy = data.aws_iam_policy_document.yo_api_gw_logging_policy.json
+}
+
+resource "aws_iam_role" "api_gateway_logging_role" {
+  name = "api_gateway_logging_role_${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    environment = var.environment
+    service     = "yo-api"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  role       = aws_iam_role.api_gateway_logging_role.name
 }
 
 /* ------------------------- */
@@ -237,7 +333,7 @@ resource "aws_api_gateway_domain_name" "yo_api_domain" {
 resource "aws_api_gateway_base_path_mapping" "yo_api_base_path" {
   domain_name = aws_api_gateway_domain_name.yo_api_domain.domain_name
   api_id = aws_api_gateway_rest_api.yo_api.id
-  stage_name  = aws_api_gateway_deployment.yo_api_deployment.stage_name
+  stage_name  = aws_api_gateway_stage.yo_api_stage.stage_name
   base_path = "" # Blank base path sets path as /
 }
 
