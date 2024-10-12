@@ -1,0 +1,29 @@
+service: yo-api-lambda
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    NODE_ENV: dev
+    MONGO_URI: mongodb://localhost/yo
+
+plugins:
+  - serverless-offline
+
+functions:
+  app:
+    handler: src/index.handler
+    events:
+      - http:
+          path: '/'
+          method: get
+      - http:
+          path: '/{proxy+}'
+          method: any
+
+custom:
+  serverless-offline:
+    port: 3000  # Port for local testing
+    host: localhost
+    babelOptions:
+      presets: ["env"]
