@@ -81,7 +81,7 @@ export const postYo = async (req: Request, res: Response, next: NextFunction): P
 
     if (validUrl.isUri(originalUrl)) {
         try {
-            const urlData = await Yo.findOne({ linkName });
+            const urlData = await Yo.findOne({ linkName: { $eq: linkName } });
 
             if (urlData) {
                 logger.info(`User ${ip} could not create a Yo as the name is already in-use: ${linkName}`);
