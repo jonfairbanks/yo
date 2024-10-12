@@ -18,6 +18,12 @@ terraform {
 
 provider "aws" {
   region = "us-east-1"
+  default_tags {
+    tags = {
+      environment = var.environment
+      service     = "yo-api"
+    }
+  }
 }
 
 /* ------------------------- */
@@ -40,11 +46,6 @@ resource "aws_iam_role" "yo_api_lambda_role" {
       }
     ]
   })
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 /* ------------------------- */
@@ -67,11 +68,6 @@ resource "aws_lambda_function" "yo_api_lambda" {
       ENV_VAR_NAME = "value"
     }
   }
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 # resource "aws_lambda_function_url" "yo_api_lambda_function_url" {
@@ -89,11 +85,6 @@ resource "aws_lambda_function" "yo_api_lambda" {
 resource "aws_cloudwatch_log_group" "yo_api_loggroup" {
   name              = "/aws/lambda/${aws_lambda_function.yo_api_lambda.function_name}"
   retention_in_days = 3
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 data "aws_iam_policy_document" "yo_api_lambda_policy" {
@@ -132,11 +123,6 @@ data "aws_acm_certificate" "issued" {
 resource "aws_api_gateway_rest_api" "yo_api" {
   name        = "yo-api-${var.environment}"
   description = "API Gateway for yo-api-${var.environment}"
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 /* ------------------------- */
@@ -266,11 +252,6 @@ resource "aws_api_gateway_method_settings" "yo_api_settings" {
 resource "aws_cloudwatch_log_group" "yo_api_gw_logs" {
   name              = "/aws/apigateway/${aws_api_gateway_rest_api.yo_api.id}/${var.environment}"
   retention_in_days = 3
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 resource "aws_cloudwatch_log_group" "yo_api_gw_loggroup" {
@@ -309,11 +290,6 @@ resource "aws_iam_role" "api_gateway_logging_role" {
       }
     ]
   })
-
-  tags = {
-    environment = var.environment
-    service     = "yo-api"
-  }
 }
 
 resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
@@ -392,5 +368,5 @@ output "cloudwatch_log_group" {
 
 output "route53_record" {
   description = "The Route 53 DNS record"
-  value       = aws_route53_record.yo_api_cname.fqdn
+  value       = "https://${aws_route53_record.yo_api_cname.fqdn}"
 }

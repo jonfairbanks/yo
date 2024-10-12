@@ -1,0 +1,29 @@
+service: yo-api-lambda
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    NODE_ENV: dev
+    MONGO_URI: mongodb+srv://yodawg:5v4wBu71I2zxGSne@fairbanks-io.mydxp.azure.mongodb.net/yo?retryWrites=true&w=majority
+
+plugins:
+  - serverless-offline
+
+functions:
+  app:
+    handler: index.handler
+    events:
+      - http:
+          path: '/'
+          method: get
+      - http:
+          path: '/{proxy+}'
+          method: any
+
+custom:
+  serverless-offline:
+    port: 3000
+    host: localhost
+    babelOptions:
+      presets: ["env"]

@@ -23,3 +23,5 @@ server/yo.log
 /server/dist
 .tf/.terraform/providers/registry.terraform.io/hashicorp/aws/5.70.0/darwin_arm64/terraform-provider-aws_v5.70.0_x5
 .tf/.terraform/providers/registry.terraform.io/hashicorp/aws/5.70.0/darwin_arm64/LICENSE.txt
+server/.env.production
+server/.env.development
