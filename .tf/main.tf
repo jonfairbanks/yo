@@ -368,5 +368,5 @@ output "cloudwatch_log_group" {
 
 output "route53_record" {
   description = "The Route 53 DNS record"
-  value       = aws_route53_record.yo_api_cname.fqdn
+  value       = "https://${aws_route53_record.yo_api_cname.fqdn}"
 }
