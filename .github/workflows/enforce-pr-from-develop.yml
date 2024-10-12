@@ -9,8 +9,11 @@ jobs:
   check-branch:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug
+        run: echo ${github.head_ref}
+
       - name: Check PR source branch
-        if: github.base_ref != 'develop'
+        if: github.head_ref != 'develop'
         run: |
           echo "Pull requests to main must come from develop branch."
           exit 1
