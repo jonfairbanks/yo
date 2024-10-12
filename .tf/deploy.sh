@@ -30,12 +30,12 @@ function deploy {
   # Create a dist folder and copy only the js files to dist.
   # Note: AWS Lambda does not have a use for a package.json or typescript files on runtime.
   mkdir -p dist/ && \
-  cp -r *.js dist/ && \
+  rsync -av --prune-empty-dirs --exclude='node_modules' --exclude='chart' --include='*/' --include='*.js' --exclude='*' ./ dist/ && \
   cd dist && \
 
   # Zip everything in the dist folder and
   find . -name "*.zip" -type f -delete && \
-  zip -r ./yo-api-"$TIMESTAMP".zip . --exclude "./node_modules/*" --exclude "./.DS_Store" && \
+  zip -r ./yo-api-"$TIMESTAMP".zip . --exclude "./.DS_Store" && \
   cd ../../.tf && \
 
   # Run Terraform
