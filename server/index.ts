@@ -2,12 +2,12 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context } from "aws-la
 import mongoose from 'mongoose';
 import express from 'express';
 import serverless from 'serverless-http';
-import yoRoutes from './routes/yo';
 import dotenv from 'dotenv';
 import http from 'http';
+import RateLimit from 'express-rate-limit';
 import { Server } from 'socket.io';
 
-// Import models to ensure they are registered
+import yoRoutes from './routes/yo';
 import './models/yo';
 
 dotenv.config();
@@ -47,9 +47,16 @@ if (mongoose.connection.readyState === 0) {
     });
 }
 
+// Setup Rate Limiter:
+var limiter = RateLimit({
+    windowMs: 30 * 60 * 1000, // 30 minutes
+    max: 150,
+});
+
 // Initialize Express app
 const app = express();
 app.use(express.json());
+app.use(limiter); // apply rate limiter to all requests
 app.use(yoRoutes);
 
 interface ServerToClientEvents {
