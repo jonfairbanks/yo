@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Debug
-        run: echo ${github.head_ref}
+        run: echo ${{ github.head_ref }}
 
       - name: Check PR source branch
         if: github.head_ref != 'develop'
