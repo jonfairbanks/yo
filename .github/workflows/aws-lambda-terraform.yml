@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/develop' && 'development' }}
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
