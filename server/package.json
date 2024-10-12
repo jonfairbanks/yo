@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node index.js",
     "build": "npx tsc",
-    "dev": "npx ts-node index.ts",
+    "dev": "serverless offline start",
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "lint-fix": "./node_modules/eslint/bin/eslint.js . --fix"
   },
