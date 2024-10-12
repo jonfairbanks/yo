@@ -177,20 +177,16 @@ resource "aws_api_gateway_integration" "yo_api_catch_all_integration" {
   rest_api_id             = aws_api_gateway_rest_api.yo_api.id
   resource_id             = aws_api_gateway_resource.yo_api_catch_all.id
   http_method             = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  type                    = "MOCK"
-  request_templates = {
-    "application/json" = "{\"statusCode\": 404}"
-  }
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.yo_api_lambda.invoke_arn
 }
 
 resource "aws_api_gateway_integration_response" "yo_api_catch_all_integration_response" {
   rest_api_id = aws_api_gateway_rest_api.yo_api.id
   resource_id = aws_api_gateway_resource.yo_api_catch_all.id
   http_method = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  status_code = "404"
-  response_templates = {
-    "application/json" = "{\"message\":\"Not Found\"}"
-  }
+  status_code = "200"
 }
 
 /* ------------------------- */
