@@ -140,8 +140,8 @@ resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
 /* ACM Certificate           */
 /* ------------------------- */
 
-data "aws_acm_certificate" "issued" {
-  domain      = "*.${var.root_domain}"
+data "aws_acm_certificate" "issued_ssl_cert" {
+  domain      = "*.${var.root_domains[0]}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -328,8 +328,9 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
 /* ------------------------- */
 
 resource "aws_api_gateway_domain_name" "yo_api_domain" {
-  domain_name = "yo-api.${var.root_domain}"
-  certificate_arn = data.aws_acm_certificate.issued.arn
+  for_each       = toset(var.root_domains)
+  domain_name    = "yo-api.${each.key}"
+  certificate_arn = data.aws_acm_certificate.issued_ssl_cert.arn
 }
 
 /* ------------------------- */
@@ -353,7 +354,7 @@ resource "aws_lambda_permission" "allow_api_gateway" {
   function_name = aws_lambda_function.yo_api_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  # This is the source ARN for the API Gateway
+  # Source ARN for the API Gateway
   source_arn = "${aws_api_gateway_rest_api.yo_api.execution_arn}/*/*"
 }
 
@@ -362,15 +363,17 @@ resource "aws_lambda_permission" "allow_api_gateway" {
 /* ------------------------- */
 
 resource "aws_route53_zone" "existing_zone" {
-  name = var.root_domain
+  for_each = toset(var.root_domains)
+  name     = each.key
 }
 
 resource "aws_route53_record" "yo_api_cname" {
-  zone_id = aws_route53_zone.existing_zone.zone_id
-  name    = "yo-api.${var.root_domain}"
-  type    = "CNAME"
-  ttl     = 300
-  records = [aws_api_gateway_domain_name.yo_api_domain.cloudfront_domain_name]
+  for_each = toset(var.root_domains)
+  zone_id  = aws_route53_zone.existing_zone[each.key].zone_id
+  name     = "yo-api.${each.key}"
+  type     = "CNAME"
+  ttl      = 300
+  records  = [aws_api_gateway_domain_name.yo_api_domain.cloudfront_domain_name]
 }
 
 /* ------------------------- */
@@ -392,7 +395,9 @@ output "api_gateway_url" {
   value       = "${aws_api_gateway_deployment.yo_api_deployment.invoke_url}"
 }
 
-output "route53_record" {
-  description = "The Route 53 DNS record"
-  value       = "https://${aws_route53_record.yo_api_cname.fqdn}"
+output "route53_records" {
+  description = "The Route 53 DNS record(s)"
+  value = {
+    for domain, record in aws_route53_record.yo_api_cname : domain => "https://${record.fqdn}"
+  }
 }
