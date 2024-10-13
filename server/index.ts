@@ -47,7 +47,7 @@ if (mongoose.connection.readyState === 0) {
     });
 }
 
-// Setup Rate Limiter:
+// Setup Rate Limiter
 var limiter = RateLimit({
     windowMs: 30 * 60 * 1000, // 30 minutes
     max: 150,
