@@ -28,7 +28,6 @@ function deploy {
   npm prune --omit=dev && \
 
   # Create a dist folder and copy only the js files to dist.
-  # Note: AWS Lambda does not have a use for a package.json or typescript files on runtime.
   mkdir -p dist/ && \
   rsync -av --prune-empty-dirs --exclude='chart' --include='*/' --include='*.js' --exclude='*' ./ dist/ && \
   cd dist && \
