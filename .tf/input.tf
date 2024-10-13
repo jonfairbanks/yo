@@ -1,6 +1,6 @@
 variable "lambdasVersion" {
-  type        = string
   description = "Version of the Lambda zip on S3"
+  type        = string
 }
 
 variable "environment" {
@@ -9,8 +9,8 @@ variable "environment" {
   default     = "development"
 }
 
-variable "root_domain" {
-  description = "The root domain name to be used when creating domain names"
-  type = string
-  default = "fbnks.io"
+variable "root_domains" {
+  description = "A list of root domain names used for creating custom subdomains and API Gateway domain names."
+  type        = list(string)
+  default     = []
 }

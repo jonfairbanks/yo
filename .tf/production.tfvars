@@ -1,2 +1,4 @@
 environment = "production"
-root_domain = "fbnks.io"
+root_domains = [
+    "fbnks.io"
+]
