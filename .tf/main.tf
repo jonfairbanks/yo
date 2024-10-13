@@ -141,7 +141,7 @@ resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
 /* ------------------------- */
 
 data "aws_acm_certificate" "issued_ssl_cert" {
-  domain      = var.root_domains[0]
+  domain      = "*.${var.root_domains[0]}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
