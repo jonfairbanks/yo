@@ -140,8 +140,10 @@ resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
 /* ACM Certificate           */
 /* ------------------------- */
 
-data "aws_acm_certificates" "all_certificates" {
-  statuses = ["ISSUED"]
+data "aws_acm_certificate" "issued_ssl_cert" {
+  domain      = var.root_domains[0]
+  statuses    = ["ISSUED"]
+  most_recent = true
 }
 
 # Programmatically filter certificates based on SANs
