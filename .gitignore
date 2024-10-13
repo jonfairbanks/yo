@@ -26,3 +26,4 @@ server/yo.log
 server/.env.production
 server/.env.development
 server/.serverless
+server/serverless.yml
