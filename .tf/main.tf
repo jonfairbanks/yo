@@ -354,7 +354,7 @@ resource "aws_lambda_permission" "allow_api_gateway" {
   function_name = aws_lambda_function.yo_api_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
-  # This is the source ARN for the API Gateway
+  # Source ARN for the API Gateway
   source_arn = "${aws_api_gateway_rest_api.yo_api.execution_arn}/*/*"
 }
 
