@@ -31,7 +31,7 @@ function deploy {
   find . -name "*.zip" -type f -delete && \
   mkdir -p nodejs && \
   cp -r node_modules nodejs/ && \
-  zip -r ./yo-node-modules-"$TIMESTAMP".zip nodejs/ && \
+  zip -r ./yo-node-modules-"$TIMESTAMP".zip nodejs/ > /dev/null && \
   rm -rf nodejs && \
 
   # Create a dist folder and copy only the js files to dist.
