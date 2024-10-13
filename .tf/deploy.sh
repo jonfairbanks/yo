@@ -29,10 +29,10 @@ function deploy {
 
   # Create a zip of node_modules
   find . -name "*.zip" -type f -delete && \
-  mkdir -p layer/nodejs
-  cp -r node_modules layer/nodejs/
-  zip -r ./yo-node-modules-"$TIMESTAMP".zip -j layer/nodejs/
-  rm -rf layer
+  mkdir -p nodejs && \
+  cp -r node_modules nodejs/ && \
+  zip -r ./yo-node-modules-"$TIMESTAMP".zip nodejs/ && \
+  rm -rf nodejs && \
 
   # Create a dist folder and copy only the js files to dist.
   mkdir -p dist/ && \
