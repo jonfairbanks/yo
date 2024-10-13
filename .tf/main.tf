@@ -395,8 +395,8 @@ output "api_gateway_url" {
   value       = "${aws_api_gateway_deployment.yo_api_deployment.invoke_url}"
 }
 
-output "route53_record" {
-  description = "The Route 53 DNS record"
+output "route53_records" {
+  description = "The Route 53 DNS record(s)"
   value = {
     for domain, record in aws_route53_record.yo_api_cname : domain => "https://${record.fqdn}"
   }
