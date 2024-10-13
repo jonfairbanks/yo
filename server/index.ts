@@ -59,6 +59,7 @@ var limiter = RateLimit({
 // Initialize Express app
 const app = express();
 app.use(express.json());
+app.set('trust proxy', 1);
 app.use(limiter); // apply rate limiter to all requests
 app.use(yoRoutes);
 
