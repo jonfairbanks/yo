@@ -141,17 +141,9 @@ resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
 /* ------------------------- */
 
 data "aws_acm_certificate" "issued_ssl_cert" {
-  domain      = var.root_domains[0]
+  domain      = "*.${var.root_domains[0]}"
   statuses    = ["ISSUED"]
   most_recent = true
-}
-
-# Programmatically filter certificates based on SANs
-locals {
-  desired_cert_arn = [
-    for cert_arn in data.aws_acm_certificates.all_certificates.certificate_arns : 
-    cert_arn if contains(aws_acm_certificate.cert.subject_alternative_names, var.root_domains[0])
-  ][0]
 }
 
 /* ------------------------- */
@@ -338,7 +330,7 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
 resource "aws_api_gateway_domain_name" "yo_api_domain" {
   for_each       = toset(var.root_domains)
   domain_name    = "yo-api.${each.key}"
-  certificate_arn = local.desired_cert_arn
+  certificate_arn = data.aws_acm_certificate.issued.arn
 }
 
 /* ------------------------- */
