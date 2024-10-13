@@ -2,12 +2,12 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context } from "aws-la
 import mongoose from 'mongoose';
 import express from 'express';
 import serverless from 'serverless-http';
-import yoRoutes from './routes/yo';
 import dotenv from 'dotenv';
 import http from 'http';
+import RateLimit from 'express-rate-limit';
 import { Server } from 'socket.io';
 
-// Import models to ensure they are registered
+import yoRoutes from './routes/yo';
 import './models/yo';
 
 dotenv.config();
@@ -26,8 +26,11 @@ declare global {
 // Connect to MongoDB
 async function connectToDB() {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo');
-        console.log('MongoDB connected...');
+        const connection = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo');
+        console.log(`Connected to database: ${connection.connection.name}`);
+        console.log(`Host: ${connection.connection.host}`);
+        console.log(`Port: ${connection.connection.port}`);
+        console.log(`Connected at: ${new Date().toLocaleString()}`);
     } catch (err) {
         console.error('MongoDB connection error:', err);
         setTimeout(connectToDB, 3000); // Retry connection
@@ -47,9 +50,17 @@ if (mongoose.connection.readyState === 0) {
     });
 }
 
+// Setup Rate Limiter
+var limiter = RateLimit({
+    windowMs: 30 * 60 * 1000, // 30 minutes
+    max: 150,
+});
+
 // Initialize Express app
 const app = express();
 app.use(express.json());
+app.set('trust proxy', 1);
+app.use(limiter); // apply rate limiter to all requests
 app.use(yoRoutes);
 
 interface ServerToClientEvents {

@@ -27,7 +27,19 @@ provider "aws" {
 }
 
 /* ------------------------- */
-/* Lambda Role               */
+/* Get Secrets               */
+/* ------------------------- */
+
+data "aws_secretsmanager_secret" "yo_api_mongo_uri" {
+  name = "yo-api-mongo-uri"
+}
+
+data "aws_secretsmanager_secret_version" "yo_api_mongo_uri_version" {
+  secret_id = data.aws_secretsmanager_secret.yo_api_mongo_uri.id
+}
+
+/* ------------------------- */
+/* Lambda Role Setup         */
 /* ------------------------- */
 
 resource "aws_iam_role" "yo_api_lambda_role" {
@@ -48,6 +60,12 @@ resource "aws_iam_role" "yo_api_lambda_role" {
   })
 }
 
+
+resource "aws_iam_role_policy_attachment" "lambda_secrets_access" {
+  role       = aws_iam_role.yo_api_lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
 /* ------------------------- */
 /* Lambda Function           */
 /* ------------------------- */
@@ -59,15 +77,27 @@ resource "aws_lambda_function" "yo_api_lambda" {
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   memory_size   = 128
-  timeout       = 300
+  timeout       = 30
 
   description = "yo-api:${var.environment}"
 
+  layers = [
+    aws_lambda_layer_version.yo_api_node_modules_layer.arn
+  ] 
+
   environment {
     variables = {
-      ENV_VAR_NAME = "value"
+      MONGO_URI = jsondecode(data.aws_secretsmanager_secret_version.yo_api_mongo_uri_version.secret_string)["MONGO_URI"]
     }
   }
+}
+
+resource "aws_lambda_layer_version" "yo_api_node_modules_layer" {
+  filename         = "../server/yo-node-modules-${var.lambdasVersion}.zip"
+  layer_name       = "yo_api_node_modules"
+  compatible_runtimes = ["nodejs18.x"]
+  compatible_architectures = ["x86_64", "arm64"]
+  description      = "Yo API dependencies"
 }
 
 # resource "aws_lambda_function_url" "yo_api_lambda_function_url" {
@@ -177,20 +207,16 @@ resource "aws_api_gateway_integration" "yo_api_catch_all_integration" {
   rest_api_id             = aws_api_gateway_rest_api.yo_api.id
   resource_id             = aws_api_gateway_resource.yo_api_catch_all.id
   http_method             = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  type                    = "MOCK"
-  request_templates = {
-    "application/json" = "{\"statusCode\": 404}"
-  }
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.yo_api_lambda.invoke_arn
 }
 
 resource "aws_api_gateway_integration_response" "yo_api_catch_all_integration_response" {
   rest_api_id = aws_api_gateway_rest_api.yo_api.id
   resource_id = aws_api_gateway_resource.yo_api_catch_all.id
   http_method = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  status_code = "404"
-  response_templates = {
-    "application/json" = "{\"message\":\"Not Found\"}"
-  }
+  status_code = "200"
 }
 
 /* ------------------------- */

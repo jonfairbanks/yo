@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/develop' && 'development' }}
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +46,19 @@ jobs:
         aws-access-key-id: ${{ steps.setup-vars.outputs.aws_key }}
         aws-secret-access-key: ${{ steps.setup-vars.outputs.aws_secret }}
         aws-region: us-east-1
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: v0.52.0
+
+    - name: Init TFLint
+      run: tflint --init
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Run TFLint
+      run: tflint -f compact
 
     - name: Run Deploy Script
       run: |
