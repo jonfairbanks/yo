@@ -140,10 +140,32 @@ resource "aws_iam_role_policy" "yo_api_lambda_role_policy" {
 /* ACM Certificate           */
 /* ------------------------- */
 
-data "aws_acm_certificate" "issued_ssl_cert" {
-  domain      = var.root_domains[0]
-  statuses    = ["ISSUED"]
-  most_recent = true
+data "aws_acm_certificates" "all_certificates" {
+  statuses = ["ISSUED"]
+}
+
+# Programmatically filter certificates based on SANs
+locals {
+  desired_cert_arn = [
+    for cert_arn in data.aws_acm_certificates.all_certificates.certificate_arns : 
+    cert_arn if contains(aws_acm_certificate.cert.subject_alternative_names, var.root_domains[0])
+  ][0]
+}
+
+# Filter to find the correct certificate covering both domains
+locals {
+  desired_cert_arn = [
+    for cert in data.aws_acm_certificate.all_ssl_certs :
+    cert.arn if contains(cert.subject_alternative_names, "*.mysite1.dev") && contains(cert.subject_alternative_names, "*.mysite2.dev")
+  ][0]  # Select the first match
+}
+
+# Filter certificates to find the one that matches both domains
+locals {
+  desired_cert_arn = [
+    for cert in data.aws_acm_certificate.ssl_cert :
+    cert.arn if contains(cert.subject_alternative_names, "*.mysite1.dev") && contains(cert.subject_alternative_names, "*.mysite2.dev")
+  ][0]  # Select the first match (if found)
 }
 
 /* ------------------------- */
@@ -330,7 +352,7 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
 resource "aws_api_gateway_domain_name" "yo_api_domain" {
   for_each       = toset(var.root_domains)
   domain_name    = "yo-api.${each.key}"
-  certificate_arn = data.aws_acm_certificate.issued_ssl_cert.arn
+  certificate_arn = local.desired_cert_arn
 }
 
 /* ------------------------- */
