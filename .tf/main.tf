@@ -78,6 +78,7 @@ resource "aws_lambda_layer_version" "yo_api_node_modules_layer" {
   filename         = "../server/yo-node-modules-${var.lambdasVersion}.zip"
   layer_name       = "yo_api_node_modules"
   compatible_runtimes = ["nodejs18.x"]
+  compatible_architectures = ["x86_64", "arm64"]
   description      = "Yo API dependencies"
 }
 
