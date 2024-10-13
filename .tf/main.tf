@@ -377,11 +377,6 @@ resource "aws_route53_record" "yo_api_cname" {
 /* Output Variables          */
 /* ------------------------- */
 
-output "api_gateway_url" {
-  description = "The URL of the API Gateway"
-  value       = "${aws_api_gateway_deployment.yo_api_deployment.invoke_url}"
-}
-
 output "lambda_function_arn" {
   description = "The ARN of the Lambda function"
   value       = "${aws_lambda_function.yo_api_lambda.arn}"
@@ -390,6 +385,11 @@ output "lambda_function_arn" {
 output "cloudwatch_log_group" {
   description = "The CloudWatch log group name"
   value       = aws_cloudwatch_log_group.yo_api_loggroup.name
+}
+
+output "api_gateway_url" {
+  description = "The URL of the API Gateway"
+  value       = "${aws_api_gateway_deployment.yo_api_deployment.invoke_url}"
 }
 
 output "route53_record" {
