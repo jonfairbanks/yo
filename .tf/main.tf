@@ -338,10 +338,11 @@ resource "aws_api_gateway_domain_name" "yo_api_domain" {
 /* ------------------------- */
 
 resource "aws_api_gateway_base_path_mapping" "yo_api_base_path" {
-  domain_name = aws_api_gateway_domain_name.yo_api_domain.domain_name
-  api_id = aws_api_gateway_rest_api.yo_api.id
-  stage_name  = aws_api_gateway_stage.yo_api_stage.stage_name
-  base_path = "" # Blank base path sets path as /
+  for_each        = toset(var.root_domains)
+  domain_name     = aws_api_gateway_domain_name.yo_api_domain[each.key].domain_name
+  api_id          = aws_api_gateway_rest_api.yo_api.id
+  stage_name      = aws_api_gateway_stage.yo_api_stage.stage_name
+  base_path       = "" # Blank base path sets path as /
 }
 
 /* ------------------------------ */
@@ -373,7 +374,7 @@ resource "aws_route53_record" "yo_api_cname" {
   name     = "yo-api.${each.key}"
   type     = "CNAME"
   ttl      = 300
-  records  = [aws_api_gateway_domain_name.yo_api_domain.cloudfront_domain_name]
+  records  = [aws_api_gateway_domain_name.yo_api_domain[each.key].cloudfront_domain_name]
 }
 
 /* ------------------------- */
