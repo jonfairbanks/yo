@@ -26,8 +26,11 @@ declare global {
 // Connect to MongoDB
 async function connectToDB() {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo');
-        console.log('MongoDB connected...');
+        const connection = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo');
+        console.log(`Connected to database: ${connection.connection.name}`);
+        console.log(`Host: ${connection.connection.host}`);
+        console.log(`Port: ${connection.connection.port}`);
+        console.log(`Connected at: ${new Date().toLocaleString()}`);
     } catch (err) {
         console.error('MongoDB connection error:', err);
         setTimeout(connectToDB, 3000); // Retry connection
