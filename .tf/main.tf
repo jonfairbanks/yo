@@ -330,7 +330,7 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_policy" {
 resource "aws_api_gateway_domain_name" "yo_api_domain" {
   for_each       = toset(var.root_domains)
   domain_name    = "yo-api.${each.key}"
-  certificate_arn = data.aws_acm_certificate.issued.arn
+  certificate_arn = data.aws_acm_certificate.issued_ssl_cert.arn
 }
 
 /* ------------------------- */
