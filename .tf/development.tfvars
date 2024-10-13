@@ -1,5 +1,2 @@
 environment = "development"
-root_domains = [
-    "fairbanks.dev",
-    "fbnks.dev",
-]
+root_domain = "fairbanks.dev"
