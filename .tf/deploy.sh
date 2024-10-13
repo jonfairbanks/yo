@@ -27,12 +27,16 @@ function deploy {
   npm run build && \
   npm prune --omit=dev && \
 
+  # Create a zip of node_modules
+  find . -name "*.zip" -type f -delete && \
+  zip -r ./yo-node-modules-"$TIMESTAMP".zip . && \
+
   # Create a dist folder and copy only the js files to dist.
   mkdir -p dist/ && \
-  rsync -av --prune-empty-dirs --exclude='chart' --include='*/' --include='*.js' --exclude='*' ./ dist/ && \
+  rsync -av --prune-empty-dirs --exclude='node_modules' --exclude='chart' --include='*/' --include='*.js' --exclude='*' ./ dist/ && \
   cd dist && \
 
-  # Zip everything in the dist folder and
+  # Zip everything in the dist folder
   find . -name "*.zip" -type f -delete && \
   zip -r ./yo-api-"$TIMESTAMP".zip . --exclude "./.DS_Store" && \
   cd ../../.tf && \

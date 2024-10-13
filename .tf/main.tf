@@ -63,11 +63,22 @@ resource "aws_lambda_function" "yo_api_lambda" {
 
   description = "yo-api:${var.environment}"
 
+  layers = [
+    aws_lambda_layer_version.yo_api_node_modules_layer.arn
+  ] 
+
   environment {
     variables = {
-      ENV_VAR_NAME = "value"
+      SAMPLE_ENV = "test123"
     }
   }
+}
+
+resource "aws_lambda_layer_version" "yo_api_node_modules_layer" {
+  filename         = "../server/yo-node-modules-${var.lambdasVersion}.zip"
+  layer_name       = "yo_api_node_modules"
+  compatible_runtimes = ["nodejs18.x"]
+  description      = "Yo API dependencies"
 }
 
 # resource "aws_lambda_function_url" "yo_api_lambda_function_url" {
