@@ -1,8 +1,13 @@
 import winston from 'winston';
 
 const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json() // Log in JSON format for better structure in CloudWatch
+  ),
   transports: [
-    new winston.transports.File({ filename: process.env.LOG_LOCATION || 'yo.log' }),
+    new winston.transports.Console(),
   ],
 });
 
