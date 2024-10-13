@@ -152,22 +152,6 @@ locals {
   ][0]
 }
 
-# Filter to find the correct certificate covering both domains
-locals {
-  desired_cert_arn = [
-    for cert in data.aws_acm_certificate.all_ssl_certs :
-    cert.arn if contains(cert.subject_alternative_names, "*.mysite1.dev") && contains(cert.subject_alternative_names, "*.mysite2.dev")
-  ][0]  # Select the first match
-}
-
-# Filter certificates to find the one that matches both domains
-locals {
-  desired_cert_arn = [
-    for cert in data.aws_acm_certificate.ssl_cert :
-    cert.arn if contains(cert.subject_alternative_names, "*.mysite1.dev") && contains(cert.subject_alternative_names, "*.mysite2.dev")
-  ][0]  # Select the first match (if found)
-}
-
 /* ------------------------- */
 /* API Gateway Rest API      */
 /* ------------------------- */
