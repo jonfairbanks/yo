@@ -30,7 +30,7 @@ provider "aws" {
 /* Get Secrets               */
 /* ------------------------- */
 
-resource "aws_secretsmanager_secret" "yo_api_mongo_uri" {
+data "aws_secretsmanager_secret" "yo_api_mongo_uri" {
   name = "yo-api-mongo-uri"
 }
 
