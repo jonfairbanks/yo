@@ -5,7 +5,6 @@ import serverless from 'serverless-http';
 import dotenv from 'dotenv';
 import http from 'http';
 import RateLimit from 'express-rate-limit';
-import { Server } from 'socket.io';
 
 import yoRoutes from './routes/yo';
 import './models/yo';
@@ -13,15 +12,6 @@ import './models/yo';
 dotenv.config();
 
 mongoose.Promise = global.Promise;
-
-// Extend Express type to include `io`
-declare global {
-    namespace Express {
-        interface Application {
-            io?: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
-        }
-    }
-}
 
 // Connect to MongoDB
 async function connectToDB() {
@@ -86,11 +76,6 @@ interface SocketData {
     name: string;
     age: number;
 }
-
-// Initialize Socket.io
-const server = http.createServer(app);
-const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>();
-app.io = io; // Assign io to the app
 
 // Wrap the Express app with serverless-http for AWS Lambda
 const serverlessApp = serverless(app);
