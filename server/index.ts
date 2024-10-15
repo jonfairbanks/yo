@@ -107,8 +107,19 @@ export const handler = async (
         }
 
         // Pass the event and context to the serverless app
-        const response = await serverlessApp(event, context);
-        return response;
+        const response: any = await serverlessApp(event, context);
+
+        const headers = {
+            ...response?.headers || {},
+            'Access-Control-Allow-Origin': '*', // TODO: specify a domain instead of '*'
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        };
+
+        return {
+            ...response,
+            headers,
+        };
     } catch (error) {
         console.error('Error handling the request:', error); // Log the error
         return {
