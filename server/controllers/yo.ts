@@ -105,7 +105,6 @@ export const updateYo = async (req: Request, res: Response, next: NextFunction):
 
             if (item) {
                 logger.info(`User from ${ip} updated ${originalUrl} as alias: ${linkName}`);
-                const all = await Yo.find({}).sort({ linkName: 1 });
                 return res.status(200).json(`${linkName} updated successfully.`);
             }
 
