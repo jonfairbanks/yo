@@ -47,6 +47,9 @@ jobs:
         aws-secret-access-key: ${{ steps.setup-vars.outputs.aws_secret }}
         aws-region: us-east-1
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
     - name: Setup TFLint
       uses: terraform-linters/setup-tflint@v4
       with:
