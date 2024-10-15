@@ -1,23 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import validUrl from 'valid-url';
-import { Server } from 'socket.io';
 import logger from '../services/logger';
 
 import Yo from '../models/yo';
 
 mongoose.Promise = Promise;
-
-// Declare global to add `io` to Express `Request`
-declare global {
-    namespace Express {
-        interface Request {
-            app: {
-                io: Server<ServerToClientEvents>;
-            };
-        }
-    }
-}
 
 interface YoDocument {
     originalUrl: string;
@@ -55,13 +43,6 @@ export const getYo = async (req: Request, res: Response, next: NextFunction): Pr
 
         if (item) {
             logger.info(`User from ${ip} loaded ${item.originalUrl} as alias: ${linkName}`);
-            const all = await Yo.find({}).sort({ linkName: 1 });
-
-            try {
-                emitSocketUpdate(req, res, next);
-            } catch(err) {
-                logger.error(`Error retrieving all Yo's: ${err}`);
-            }
             return res.redirect(item.originalUrl) as unknown as Response<any>;
         }
 
@@ -94,17 +75,6 @@ export const postYo = async (req: Request, res: Response, next: NextFunction): P
                 await item.save();
                 logger.info(`User from ${ip} created alias: ${linkName} -> ${originalUrl}`);
 
-                const all = await Yo.find({}).sort({ linkName: 1 });
-                try {
-                    if (req.app.io) {
-                        req.app.io.emit('allYos', all);
-                    } else {
-                        logger.error('Socket.io server is not initialized');
-                    }
-                } catch(err) {
-                    logger.error(`Error retrieving all Yo's: ${err}`);
-                }
-
                 return res.status(200).json(itemToBeSaved);
             }
         } catch (error) {
@@ -135,16 +105,6 @@ export const updateYo = async (req: Request, res: Response, next: NextFunction):
 
             if (item) {
                 logger.info(`User from ${ip} updated ${originalUrl} as alias: ${linkName}`);
-                const all = await Yo.find({}).sort({ linkName: 1 });
-                try {
-                    if (req.app.io) {
-                        req.app.io.emit('allYos', all);
-                    } else {
-                        logger.error('Socket.io server is not initialized');
-                    }
-                } catch(err) {
-                    logger.error(`Error retrieving all Yo's: ${err}`);
-                }
                 return res.status(200).json(`${linkName} updated successfully.`);
             }
 
@@ -172,15 +132,6 @@ export const deleteYo = async (req: Request, res: Response, next: NextFunction):
         if (item) {
             logger.info(`User from ${ip} deleted ${item.originalUrl} as alias: ${linkName}`);
             const all = await Yo.find({}).sort({ linkName: 1 });
-            try {
-                if (req.app.io) {
-                    req.app.io.emit('allYos', all);
-                } else {
-                    logger.error('Socket.io server is not initialized');
-                }
-            } catch (err) {
-                logger.error(`Error retrieving all Yo's: ${err}`);
-            }
             return res.status(200).json(`${linkName} deleted successfully.`);
         }
 
@@ -264,44 +215,5 @@ export const getAll = async (_req: Request, res: Response, next: NextFunction): 
     } catch (error) {
         logger.error(`Error retrieving all Yo's: ${error}`);
         return res.status(500).json('Error retrieving all Yo\'s');
-    }
-};
-
-// Manage socket.io events
-export const emitSocketUpdate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // All
-    try {
-        const all = await Yo.find({}).sort({ linkName: 1 });
-        if (req.app.io) {
-            req.app.io.emit('allYos', all);
-        } else {
-            logger.error('Socket.io server is not initialized');
-        }
-    } catch (error) {
-        logger.error(`Error retrieving all Yo's for socket updates: ${error}`);
-    }
-
-    // Live
-    try {
-        const latest = await Yo.find({}).sort({ lastAccess: -1 }).limit(10);
-        if (req.app.io) {
-            req.app.io.emit('liveYos', latest);  // `all` should be an array of data
-        } else {
-            logger.error('Socket.io server is not initialized');
-        }
-    } catch (error) {
-        logger.error(`Error retrieving live Yo's for socket updates: ${error}`);
-    }
-
-    // Popular
-    try {
-        const pop = await Yo.find({}).sort({ urlHits: -1 }).limit(10);
-        if (req.app.io) {
-            req.app.io.emit('popYos', pop);  // `all` should be an array of data
-        } else {
-            logger.error('Socket.io server is not initialized');
-        }
-    } catch (error) {
-        logger.error(`Error retrieving popular Yo's for socket updates: ${error}`);
     }
 };
