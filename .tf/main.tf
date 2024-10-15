@@ -187,7 +187,10 @@ resource "aws_api_gateway_method_response" "yo_api_catch_all_method_response" {
   rest_api_id = aws_api_gateway_rest_api.yo_api.id
   resource_id = aws_api_gateway_resource.yo_api_catch_all.id
   http_method = aws_api_gateway_method.yo_api_catch_all_method.http_method
-  status_code = "404"
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
 }
 
 /* ------------------------- */
