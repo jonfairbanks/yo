@@ -223,7 +223,7 @@ resource "aws_api_gateway_integration_response" "yo_api_catch_all_integration_re
   status_code = "200"
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin" = "integration.response.header.Access-Control-Allow-Origin"
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"  # Static value for CORS
   }
 
   response_templates = {
