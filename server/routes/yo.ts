@@ -37,7 +37,6 @@ router.get('/', (_req: Request, res: Response) => {
 router.get('/api/link/:name', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await YoCtrl.getYo(req, res, next);
-        await YoCtrl.emitSocketUpdate(req, res, next);
     } catch (error) {
         next(error); // Pass error to error handler
     }
@@ -92,7 +91,6 @@ router.get('/api/recent', async (req: Request, res: Response, next: NextFunction
 router.post('/api/link', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await YoCtrl.postYo(req, res, next);
-        await YoCtrl.emitSocketUpdate(req, res, next);
     } catch (error) {
         next(error);
     }
@@ -101,7 +99,6 @@ router.post('/api/link', async (req: Request, res: Response, next: NextFunction)
 router.post('/api/update/:name', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await YoCtrl.updateYo(req, res, next);
-        await YoCtrl.emitSocketUpdate(req, res, next);
     } catch (error) {
         next(error);
     }
@@ -110,7 +107,6 @@ router.post('/api/update/:name', async (req: Request, res: Response, next: NextF
 router.post('/api/delete/:name', async (req: Request, res: Response, next: NextFunction) => {
     try {
         await YoCtrl.deleteYo(req, res, next);
-        await YoCtrl.emitSocketUpdate(req, res, next);
     } catch (error) {
         next(error);
     }
