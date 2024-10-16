@@ -402,7 +402,7 @@ class Home extends Component {
         <ul id="tabs-swipe-demo" className="tabs grey darken-3">
           <li className="tab col s3"><a className="active teal-text" href="#create">Create</a></li>
           <li className="tab col s3"><a className="teal-text" href="#popular">Popular</a></li>
-          <li className="tab col s3"><a className="teal-text" href="#live">Live</a></li>
+          <li className="tab col s3"><a className="teal-text" href="#latest">Latest</a></li>
           <li className="tab col s3"><a className="teal-text" href="#all">All</a></li>
         </ul>
         <div id="create" className="col s12 teal-text">
@@ -498,7 +498,7 @@ class Home extends Component {
             </table>
           </div>
         </div>
-        <div id="live" className="col s12 grey-text">
+        <div id="latest" className="col s12 grey-text">
           {/* TAB 3 */}
           <div>
             <table>
