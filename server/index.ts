@@ -11,23 +11,34 @@ import './models/yo';
 
 dotenv.config();
 
+// Global variable to track DB connection status
+let isConnected = false;
+
 mongoose.Promise = global.Promise;
 
 // Connect to MongoDB
 async function connectToDB() {
+    if (isConnected) {
+        console.log('=> Using existing database connection');
+        return;
+    }
+
     try {
-        const connection = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo');
+        const connection = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/yo', {
+            minPoolSize: 5,
+            maxPoolSize: 10,
+        });
+        isConnected = mongoose.connection.readyState === 1;  // Set flag to true if connected
         console.log(`Connected to database: ${connection.connection.name}`);
         console.log(`Host: ${connection.connection.host}`);
         console.log(`Port: ${connection.connection.port}`);
         console.log(`Connected at: ${new Date().toLocaleString()}`);
     } catch (err) {
         console.error('MongoDB connection error:', err);
-        setTimeout(connectToDB, 3000); // Retry connection
+        setTimeout(connectToDB, 3000); // Retry connection after 3 seconds
     }
 }
 
-// Ensure the MongoDB connection events are only registered once
 if (mongoose.connection.readyState === 0) {
     mongoose.connection.on('disconnected', (err) => {
         console.warn(`MongoDB disconnected: ${err}`);
@@ -50,32 +61,8 @@ var limiter = RateLimit({
 const app = express();
 app.use(express.json());
 app.set('trust proxy', 1);
-app.use(limiter); // apply rate limiter to all requests
+app.use(limiter);
 app.use(yoRoutes);
-
-interface ServerToClientEvents {
-    noArg: () => void;
-    basicEmit: (a: number, b: string, c: Buffer) => void;
-    withAck: (d: string, callback: (e: number) => void) => void;
-
-    // Custom events for your application
-    allYos: (data: any[]) => void;
-    liveYos: (data: any[]) => void;
-    popYos: (data: any[]) => void;
-}
-
-interface ClientToServerEvents {
-    hello: () => void;
-}
-
-interface InterServerEvents {
-    ping: () => void;
-}
-
-interface SocketData {
-    name: string;
-    age: number;
-}
 
 // Wrap the Express app with serverless-http for AWS Lambda
 const serverlessApp = serverless(app);
@@ -85,6 +72,8 @@ export const handler = async (
     event: APIGatewayProxyEventV2, 
     context: Context
 ): Promise<APIGatewayProxyResultV2<string>> => {
+    context.callbackWaitsForEmptyEventLoop = false; // Allows Lambda to reuse the database connection
+
     try {
         // Connect to DB if not already connected
         if (mongoose.connection.readyState === 0) {
