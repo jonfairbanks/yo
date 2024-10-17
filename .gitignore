@@ -28,3 +28,4 @@ server/.env.development
 server/.serverless
 server/serverless.yml
 /next/yo-api/.next
+next/yo-api/.env

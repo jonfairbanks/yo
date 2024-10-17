@@ -3,14 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: teal;
+  --foreground: #424242;
+  --text: #acacac;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #424242;
+    --foreground: teal;
   }
 }
 
@@ -20,8 +21,74 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.nav-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  background-color: #242424 !important;
+}
+
+.primary-body {
+  margin: 10px;
+}
+
+.brand {
+  font-size: 1.5rem;
+  color: var(--text);
+  position: absolute;
+  margin-left: 60px;
+}
+
+.brand a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.brand a:hover {
+  color: #f0f0f0;
+}
+
+.create-btn {
+  color: var(--text);
+  padding: 5px 5px;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: var(--background) 0.3s ease;
+}
+
+.create-btn:hover {
+  background-color: #ffffff;
+  color: var(--foreground);
+}
+
+/* Override the tab background color */
+.tabs {
+  background-color: var(--background); /* Or use a specific color like #424242 */
+}
+
+/* Style tabs */
+.tabs .tab a {
+  color: var(--text); /* Text color for inactive tabs */
+}
+
+.tabs .tab a.active {
+  color: var(--foreground); /* Text color for active tab */
+  background-color: var(--background); /* Background color for active tab */
+}
+
+.tabs .tab a:hover {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.tabs .indicator {
+  background-color: var(--foreground);
+} /*Color of underline*/
+
+/* Limit the width of the Site URL column */
+td.site-url, th.site-url {
+  max-width: 200px;
+  word-break: break-word;
+  white-space: normal;
 }

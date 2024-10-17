@@ -17,18 +17,6 @@ interface YoDocument {
     urlHits: number;
 }
 
-// Events that the server can send to the client
-interface ServerToClientEvents {
-    noArg: () => void;
-    basicEmit: (a: number, b: string, c: Buffer) => void;
-    withAck: (d: string, callback: (e: number) => void) => void;
-    
-    // Custom Events
-    allYos: (data: any[]) => void; // Adjust the data type as per your needs
-    liveYos: (data: any[]) => void;
-    popYos: (data: any[]) => void;
-}
-
 // Get a single Yo from DB and redirect
 export const getYo = async (req: Request, res: Response, next: NextFunction): Promise<Response<any>> => {
     const ip = req.headers['x-real-ip'] as string;
@@ -131,7 +119,6 @@ export const deleteYo = async (req: Request, res: Response, next: NextFunction):
 
         if (item) {
             logger.info(`User from ${ip} deleted ${item.originalUrl} as alias: ${linkName}`);
-            const all = await Yo.find({}).sort({ linkName: 1 });
             return res.status(200).json(`${linkName} deleted successfully.`);
         }
 
