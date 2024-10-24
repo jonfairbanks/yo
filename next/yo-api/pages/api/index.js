@@ -1,4 +1,3 @@
-import { link } from 'fs';
 import { connectToDatabase } from '../../lib/mongoose';
 import Yo from '../../models/yo';
 
