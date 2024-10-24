@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 const PopularYos = () => {
   const [data, setData] = useState([]);
@@ -14,7 +15,7 @@ const PopularYos = () => {
         setData(json);
         setLoading(false);
       } catch (error) {
-        setError('Failed to load data');
+        setError('Failed to load popular data:', error);
         setLoading(false);
       }
     };
@@ -43,12 +44,14 @@ const PopularYos = () => {
         {data.map((item, index) => (
           <tr key={index}>
             <td width="15%">
-							<pre>{item.linkName}</pre>
+              <CopyToClipboard text={window.location.host + "/" + item.linkName}>
+                <pre style={{ cursor: 'pointer' }}>{item.linkName}</pre>
+              </CopyToClipboard>
 						</td>
             <td className="site-url" width="75%">
-							<a className="grey-text text-darken-2" href={"/api/redirect/" + item.linkName} target="_blank" rel="noopener noreferrer">{item.originalUrl}</a>
+							<a className="grey-text text-darken-1" href={"/api/redirect/" + item.linkName} target="_blank" rel="noopener noreferrer">{item.originalUrl}</a>
 						</td>
-            <td width="10%">
+            <td className="url-hits" width="10%">
 							{item.urlHits}
 						</td>
           </tr>

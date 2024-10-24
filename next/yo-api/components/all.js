@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 const AllYos = () => {
 	const [data, setData] = useState([]);
@@ -14,7 +15,7 @@ const AllYos = () => {
 				setData(json);
 				setLoading(false);
 			} catch (error) {
-				setError('Failed to load data');
+				setError('Failed to load data:', error);
 				setLoading(false);
 			}
 		};
@@ -44,18 +45,20 @@ const AllYos = () => {
 				{data.map((item, index) => (
 					<tr key={index}>
 						<td width="15%">
-							<pre>{item.linkName}</pre>
+							<CopyToClipboard text={window.location.host + "/" + item.linkName}>
+                <pre style={{ cursor: 'pointer' }}>{item.linkName}</pre>
+              </CopyToClipboard>
 						</td>
 						<td className="site-url" width="65%">
-							<a className="grey-text text-darken-2" href={"/api/redirect/" + item.linkName} target="_blank" rel="noopener noreferrer">{item.originalUrl}</a>
+							<a className="grey-text text-darken-1" href={"/api/redirect/" + item.linkName} target="_blank" rel="noopener noreferrer">{item.originalUrl}</a>
 						</td>
 						<td width="10%">
-							{item.urlHits}
+							<p className="grey-text text-darken-1">{item.urlHits}</p>
 						</td>
 						<td width="10%">
-							<a href="#">
-								<i className="material-icons">content_copy</i>
-							</a>
+							<CopyToClipboard text={window.location.host + "/" + item.linkName}>
+								<i className="material-icons" style={{ cursor: 'pointer' }}>content_copy</i>
+							</CopyToClipboard>
 							<a href="#">
 								<i className="material-icons">edit</i>
 							</a>
