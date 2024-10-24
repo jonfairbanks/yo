@@ -11,7 +11,6 @@ const AllYos = () => {
 			try {
 				const response = await fetch('/api');
 				const json = await response.json();
-				console.log(json)
 				setData(json);
 				setLoading(false);
 			} catch (error) {

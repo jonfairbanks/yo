@@ -15,7 +15,6 @@ const LatestYos = () => {
       try {
         const response = await fetch('/api/latest');
         const json = await response.json();
-				console.log(json)
         setData(json);
         setLoading(false);
       } catch (error) {

@@ -11,7 +11,6 @@ const PopularYos = () => {
       try {
         const response = await fetch('/api/popular');
         const json = await response.json();
-				console.log(json)
         setData(json);
         setLoading(false);
       } catch (error) {
