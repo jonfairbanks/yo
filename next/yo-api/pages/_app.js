@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }) {
   useEffect(() => {
     // Initialize Materialize JavaScript components
     if (typeof window !== 'undefined') {
-      const M = require('@materializecss/materialize');
+      const M = require('@materializecss/materialize'); // eslint-disable-line @typescript-eslint/no-require-imports
       M.AutoInit();
     }
   }, []);
