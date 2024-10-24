@@ -18,8 +18,8 @@ export default async function handler(req, res) {
 
   // Validate if the provided URL is valid
   if (!validUrl.isUri(originalUrl)) {
-    logger.warn(`The provided URL for ${linkName} is improperly formatted: ${originalUrl}`);
-    return res.status(400).json({ error: 'The provided URL is improperly formatted.' });
+    logger.error(`The provided URL for ${linkName} is improperly formatted: ${originalUrl}`);
+    return res.status(500).json({ error: 'The provided URL is improperly formatted.' });
   }
 
   try {
