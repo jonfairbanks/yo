@@ -10,6 +10,10 @@
   },
   "dependencies": {
     "@materializecss/materialize": "^2.1.1",
+    "@opentelemetry/api-logs": "^0.54.0",
+    "@opentelemetry/instrumentation": "^0.54.0",
+    "@opentelemetry/sdk-logs": "^0.54.0",
+    "@vercel/otel": "^1.10.0",
     "dayjs": "^1.11.13",
     "mongoose": "^8.7.2",
     "next": "14.2.15",
