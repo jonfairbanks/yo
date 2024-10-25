@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const AllYos = () => {
 	const [data, setData] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [clickedCopy, setClickedCopy] = useState(''); // Track original url for new link
 
 	// Fetch data from API on component mount
 	useEffect(() => {
@@ -14,6 +15,7 @@ const AllYos = () => {
 				const json = await response.json();
 				setData(json);
 				setLoading(false);
+				setClickedCopy(false);
 			} catch (error) {
 				setError('Failed to load data:', error);
 				setLoading(false);
@@ -23,6 +25,11 @@ const AllYos = () => {
 		fetchData();
 	}, []); // Empty dependency array means this effect runs once on mount
 
+	const handleCopyClick = () => {
+		setClickedCopy(true);
+		setTimeout(() => setClickedCopy(false), 2500); // Reset `clickedCopy` after N seconds
+	};
+
 	if (loading) {
 		return <p>Loading...</p>;
 	}
@@ -30,6 +37,7 @@ const AllYos = () => {
 	if (error) {
 		return <p>{error}</p>;
 	}
+
 
 	return (
 		<table>
@@ -46,21 +54,29 @@ const AllYos = () => {
 					<tr key={index}>
 						<td width="15%">
 							<CopyToClipboard text={window.location.host + "/" + item.linkName}>
-                <pre style={{ cursor: 'pointer' }}>{item.linkName}</pre>
-              </CopyToClipboard>
+								<pre style={{ cursor: 'pointer' }}>{item.linkName}</pre>
+							</CopyToClipboard>
 						</td>
-						<td className="site-url" width="65%">
+						<td className="site-url" width="55%">
 							<a className="grey-text text-darken-1" href={"/api/redirect/" + item.linkName} target="_blank" rel="noopener noreferrer">{item.originalUrl}</a>
 						</td>
 						<td width="10%">
 							<p className="grey-text text-darken-1">{item.urlHits}</p>
 						</td>
-						<td width="10%">
-							<CopyToClipboard text={window.location.host + "/" + item.linkName}>
-								<i className="material-icons" style={{ cursor: 'pointer' }}>content_copy</i>
-							</CopyToClipboard>
-							<a href="#">
-								<i className="material-icons">edit</i>
+						<td width="20%">
+							{clickedCopy ? (
+									<a onClick={handleCopyClick} className="btn-small icon-left teal darken-2 white-text text-darken-2" style={{ "margin-right": "5px" }}>
+										<i className="material-icons">done</i>Copied
+									</a>
+							) : (
+								<CopyToClipboard text={window.location.host + "/" + item.linkName}>
+									<a onClick={handleCopyClick} className="btn-small icon-left teal darken-2 white-text text-darken-2" style={{ "margin-right": "5px" }}>
+										<i className="material-icons">content_copy</i>Copy
+									</a>
+								</CopyToClipboard>)}
+
+							<a className="btn-small icon-left grey grey-text text-darken-2">
+								<i className="material-icons">edit</i>Edit
 							</a>
 						</td>
 					</tr>
