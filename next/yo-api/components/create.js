@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const CreateModal = () => {
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(false); // Track success state
 	const [newLink, setNewLink] = useState(''); // Track newly created link
+	const [newUrl, setNewUrl] = useState(''); // Track original url for new link
+	const [clickedCopy, setClickedCopy] = useState(''); // Track original url for new link
 
 	const CreateNewYo = async (event) => {
 		event.preventDefault(); // Prevent page reload
@@ -19,6 +22,7 @@ const CreateModal = () => {
 
 		// Reset states before the new request
 		setSuccess(false);
+		setClickedCopy(false);
 		setError(null);
 
 		try {
@@ -40,12 +44,19 @@ const CreateModal = () => {
 
 			// Reset form after successful submission
 			form.reset();
-			setNewLink(result.linkName); // Store the new link
+			setNewLink(result.linkName); // Store the new link name
+			setNewUrl(result.originalUrl); // Store the original url
 			setSuccess(true); // Show success message
 		} catch (error) {
 			setError(error.message);
 			console.error('Error submitting form:', error);
 		}
+	};
+
+	const handleButtonClick = () => {
+		console.log("Button clicked");
+		setClickedCopy(true);
+		setTimeout(() => setClickedCopy(false), 2000); // Reset `clickedCopy` after 2 seconds
 	};
 
 	return (
@@ -54,13 +65,27 @@ const CreateModal = () => {
 				<div className="modal-content">
 					{success ? (
 						<div>
-							<p>Success! Your new link has been created.</p>
-							<a href={`/api/redirect/${newLink}`} className="btn grey" target="_blank" rel="noopener noreferrer">
-								<i className="material-icons">redo</i> Go to Link
+							<h1 className='success-text teal-text'>Success!</h1>
+							<p className='success-subtext grey-text'>New Yo link has been created</p>
+							<pre style={{ 'float': 'left' }}>{window.location.host + "/" + newLink}</pre>
+							<i style={{ 'float': 'left' }} className="material-icons grey-text">arrow_right_alt</i>
+							<pre>{newUrl}</pre>
+							<br />
+							<a href={`/api/redirect/${newLink}`} className="success-link-btn btn teal white-text icon-left" target="_blank" rel="noopener noreferrer">
+								<i className="material-icons">redo</i>  Go to Link
 							</a>
-							<a href="#" className="btn teal white-text text-darken-4">
-								<i className="material-icons">content_copy</i> Copy Link
-							</a>
+							{clickedCopy ? (
+								<a href="#" className="btn grey grey-text text-darken-3 icon-left">
+									<i className="material-icons teal-text">done</i> Copied
+								</a>
+							) : (
+								<CopyToClipboard text={window.location.host + "/" + newLink}>
+									<a href="#" onClick={handleButtonClick} className="btn grey grey-text text-darken-3 icon-left">
+										<i className="material-icons">content_copy</i> Copy Link
+									</a>
+								</CopyToClipboard>
+							)}
+
 						</div>
 					) : (
 						<div>
@@ -76,7 +101,7 @@ const CreateModal = () => {
 								<label htmlFor="originalUrl">Website URL</label>
 								<span className="supporting-text">What is the original URL you want to redirect users to?</span>
 							</div>
-							<br/>
+							<br />
 						</div>
 					)}
 
@@ -84,13 +109,15 @@ const CreateModal = () => {
 					{error && <p className="red-text text-darken-1">{error}</p>}
 				</div>
 
-				<div className="modal-footer">
-					{!success && (
+				{success ? (
+					null
+				) : (
+					<div className="modal-footer">
 						<button type="submit" className="waves-effect btn-flat teal white-text">
 							Create
 						</button>
-					)}
-				</div>
+					</div>
+				)}
 			</div>
 		</form>
 	);

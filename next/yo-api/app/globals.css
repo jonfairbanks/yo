@@ -92,3 +92,16 @@ td.site-url, th.site-url {
   word-break: break-word;
   white-space: normal;
 }
+
+.success-text {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.success-subtext {
+  margin-bottom: 10px;
+}
+
+.success-link-btn {
+  margin-right: 10px;
+}
