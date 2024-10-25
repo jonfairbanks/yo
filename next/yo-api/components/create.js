@@ -54,9 +54,8 @@ const CreateModal = () => {
 	};
 
 	const handleButtonClick = () => {
-		console.log("Button clicked");
 		setClickedCopy(true);
-		setTimeout(() => setClickedCopy(false), 2000); // Reset `clickedCopy` after 2 seconds
+		setTimeout(() => setClickedCopy(false), 2500); // Reset `clickedCopy` after N seconds
 	};
 
 	return (
@@ -76,7 +75,7 @@ const CreateModal = () => {
 							</a>
 							{clickedCopy ? (
 								<a href="#" className="btn grey grey-text text-darken-3 icon-left">
-									<i className="material-icons teal-text">done</i> Copied
+									<i className="material-icons teal-text text-darken-1">done</i> Copied
 								</a>
 							) : (
 								<CopyToClipboard text={window.location.host + "/" + newLink}>
