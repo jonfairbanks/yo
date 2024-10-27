@@ -109,3 +109,11 @@ td.site-url, th.site-url {
 .header-logo {
   cursor: pointer;
 }
+
+.update-modal-btn {
+
+}
+
+.delete-modal-btn {
+  margin-right: 10px !important;
+}
