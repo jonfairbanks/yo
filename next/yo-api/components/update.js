@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 const UpdateModal = ({ item }) => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
-    const [newLink, setNewLink] = useState('')
     const [originalUrl, setOriginalUrl] = useState('')
+    const [clickedCopy, setClickedCopy] = useState(null) // Align names
 
     // Sync state with `item` whenever `item` changes
     useEffect(() => {
         if (item) {
-            setNewLink(item.linkName || '')
             setOriginalUrl(item.originalUrl || '')
         }
     }, [item])
+
+    const handleCopyClick = (linkName) => {
+        setClickedCopy(linkName) // Set the clicked copy to the specific linkName
+        setTimeout(() => setClickedCopy(null), 2500) // Reset `clickedCopy` after N seconds
+    }
 
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
 
         const data = {
-            linkName: newLink,
+            linkName: item.linkName,
             originalUrl,
         }
 
@@ -49,29 +54,81 @@ const UpdateModal = ({ item }) => {
         }
     }
 
+    const handleButtonClick = () => {
+        setClickedCopy(true)
+        setTimeout(() => setClickedCopy(false), 2500) // Reset `clickedCopy` after N seconds
+    }
+
     return (
         <form className="row" onSubmit={UpdateYo}>
             <div id="update" className="modal">
                 <div className="modal-content">
                     {success ? (
                         <div>
-                            <p>Success! Your link has been updated.</p>
+                            <h1 className="success-text teal-text">Success!</h1>
+                            <p className="success-subtext grey-text">
+                                <span style={{ float: 'left' }}>The</span>
+                                <pre
+                                    style={{
+                                        float: 'left',
+                                        marginLeft: '5px',
+                                        marginRight: '5px',
+                                    }}
+                                >
+                                    {item.linkName}
+                                </pre>
+                                <span>Yo link has been updated</span>
+                            </p>
+                            <pre style={{ float: 'left' }}>
+                                {window.location.host + '/' + item.linkName}
+                            </pre>
+                            <i
+                                style={{ float: 'left' }}
+                                className="material-icons grey-text"
+                            >
+                                arrow_right_alt
+                            </i>
+                            <pre>{originalUrl}</pre>
+                            <br />
                             <a
-                                href={`/api/redirect/${newLink}`}
-                                className="btn grey"
+                                href={`/api/redirect/${item.linkName}`}
+                                className="success-link-btn btn teal white-text icon-left"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
                                 <i className="material-icons">redo</i> Go to
                                 Link
                             </a>
-                            <a
-                                href="#"
-                                className="btn teal white-text text-darken-4"
-                            >
-                                <i className="material-icons">content_copy</i>{' '}
-                                Copy Link
-                            </a>
+                            {clickedCopy ? (
+                                <a
+                                    href="#"
+                                    className="btn grey grey-text text-darken-3 icon-left"
+                                >
+                                    <i className="material-icons teal-text text-darken-1">
+                                        done
+                                    </i>{' '}
+                                    Copied
+                                </a>
+                            ) : (
+                                <CopyToClipboard
+                                    text={
+                                        window.location.host +
+                                        '/' +
+                                        item.linkName
+                                    }
+                                >
+                                    <a
+                                        href="#"
+                                        onClick={handleButtonClick}
+                                        className="btn grey grey-text text-darken-3 icon-left"
+                                    >
+                                        <i className="material-icons">
+                                            content_copy
+                                        </i>{' '}
+                                        Copy Link
+                                    </a>
+                                </CopyToClipboard>
+                            )}
                         </div>
                     ) : (
                         <div>
@@ -80,8 +137,7 @@ const UpdateModal = ({ item }) => {
                                 <input
                                     id="linkName"
                                     type="text"
-                                    value={newLink}
-                                    onChange={(e) => setNewLink(e.target.value)}
+                                    value={item.linkName}
                                     placeholder="rick"
                                     maxLength="120"
                                     disabled
@@ -117,24 +173,22 @@ const UpdateModal = ({ item }) => {
                     {error && <p className="red-text text-darken-1">{error}</p>}
                 </div>
 
-                <div className="modal-footer">
-                    {!success && (
-                        <div>
-                            <button
-                                type="button"
-                                className="delete-modal-btn waves-effect btn-flat red white-text"
-                            >
-                                Delete
-                            </button>
-                            <button
-                                type="submit"
-                                className="update-modal-btn waves-effect btn-flat teal white-text"
-                            >
-                                Update
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {success ? null : (
+                    <div className="modal-footer">
+                        <button
+                            type="button"
+                            className="delete-modal-btn waves-effect btn-flat red white-text"
+                        >
+                            Delete
+                        </button>
+                        <button
+                            type="submit"
+                            className="update-modal-btn waves-effect btn-flat teal white-text"
+                        >
+                            Update
+                        </button>
+                    </div>
+                )}
             </div>
         </form>
     )
