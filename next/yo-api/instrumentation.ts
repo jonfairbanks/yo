@@ -1,5 +1,5 @@
 import { registerOTel } from '@vercel/otel'
- 
+
 export function register() {
-  registerOTel({ serviceName: 'yo-api' })
+    registerOTel({ serviceName: 'yo-api' })
 }
