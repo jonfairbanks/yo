@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const UpdateModal = ({ item }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [newLink, setNewLink] = useState(item?.linkName || ''); // Track newly created link
-  const [originalUrl, setOriginalUrl] = useState(item?.originalUrl || ''); // Initialize with item data
+  const [newLink, setNewLink] = useState('');
+  const [originalUrl, setOriginalUrl] = useState('');
+
+  // Sync state with `item` whenever `item` changes
+  useEffect(() => {
+    if (item) {
+      setNewLink(item.linkName || '');
+      setOriginalUrl(item.originalUrl || '');
+    }
+  }, [item]);
 
   const UpdateYo = async (event) => {
     event.preventDefault(); // Prevent page reload
