@@ -42,51 +42,6 @@ const AllYos = () => {
         setTimeout(() => setClickedCopy(null), 2500) // Reset `clickedCopy` after N seconds
     }
 
-    const UpdateYo = async (event) => {
-        event.preventDefault() // Prevent page reload
-
-        console.log('***', item)
-
-        const form = event.target
-        const linkName = form.linkName.value
-        const originalUrl = form.originalUrl.value
-
-        const data = {
-            linkName: linkName,
-            originalUrl: originalUrl,
-        }
-
-        // Reset states before the new request
-        setSuccess(false)
-        setError(null)
-
-        try {
-            const response = await fetch('/api/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Unknown error occurred')
-            }
-
-            const result = await response.json()
-            console.log('Success:', result)
-
-            // Reset form after successful submission
-            form.reset()
-            setNewLink(result.linkName) // Store the new link
-            setSuccess(true) // Show success message
-        } catch (error) {
-            setError(error.message)
-            console.error('Error submitting form:', error)
-        }
-    }
-
     if (loading) {
         return <p>Loading...</p>
     }
