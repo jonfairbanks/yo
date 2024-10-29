@@ -5,9 +5,8 @@ const UpdateModal = ({ item }) => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
-    const [clickedCopy, setClickedCopy] = useState(null) // Align names
+    const [clickedCopy, setClickedCopy] = useState(null)
 
-    // Sync state with `item` whenever `item` changes
     useEffect(() => {
         if (item) {
             setOriginalUrl(item.originalUrl || '')
@@ -21,6 +20,12 @@ const UpdateModal = ({ item }) => {
 
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
+
+        // Show a confirmation dialog before updating
+        const confirmed = window.confirm(
+            'Are you sure you want to update this link?'
+        )
+        if (!confirmed) return // Exit if user cancels
 
         const data = {
             linkName: item.linkName,
