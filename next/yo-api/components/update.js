@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 const UpdateModal = ({ item }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [newLink, setNewLink] = useState(item?.linkName || ""); // Track newly created link
-  const [originalUrl, setOriginalUrl] = useState(item?.originalUrl || ""); // Initialize with item data
+  const [newLink, setNewLink] = useState(item?.linkName || ''); // Track newly created link
+  const [originalUrl, setOriginalUrl] = useState(item?.originalUrl || ''); // Initialize with item data
 
   const UpdateYo = async (event) => {
     event.preventDefault(); // Prevent page reload
@@ -18,26 +18,26 @@ const UpdateModal = ({ item }) => {
     setError(null);
 
     try {
-      const response = await fetch("/api/update", {
-        method: "POST",
+      const response = await fetch('/api/update', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Unknown error occurred");
+        throw new Error(errorData.error || 'Unknown error occurred');
       }
 
       const result = await response.json();
-      console.log("Success:", result);
+      console.log('Success:', result);
 
       setSuccess(true); // Show success message
     } catch (error) {
       setError(error.message);
-      console.error("Error submitting form:", error);
+      console.error('Error submitting form:', error);
     }
   };
 
