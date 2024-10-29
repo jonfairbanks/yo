@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 
-const UpdateModal = () => {
+const UpdateModal = (item) => {
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(false); // Track success state
 	const [newLink, setNewLink] = useState(''); // Track newly created link
 
 	const UpdateYo = async (event) => {
 		event.preventDefault(); // Prevent page reload
+
+		console.log("***", item)
 
 		const form = event.target;
 		const linkName = form.linkName.value;
