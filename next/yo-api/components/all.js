@@ -8,9 +8,7 @@ const AllYos = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [clickedCopy, setClickedCopy] = useState(null); // Align names
-	const [newLink, setNewLink] = useState(''); // Required?
 	const [selectedRow, setSelectedRow] = useState(''); // Align names
-	const [success, setSuccess] = useState(false); // Edit Success
 
 	// Fetch data from API on component mount
 	useEffect(() => {
@@ -29,8 +27,6 @@ const AllYos = () => {
 		fetchData();
 
 		if (selectedRow) {
-			console.log("Selected row updated:", selectedRow);
-			// Any other logic that depends on the updated selectedRow can go here
 			if (typeof window !== 'undefined') {
 				const M = require('@materializecss/materialize'); // eslint-disable-line @typescript-eslint/no-require-imports
 				M.AutoInit();
