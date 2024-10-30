@@ -10,20 +10,22 @@ const AllYos = () => {
     const [clickedCopy, setClickedCopy] = useState(null) // Align names
     const [selectedRow, setSelectedRow] = useState(null) // Align names
 
-    // Fetch data from API on component mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/api')
-                const json = await response.json()
-                setData(json)
-                setLoading(false)
-            } catch (error) {
-                setError('Failed to load data')
-                setLoading(false)
-            }
+    // Fetch data function
+    const fetchData = async () => {
+        setLoading(true)
+        try {
+            const response = await fetch('/api')
+            const json = await response.json()
+            setData(json)
+            setLoading(false)
+        } catch (error) {
+            setError('Failed to load data')
+            setLoading(false)
         }
+    }
 
+    // Fetch data on component mount
+    useEffect(() => {
         fetchData()
     }, [])
 
@@ -38,6 +40,7 @@ const AllYos = () => {
 
     const handleCloseModal = () => {
         setSelectedRow(null) // Reset selectedRow when modal closes
+        fetchData()
     }
 
     if (loading) return <p>Loading...</p>
