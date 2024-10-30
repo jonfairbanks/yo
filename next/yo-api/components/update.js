@@ -4,6 +4,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 const UpdateModal = ({ item, onClose }) => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
+    const [deleted, setDeleted] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
     const [clickedCopy, setClickedCopy] = useState(null)
 
@@ -21,6 +22,7 @@ const UpdateModal = ({ item, onClose }) => {
             onCloseEnd: () => {
                 if (onClose) onClose()
                 setSuccess(false) // Reset the state when the Modal closes
+                setDeleted(false) // Reset the state when the Modal closes
             },
         })
 
@@ -59,12 +61,29 @@ const UpdateModal = ({ item, onClose }) => {
             }
 
             const result = await response.json()
-            console.log('Success:', result)
-
-            setSuccess(true) // Show success message
+            setSuccess(true)
         } catch (error) {
             setError(error.message)
             console.error('Error submitting form:', error)
+        }
+    }
+
+    const DeleteYo = async () => {
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this link?'
+        )
+        if (!confirmed) return
+
+        try {
+            const response = await fetch(`/api/delete/${item.linkName}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) throw new Error('Failed to delete item')
+            setDeleted(true)
+        } catch (error) {
+            setError('Error deleting item')
+            console.error('Error deleting item:', error)
         }
     }
 
@@ -144,6 +163,23 @@ const UpdateModal = ({ item, onClose }) => {
                                 </CopyToClipboard>
                             )}
                         </div>
+                    ) : deleted ? (
+                        <div>
+                            <h1 className="success-text red-text">Deleted!</h1>
+                            <p className="success-subtext grey-text">
+                                <span style={{ float: 'left' }}>The</span>
+                                <pre
+                                    style={{
+                                        float: 'left',
+                                        marginLeft: '5px',
+                                        marginRight: '5px',
+                                    }}
+                                >
+                                    {item.linkName}
+                                </pre>
+                                <span>Yo link has been deleted!</span>
+                            </p>
+                        </div>
                     ) : (
                         <div>
                             <h4>Update Link</h4>
@@ -185,10 +221,12 @@ const UpdateModal = ({ item, onClose }) => {
                     )}
                     {error && <p className="red-text text-darken-1">{error}</p>}
                 </div>
-                {!success && (
+
+                {!success && !deleted && (
                     <div className="modal-footer">
                         <button
                             type="button"
+                            onClick={DeleteYo}
                             className="delete-modal-btn waves-effect btn-flat red white-text"
                         >
                             Delete
