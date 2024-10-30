@@ -8,7 +8,7 @@ const AllYos = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [clickedCopy, setClickedCopy] = useState(null) // Align names
-    const [selectedRow, setSelectedRow] = useState('') // Align names
+    const [selectedRow, setSelectedRow] = useState(null) // Align names
 
     // Fetch data from API on component mount
     useEffect(() => {
@@ -25,30 +25,23 @@ const AllYos = () => {
         }
 
         fetchData()
-
-        if (selectedRow) {
-            if (typeof window !== 'undefined') {
-                const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
-                M.AutoInit()
-                const elem = document.getElementById('update')
-                const instance = M.Modal.init(elem, { dismissible: true })
-                instance.open()
-            }
-        }
-    }, [selectedRow])
+    }, [])
 
     const handleCopyClick = (linkName) => {
-        setClickedCopy(linkName) // Set the clicked copy to the specific linkName
-        setTimeout(() => setClickedCopy(null), 2500) // Reset `clickedCopy` after N seconds
+        setClickedCopy(linkName)
+        setTimeout(() => setClickedCopy(null), 2500)
     }
 
-    if (loading) {
-        return <p>Loading...</p>
+    const handleEditClick = (item) => {
+        setSelectedRow(item) // Set selected row for the modal
     }
 
-    if (error) {
-        return <p>{error}</p>
+    const handleCloseModal = () => {
+        setSelectedRow(null) // Reset selectedRow when modal closes
     }
+
+    if (loading) return <p>Loading...</p>
+    if (error) return <p>{error}</p>
 
     return (
         <div>
@@ -66,11 +59,7 @@ const AllYos = () => {
                         <tr key={index}>
                             <td width="15%">
                                 <CopyToClipboard
-                                    text={
-                                        window.location.host +
-                                        '/' +
-                                        item.linkName
-                                    }
+                                    text={`${window.location.host}/${item.linkName}`}
                                 >
                                     <pre style={{ cursor: 'pointer' }}>
                                         {item.linkName}
@@ -80,7 +69,7 @@ const AllYos = () => {
                             <td className="site-url" width="55%">
                                 <a
                                     className="grey-text text-darken-1"
-                                    href={'/api/redirect/' + item.linkName}
+                                    href={`/api/redirect/${item.linkName}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -103,11 +92,7 @@ const AllYos = () => {
                                     </a>
                                 ) : (
                                     <CopyToClipboard
-                                        text={
-                                            window.location.host +
-                                            '/' +
-                                            item.linkName
-                                        }
+                                        text={`${window.location.host}/${item.linkName}`}
                                         onCopy={() =>
                                             handleCopyClick(item.linkName)
                                         }
@@ -124,9 +109,8 @@ const AllYos = () => {
                                     </CopyToClipboard>
                                 )}
                                 <a
-                                    href="#update"
-                                    onClick={() => setSelectedRow(item)}
-                                    className="modal-trigger btn-small icon-left grey grey-text text-darken-2"
+                                    onClick={() => handleEditClick(item)}
+                                    className="btn-small icon-left grey grey-text text-darken-2"
                                 >
                                     <i className="material-icons">edit</i>Edit
                                 </a>
@@ -135,7 +119,10 @@ const AllYos = () => {
                     ))}
                 </tbody>
             </table>
-            <UpdateModal item={selectedRow} />
+            {/* Render UpdateModal only if selectedRow is not null */}
+            {selectedRow && (
+                <UpdateModal item={selectedRow} onClose={handleCloseModal} />
+            )}
         </div>
     )
 }

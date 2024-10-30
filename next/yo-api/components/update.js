@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-const UpdateModal = ({ item }) => {
+const UpdateModal = ({ item, onClose }) => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
@@ -13,10 +13,21 @@ const UpdateModal = ({ item }) => {
         }
     }, [item])
 
-    const handleCopyClick = (linkName) => {
-        setClickedCopy(linkName) // Set the clicked copy to the specific linkName
-        setTimeout(() => setClickedCopy(null), 2500) // Reset `clickedCopy` after N seconds
-    }
+    useEffect(() => {
+        const M = require('@materializecss/materialize')
+        const elem = document.getElementById('update')
+        const instance = M.Modal.init(elem, {
+            dismissible: true,
+            onCloseEnd: () => {
+                if (onClose) onClose()
+                setSuccess(false) // Reset the state when the Modal closes
+            },
+        })
+
+        instance.open()
+
+        return () => instance.destroy()
+    }, [onClose])
 
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
@@ -38,9 +49,7 @@ const UpdateModal = ({ item }) => {
         try {
             const response = await fetch('/api/update', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             })
 
@@ -70,7 +79,7 @@ const UpdateModal = ({ item }) => {
                 <div className="modal-content">
                     {success ? (
                         <div>
-                            <h1 className="success-text teal-text">Success!</h1>
+                            <h1 className="success-text teal-text">Updated!</h1>
                             <p className="success-subtext grey-text">
                                 <span style={{ float: 'left' }}>The</span>
                                 <pre
@@ -174,11 +183,9 @@ const UpdateModal = ({ item }) => {
                             <br />
                         </div>
                     )}
-
                     {error && <p className="red-text text-darken-1">{error}</p>}
                 </div>
-
-                {success ? null : (
+                {!success && (
                     <div className="modal-footer">
                         <button
                             type="button"
