@@ -74,9 +74,13 @@ const UpdateModal = ({ item, onClose }) => {
         )
         if (!confirmed) return
 
+        const data = { linkName: item.linkName }
+
         try {
-            const response = await fetch(`/api/delete/${item.linkName}`, {
+            const response = await fetch(`/api/delete`, {
                 method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
             })
 
             if (!response.ok) throw new Error('Failed to delete item')
