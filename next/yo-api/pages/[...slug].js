@@ -1,5 +1,8 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
+
+import '../app/globals.css'
 
 const CatchAllRoute = () => {
     const router = useRouter()
@@ -14,8 +17,16 @@ const CatchAllRoute = () => {
     }, [slug, router])
 
     return (
-        <div>
-            <h3>Redirecting...</h3>
+        <div className="centered">
+            <Image
+                src="/images/apple-touch-icon.png"
+                alt="Yo URL"
+                width={100}
+                height={100}
+                priority
+            />
+            <b className="redirect-text teal-text">Yo Dawg...</b>
+            <i className="grey-text">Heard you were looking for a link</i>
         </div>
     )
 }
