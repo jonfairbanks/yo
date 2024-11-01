@@ -65,7 +65,7 @@ const PopularYos = () => {
                             </a>
                         </td>
                         <td className="url-hits" width="10%">
-                            {item.urlHits}
+                            {item.urlHits.toLocaleString()}
                         </td>
                     </tr>
                 ))}

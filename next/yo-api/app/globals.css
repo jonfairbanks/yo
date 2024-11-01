@@ -119,3 +119,18 @@ th.site-url {
 .delete-modal-btn {
     margin-right: 10px !important;
 }
+
+.url-cell {
+    max-width: 800px; /* TBD */
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.url-cell a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.url-cell a:hover {
+    text-decoration: underline;
+}
