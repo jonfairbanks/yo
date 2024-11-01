@@ -15,7 +15,7 @@ const UpdateModal = ({ item, onClose }) => {
     }, [item])
 
     useEffect(() => {
-        const M = require('@materializecss/materialize')
+        const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
         const elem = document.getElementById('update')
         const instance = M.Modal.init(elem, {
             dismissible: true,
@@ -60,7 +60,7 @@ const UpdateModal = ({ item, onClose }) => {
                 throw new Error(errorData.error || 'Unknown error occurred')
             }
 
-            const result = await response.json()
+            // const result = await response.json()
             setSuccess(true)
         } catch (error) {
             setError(error.message)

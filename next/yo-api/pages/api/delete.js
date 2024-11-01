@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         const item = await Yo.findOneAndDelete({ linkName }).lean()
 
         if (item) {
-            logger.info(`Deleted ${item.originalUrl} as alias: ${linkName}`)
+            logger.info(`Deleted alias ${item.originalUrl}: ${linkName}`)
             return res
                 .status(200)
                 .json({ message: `${linkName} deleted successfully.` })

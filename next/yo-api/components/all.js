@@ -19,7 +19,7 @@ const AllYos = () => {
             setData(json)
             setLoading(false)
         } catch (error) {
-            setError('Failed to load data')
+            setError('Failed to load data:', error)
             setLoading(false)
         }
     }

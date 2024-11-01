@@ -24,7 +24,7 @@ export default async function handler(req, res) {
             )
 
             if (item) {
-                logger.info(`User updated ${originalUrl} as alias: ${linkName}`)
+                logger.info(`User updated alias ${linkName}: ${originalUrl}`)
                 return res.status(200).json(`${linkName} updated successfully.`)
             }
 
