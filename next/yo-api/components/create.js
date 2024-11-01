@@ -40,7 +40,7 @@ const CreateModal = () => {
             }
 
             const result = await response.json()
-            console.log('Success:', result)
+            console.log('Created Successfully:', result)
 
             // Reset form after successful submission
             form.reset()

@@ -1,10 +1,12 @@
 import mongoose from 'mongoose'
 
+import logger from '../lib/logger'
+
 let isConnected = false
 
 export const connectToDatabase = async () => {
     if (isConnected) {
-        console.log('=> Using existing database connection')
+        logger.log('=> Using existing database connection')
         return
     }
 
@@ -12,16 +14,16 @@ export const connectToDatabase = async () => {
         isConnected = mongoose.connections[0].readyState === 1
 
         if (isConnected) {
-            console.log('=> Using previous database connection')
+            logger.log('=> Using previous database connection')
             return
         }
 
-        console.log('=> Disconnecting from database')
+        logger.log('=> Disconnecting from database')
         await mongoose.disconnect()
     }
 
     const db = await mongoose.connect(process.env.MONGO_URI)
 
     isConnected = db.connections[0].readyState === 1
-    console.log('=> New database connection established')
+    logger.log('=> New database connection established')
 }
