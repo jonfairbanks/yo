@@ -26,7 +26,7 @@ const Footer = () => {
                                 height="24"
                                 viewBox="0 0 24 24"
                                 fill="currentColor"
-                                class="icon icon-tabler icons-tabler-filled icon-tabler-brand-github"
+                                className="icon icon-tabler icons-tabler-filled icon-tabler-brand-github"
                             >
                                 <path
                                     stroke="none"
