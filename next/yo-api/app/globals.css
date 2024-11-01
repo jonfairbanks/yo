@@ -66,10 +66,9 @@ body {
 .tabs {
     background-color: var(
         --background
-    ); /* Or use a specific color like #424242 */
+    );
 }
 
-/* Style tabs */
 .tabs .tab a {
     color: var(--text); /* Text color for inactive tabs */
 }
@@ -133,4 +132,42 @@ th.site-url {
 
 .url-cell a:hover {
     text-decoration: underline;
+}
+
+.centered {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* Full viewport height if you want it centered vertically */
+    text-align: center;
+}
+
+.redirect-text {
+    font-size: 2.25em;
+}
+
+.page-footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-footer .left,
+.page-footer .right {
+    display: flex;
+    align-items: center;
+}
+
+.page-footer a {
+    color: var(--foreground);
+}
+
+.page-footer .footer-github a {
+    color: var(--text);
+}
+
+.page-footer .footer-github a:hover {
+    color: rgb(129, 75, 216);
 }
