@@ -6,6 +6,17 @@ import logger from '../../../lib/logger'
 export default async function handler(req, res) {
     await connectToDatabase()
 
+    const ip =
+        req.headers['x-original-forwarded-for'] ||
+        req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        (req.connection.socket
+            ? req.connection.socket.remoteAddress
+            : 'Unknown')
+
+    console.log('Redirect request from IP:', ip)
+
     const { redirect } = req.query
 
     try {
@@ -16,7 +27,7 @@ export default async function handler(req, res) {
         )
 
         if (item) {
-            logger.info(`User loaded ${item.originalUrl} as alias: ${redirect}`)
+            logger.info(`User loaded alias ${redirect}: ${item.originalUrl}`)
             res.redirect(item.originalUrl)
             return
         }
