@@ -171,3 +171,8 @@ th.site-url {
 .page-footer .footer-github a:hover {
     color: rgb(129, 75, 216);
 }
+
+.footer-override {
+    margin-top: 0em;
+    padding-top: 0em;
+}

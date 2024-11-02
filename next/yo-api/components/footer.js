@@ -1,6 +1,6 @@
 const Footer = () => {
     return (
-        <footer className="page-footer">
+        <footer className="page-footer footer-override">
             <div className="footer-copyright">
                 <div className="container">
                     <div className="left">
