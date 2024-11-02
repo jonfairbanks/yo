@@ -10,20 +10,25 @@ export const connectToDatabase = async () => {
         return
     }
 
-    if (mongoose.connections.length > 0) {
-        isConnected = mongoose.connections[0].readyState === 1
+    try {
+        if (mongoose.connections.length > 0) {
+            isConnected = mongoose.connections[0].readyState === 1
 
-        if (isConnected) {
-            logger.info('Using a previous database connection')
-            return
+            if (isConnected) {
+                logger.info('Using a previous database connection')
+                return
+            }
+
+            logger.info('Disconnecting from the database')
+            await mongoose.disconnect()
         }
 
-        logger.info('Disconnecting from the database')
-        await mongoose.disconnect()
+        const db = await mongoose.connect(process.env.MONGO_URI)
+
+        isConnected = db.connections[0].readyState === 1
+        logger.info('New database connection established')
+    } catch (error) {
+        logger.error('Error connecting to the database:', error)
+        throw error
     }
-
-    const db = await mongoose.connect(process.env.MONGO_URI)
-
-    isConnected = db.connections[0].readyState === 1
-    logger.info('New database connection established')
 }
