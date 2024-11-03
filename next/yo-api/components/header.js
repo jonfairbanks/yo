@@ -1,6 +1,7 @@
 import Image from 'next/image'
 
-const Header = () => {
+const Header = (user) => {
+    console.log(`Logged in as ${user.user.nickname}`)
     return (
         <nav>
             <div className="nav-wrapper">
@@ -15,12 +16,20 @@ const Header = () => {
                 <a href="#" className="brand grey-text">
                     Yo
                 </a>
-                <a
-                    href="#create"
-                    className="btn modal-trigger filled icon-left teal white-text text-darken-2 darken-2"
-                >
-                    <i className="material-icons">add</i>Create
-                </a>
+                <div>
+                    <span
+                        className="grey-text text-darken-2"
+                        style={{ marginRight: '10px', fontStyle: 'italic' }}
+                    >
+                        {user.user.nickname}
+                    </span>
+                    <a
+                        href="#create"
+                        className="btn modal-trigger filled icon-left teal white-text text-darken-2 darken-2"
+                    >
+                        <i className="material-icons">add</i>Create
+                    </a>
+                </div>
             </div>
         </nav>
     )
