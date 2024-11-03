@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import Head from 'next/head'
 
 import '../node_modules/@materializecss/materialize/dist/css/materialize.min.css' // Import Materialize CSS
 import '../node_modules/@materializecss/materialize/dist/js/materialize.min.js' // Import Materialize JS
@@ -12,7 +13,14 @@ function MyApp({ Component, pageProps }) {
         }
     }, [])
 
-    return <Component {...pageProps} />
+    return (
+        <>
+            <Head>
+                <title>Yo</title>
+            </Head>
+            <Component {...pageProps} />
+        </>
+    )
 }
 
 export default MyApp
