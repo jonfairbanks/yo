@@ -22,9 +22,8 @@ Turn long, hard to remember URLs into easily sharable short-links.
 
 The following will need to be installed before proceeding:
 
-- Node v14+
+- Node.js
 - Mongo DB
-- Nginx
 
 #### Clone the Project
 
@@ -34,12 +33,9 @@ git clone https://github.com/jonfairbanks/yo.git
 cd yo
 ```
 
-#### Run Backend
+#### Run the Project
 
 ```
-# Move to server Folder
-cd server/
-
 # Install Dependencies
 npm install
 
@@ -94,54 +90,7 @@ npm install
 npm start
 ```
 
-#### Configure Nginx
-
-Client:
-
-```
-server {
-    location /manifest.json {
-    proxy_pass http://127.0.0.1:3000/manifest.json;
-    }
-    location / {
-        proxy_pass http://127.0.0.1:3000/;
-        proxy_set_header X-Real-IP $remote_addr;
-        # Upgrade for Websockets
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
-Server:
-
-```
-server {
-    location ~* "^/[0-9a-z!?@_-]{1,99}$"  {
-    proxy_set_header X-Real-IP $remote_addr;
-    rewrite ^/(.*)$ https://my-api-url.com/api/link/$1 redirect;
-    }
-    location /socket.io {
-        proxy_pass http://127.0.0.1:7000;
-        proxy_set_header x-real-ip $remote_addr;
-        # Upgrade for Websockets
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-    location / {
-        proxy_pass http://127.0.0.1:7000;
-        proxy_set_header X-Real-IP $remote_addr;
-        # Upgrade for Websockets
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
-## Enabling API Authentication
+## Application Authentication
 
 By default, the Yo backend API is open which would allow anyone who knew your API endpoint to list, edit or even delete links if they chose. To prevent this, you can enable Auth0 authentication for requests between the client and server.
 
@@ -149,33 +98,9 @@ By default, the Yo backend API is open which would allow anyone who knew your AP
 - Create and Setup a Regular Web Application. Configure it as you see fit.
 - In the Yo config.js files, set the Client and/or Domain provided by Auth0.
 - Before leaving Auth0, create a user account for your application under User & Roles.
-- When starting the Yo client, pass `REACT_APP_AUTH=true` as an ENV variable to enforce user logins.
-- When starting the Yo server, pass `AUTH=true` as an ENV variable to enable authentication checks.
 - Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully.
 
 By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup.
-
-## Architecture
-
-<img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/architecture.png" alt="yo-architecture" />
-
-## Extras
-
-- If you're using PM2 to manage your node processes, you can use the included `yo-pm2.yaml` to start and deploy the app.
-- Yo can also be deployed via Docker using the included `docker-compose.yaml` file. Enter the Yo root directory and run `docker-compose up` to deploy the Yo client, backend and database.
-
-## ☑ To Do
-
-- [x] Auto Update Tab Data
-- [x] Client Dockerfile
-- [x] Server Dockerfile
-- [x] API Authentication
-- [x] Edit/Delete Functionality
-- [x] Build and Deploy App
-- [x] Further refactor Home.js
-- [x] Docker & Helm Support
-- [ ] Better Error Handling when Navigating to Unset Links
-- [ ] Swipeable Tabs
 
 ## Contributers
 

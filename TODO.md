@@ -12,6 +12,7 @@
 -   [ ] Migrate to Typescript
 -   [x] UI for "Redirecting..."
 -   [ ] Event Tracking
+-   [ ] Sticky Footer
 -   [ ] Tests
 -   [ ] Dependabot
 -   [x] Otel
