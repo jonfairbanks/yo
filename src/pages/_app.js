@@ -16,11 +16,11 @@ function MyApp({ Component, pageProps }) {
     return (
         <>
             <Head>
-                <title>Yo</title>
+                <title>Yo URL Shortener</title>
                 <link
                     rel="icon"
                     type="image/png"
-                    href="/api/assets/favicon.ico"
+                    href="/api/public/favicon.ico"
                 />
             </Head>
             <Component {...pageProps} />

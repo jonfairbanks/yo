@@ -4,8 +4,10 @@
 - [x] Add Update functionality
 - [x] Add Delete functionality
 - [x] /favicon.ico 500 errors
+- [ ] robots.txt support
 - [x] Setup Auth0 integration
 - [ ] Setup Auth0 production keys
+- [ ] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
 - [ ] Improve terraform pre-release workflow
 - [x] Prettier integration
 - [x] Request IP addr logging

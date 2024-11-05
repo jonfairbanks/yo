@@ -3,17 +3,17 @@
     "name": "Yo URL Shortener",
     "icons": [
         {
-            "src": "/api/assets/favicon.ico",
+            "src": "/api/public/favicon.ico",
             "sizes": "48x48",
             "type": "image/png"
         },
         {
-            "src": "/api/assets/images/android-chrome-192x192.png",
+            "src": "/api/public/images/android-chrome-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/api/assets/images/android-chrome-384x384.png",
+            "src": "/api/public/images/android-chrome-384x384.png",
             "sizes": "384x384",
             "type": "image/png"
         }

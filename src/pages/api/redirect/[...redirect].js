@@ -15,7 +15,7 @@ export default async function handler(req, res) {
             ? req.connection.socket.remoteAddress
             : 'Unknown')
 
-    logger.info('Redirect request from IP:', ip)
+    logger.info(`Redirect request from IP: ${ip}`)
 
     const { redirect } = req.query
 

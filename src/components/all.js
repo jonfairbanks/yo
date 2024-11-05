@@ -40,7 +40,7 @@ const AllYos = () => {
 
     const handleCopyClick = (linkName) => {
         setClickedCopy(linkName)
-        setTimeout(() => setClickedCopy(null), 2500)
+        setTimeout(() => setClickedCopy(null), 1500)
     }
 
     const handleEditClick = (item) => {
@@ -97,11 +97,15 @@ const AllYos = () => {
                 header: 'Options',
                 cell: (info) => (
                     <>
+                        <a
+                            onClick={() => handleEditClick(info.row.original)}
+                            className="btn-small icon-left grey grey-text text-darken-2"
+                            style={{ marginRight: '5px' }}
+                        >
+                            <i className="material-icons">edit</i>Edit
+                        </a>
                         {clickedCopy === info.row.original.linkName ? (
-                            <a
-                                className="btn-small icon-left teal white-text text-darken-2"
-                                style={{ marginRight: '5px' }}
-                            >
+                            <a className="btn-small icon-left teal white-text text-darken-2">
                                 <i className="material-icons">done</i> Copy
                             </a>
                         ) : (
@@ -111,10 +115,7 @@ const AllYos = () => {
                                     handleCopyClick(info.row.original.linkName)
                                 }
                             >
-                                <a
-                                    className="btn-small icon-left teal darken-2 white-text text-darken-2"
-                                    style={{ marginRight: '5px' }}
-                                >
+                                <a className="btn-small icon-left teal darken-2 white-text text-darken-2">
                                     <i className="material-icons">
                                         content_copy
                                     </i>{' '}
@@ -122,12 +123,6 @@ const AllYos = () => {
                                 </a>
                             </CopyToClipboard>
                         )}
-                        <a
-                            onClick={() => handleEditClick(info.row.original)}
-                            className="btn-small icon-left grey grey-text text-darken-2"
-                        >
-                            <i className="material-icons">edit</i>Edit
-                        </a>
                     </>
                 ),
             }),
