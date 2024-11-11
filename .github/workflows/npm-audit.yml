@@ -18,7 +18,9 @@ jobs:
           node-version: '20'  # Specify the Node.js version
 
       - name: Install dependencies
-        run: cd src && npm install
+        run: npm install
+        working-directory: src
 
       - name: Run npm audit
         run: npm audit --audit-level=high
+        working-directory: src
