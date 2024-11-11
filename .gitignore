@@ -20,3 +20,4 @@ src/.next
 src/.env*
 /src/coverage
 /src/.serverless
+.env*
