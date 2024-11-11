@@ -19,6 +19,10 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: src
 
       - name: Run npm lint
+        env:
+          TERM: xterm
         run: npm run lint
+        working-directory: src
