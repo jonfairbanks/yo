@@ -36,7 +36,8 @@ export default function handler(req, res) {
 
         res.setHeader('Content-Type', contentType)
         res.send(file)
-    } catch (error) {
+    } catch (err) {
+        logger.error(`File ${fileFullPath} not found: ${err}`)
         res.status(404).send('File not found')
     }
 }

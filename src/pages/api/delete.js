@@ -1,4 +1,4 @@
-import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0'
+import { withApiAuthRequired } from '@auth0/nextjs-auth0'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 import logger from '../../lib/logger'
@@ -9,10 +9,6 @@ export default withApiAuthRequired(async function handler(req, res) {
             .status(405)
             .json({ error: 'Method not allowed. Use DELETE.' })
     }
-
-    // Optional: Check user session or permissions
-    // const session = await getSession(req, res)
-    // const user = session?.user
 
     await connectToDatabase()
 
