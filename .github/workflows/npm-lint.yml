@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]  # Trigger on PR opened and when changes are pushed to the PR
 
 jobs:
-  npm-audit:
+  npm-lint:
     runs-on: ubuntu-latest
 
     steps:

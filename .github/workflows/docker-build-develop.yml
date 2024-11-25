@@ -50,6 +50,7 @@ jobs:
 
   docker-build:
     name: Docker Build
+    environment: development
     needs: [node-lint, node-audit]
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +83,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
         
-      - name: Build & Push Base Image
+      - name: Build & Push to DockerHub
         id: docker_build
         uses: docker/build-push-action@v6
         with:
@@ -94,6 +95,28 @@ jobs:
           tags: ${{ github.repository }}:develop
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'true'
+  
+      - name: Build & Push to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: yo-api
+          IMAGE_TAG: develop
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: Notify Slack
         uses: act10ns/slack@v2
