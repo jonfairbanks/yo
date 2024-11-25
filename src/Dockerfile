@@ -15,6 +15,6 @@ FROM node:20 AS production
 ENV TERM=xterm
 WORKDIR /app
 COPY --from=build /app . 
-RUN npm install --production
+RUN npm install --omit=dev
 EXPOSE 3000
 CMD ["npm", "run", "start"]
