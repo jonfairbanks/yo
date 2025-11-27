@@ -146,6 +146,11 @@ th.site-url {
     text-decoration: underline;
 }
 
+.search-input:focus {
+    border-bottom: 1px solid teal !important;
+    box-shadow: 0 1px 0 0 teal !important;
+}
+
 .centered {
     display: flex;
     flex-direction: column;

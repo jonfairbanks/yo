@@ -18,6 +18,7 @@ const AllYos = () => {
     const [selectedRow, setSelectedRow] = useState(null) // Align names
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+    const [filterQuery, setFilterQuery] = useState('')
 
     const fetchData = async () => {
         setLoading(true)
@@ -137,8 +138,23 @@ const AllYos = () => {
         [clickedCopy, columnHelper]
     )
 
+    const filteredData = useMemo(() => {
+        if (!filterQuery.trim()) return data
+        const needle = filterQuery.toLowerCase()
+        return data.filter(
+            (item) =>
+                item.linkName.toLowerCase().includes(needle) ||
+                item.originalUrl.toLowerCase().includes(needle)
+        )
+    }, [data, filterQuery])
+
+    useEffect(() => {
+        // Reset to first page when filter changes so results are visible.
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    }, [filterQuery])
+
     const table = useReactTable({
-        data,
+        data: filteredData,
         columns,
         state: { sorting, pagination },
         onSortingChange: setSorting,
@@ -147,7 +163,7 @@ const AllYos = () => {
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         manualPagination: false,
-        pageCount: Math.ceil(data.length / pagination.pageSize),
+        pageCount: Math.ceil(filteredData.length / pagination.pageSize),
     })
 
     if (loading) return <p>Loading...</p>
@@ -155,6 +171,20 @@ const AllYos = () => {
 
     return (
         <div>
+            <div className="row" style={{ marginBottom: '10px' }}>
+                <div className="s12 input-field">
+                    <input
+                        id="search"
+                        type="text"
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                        placeholder="Filter by link or URL"
+                        aria-label="Filter links"
+                        className="search-input"
+                        style={{ backgroundColor: '#424242', color: '#fff' }}
+                    />
+                </div>
+            </div>
             <table>
                 <thead>
                     {table.getHeaderGroups().map((headerGroup) => (
