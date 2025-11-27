@@ -26,6 +26,7 @@ const Header = (user) => {
                     <a
                         href="#create"
                         className="btn modal-trigger filled icon-left teal white-text text-darken-2 darken-2"
+                        aria-label="Open create modal"
                     >
                         <i className="material-icons">add</i>Create
                     </a>
