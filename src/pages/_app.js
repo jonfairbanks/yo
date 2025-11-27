@@ -22,6 +22,10 @@ function MyApp({ Component, pageProps }) {
                     type="image/png"
                     href="/api/public/favicon.ico"
                 />
+                <link
+                    rel="stylesheet"
+                    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+                />
             </Head>
             <Component {...pageProps} />
         </>

@@ -21,10 +21,12 @@ export const getServerSideProps = withPageAuthRequired({
 
 function HomePage({ user }) {
     return (
-        <div>
-            <Header user={user} />
-            <Tabs />
-            <CreateModal />
+        <div className="page-container">
+            <div className="page-content">
+                <Header user={user} />
+                <Tabs />
+                <CreateModal />
+            </div>
             <Footer />
         </div>
     )
