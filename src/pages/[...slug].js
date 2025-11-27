@@ -12,7 +12,14 @@ const CatchAllRoute = () => {
         // Make sure the slug is defined before redirecting
         if (slug) {
             const slugValue = Array.isArray(slug) ? slug.join('/') : slug
-            router.push(`/api/redirect/${slugValue}`)
+            const normalizedSlug = slugValue.toString().toLowerCase()
+
+            // Avoid infinite loops if someone hits an /api/redirect/... path directly
+            if (normalizedSlug.startsWith('api/redirect')) {
+                return
+            }
+
+            router.replace(`/api/redirect/${slugValue}`)
         }
     }, [slug, router])
 
