@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 
@@ -7,21 +7,31 @@ import '../app/globals.css'
 const CatchAllRoute = () => {
     const router = useRouter()
     const { slug } = router.query
+    const hasRedirectedRef = useRef(false)
 
     useEffect(() => {
-        // Make sure the slug is defined before redirecting
-        if (slug) {
-            const slugValue = Array.isArray(slug) ? slug.join('/') : slug
-            const normalizedSlug = slugValue.toString().toLowerCase()
+        if (!router.isReady || !slug || hasRedirectedRef.current) return
 
-            // Avoid infinite loops if someone hits an /api/redirect/... path directly
-            if (normalizedSlug.startsWith('api/redirect')) {
-                return
+        const slugValue = Array.isArray(slug) ? slug.join('/') : slug
+        const normalizedSlug = slugValue.toString().toLowerCase()
+
+        // Avoid redirecting if the path is already the redirect handler
+        if (normalizedSlug.startsWith('api/redirect')) return
+
+        hasRedirectedRef.current = true
+
+        const target = `/api/redirect/${slugValue}`
+
+        const timeout = setTimeout(() => {
+            if (typeof window !== 'undefined') {
+                window.location.replace(target)
+            } else {
+                router.replace(target)
             }
+        }, 1000)
 
-            router.replace(`/api/redirect/${slugValue}`)
-        }
-    }, [slug, router])
+        return () => clearTimeout(timeout)
+    }, [router, slug])
 
     return (
         <div className="centered">
