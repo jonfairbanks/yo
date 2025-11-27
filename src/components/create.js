@@ -38,11 +38,12 @@ const CreateModal = () => {
         const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
         const elem = document.getElementById('create')
         if (!elem) return undefined
+        const modalElement = modalRef.current || elem
 
         const trapFocus = (event) => {
-            if (event.key !== 'Tab' || !modalRef.current) return
+            if (event.key !== 'Tab' || !modalElement) return
             const focusable = Array.from(
-                modalRef.current.querySelectorAll(
+                modalElement.querySelectorAll(
                     'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
                 )
             ).filter(
@@ -80,7 +81,7 @@ const CreateModal = () => {
         }
         instance.options.onOpenEnd = focusLinkInputWithRetries
         instance.options.onCloseEnd = resetState
-        modalRef.current?.addEventListener('keydown', trapFocus)
+        modalElement?.addEventListener('keydown', trapFocus)
 
         const triggers = Array.from(
             document.querySelectorAll('.modal-trigger[href="#create"]')
@@ -98,7 +99,7 @@ const CreateModal = () => {
             triggers.forEach((trigger) =>
                 trigger.removeEventListener('click', handleTriggerClick)
             )
-            modalRef.current?.removeEventListener('keydown', trapFocus)
+            modalElement?.removeEventListener('keydown', trapFocus)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])

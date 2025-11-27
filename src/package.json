@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "clear && next dev",
-    "build": "clear && next build",
-    "start": "clear && next start",
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
     "fmt": "npx prettier . --check",
     "fmt-fix": "npx prettier . --write",
-    "lint": "clear && next lint",
-    "test": "clear && jest"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",

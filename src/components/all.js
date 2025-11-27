@@ -134,7 +134,7 @@ const AllYos = () => {
                 ),
             }),
         ],
-        [clickedCopy]
+        [clickedCopy, columnHelper]
     )
 
     const table = useReactTable({
