@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 const CreateModal = () => {
@@ -6,7 +6,48 @@ const CreateModal = () => {
     const [success, setSuccess] = useState(false) // Track success state
     const [newLink, setNewLink] = useState('') // Track newly created link
     const [newUrl, setNewUrl] = useState('') // Track original url for new link
-    const [clickedCopy, setClickedCopy] = useState('') // Track original url for new link
+    const [clickedCopy, setClickedCopy] = useState(false) // Track original url for new link
+    const formRef = useRef(null)
+
+    const resetState = () => {
+        formRef.current?.reset()
+        setSuccess(false)
+        setNewLink('')
+        setNewUrl('')
+        setError(null)
+        setClickedCopy(false)
+    }
+
+    useEffect(() => {
+        const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
+        const elem = document.getElementById('create')
+        if (!elem) return undefined
+
+        const instance =
+            M.Modal.getInstance(elem) ||
+            M.Modal.init(elem, {
+                onOpenStart: resetState,
+                onCloseEnd: resetState,
+            })
+
+        instance.options.onOpenStart = resetState
+        instance.options.onCloseEnd = resetState
+
+        const triggers = Array.from(
+            document.querySelectorAll('.modal-trigger[href="#create"]')
+        )
+        triggers.forEach((trigger) =>
+            trigger.addEventListener('click', resetState)
+        )
+
+        return () => {
+            instance.destroy()
+            triggers.forEach((trigger) =>
+                trigger.removeEventListener('click', resetState)
+            )
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const CreateNewYo = async (event) => {
         event.preventDefault() // Prevent page reload
@@ -59,9 +100,17 @@ const CreateModal = () => {
     }
 
     return (
-        <form className="row" onSubmit={CreateNewYo}>
+        <form className="row" onSubmit={CreateNewYo} ref={formRef}>
             <div id="create" className="modal">
                 <div className="modal-content">
+                    <a
+                        href="#!"
+                        className="modal-close grey-text text-darken-1"
+                        aria-label="Close create modal"
+                        style={{ float: 'right' }}
+                    >
+                        <i className="material-icons">close</i>
+                    </a>
                     {success ? (
                         <div>
                             <h1 className="success-text teal-text">Success!</h1>

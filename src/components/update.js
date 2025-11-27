@@ -100,6 +100,14 @@ const UpdateModal = ({ item, onClose }) => {
         <form className="row" onSubmit={UpdateYo}>
             <div id="update" className="modal">
                 <div className="modal-content">
+                    <a
+                        href="#!"
+                        className="modal-close grey-text text-darken-1"
+                        aria-label="Close update modal"
+                        style={{ float: 'right' }}
+                    >
+                        <i className="material-icons">close</i>
+                    </a>
                     {success ? (
                         <div>
                             <h1 className="success-text teal-text">Updated!</h1>
