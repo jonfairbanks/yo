@@ -74,7 +74,7 @@ const AllYos = () => {
                 cell: (info) => (
                     <a
                         className="grey-text text-darken-1"
-                        href={`/api/redirect/${info.row.original.linkName}`}
+                        href={`/${info.row.original.linkName}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >

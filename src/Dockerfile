@@ -1,5 +1,5 @@
 # Build
-FROM node:20 AS build
+FROM node:22 AS build
 
 ENV TERM=xterm
 WORKDIR /app
@@ -10,7 +10,7 @@ RUN npm run build
 
 
 # Production
-FROM node:20 AS production
+FROM node:22 AS production
 
 ENV TERM=xterm
 WORKDIR /app
