@@ -19,11 +19,12 @@ export default withApiAuthRequired(async function handler(req, res) {
     }
 
     try {
+        const user = req.auth?.user
         const item = await Yo.findOneAndDelete({ linkName }).lean()
 
         if (item) {
             logger.info(
-                `User ${user.email} deleted alias ${item.originalUrl}: ${linkName}`
+                `User ${user?.nickname || 'unknown'} deleted alias ${item.originalUrl}: ${linkName}`
             )
             return res
                 .status(200)
