@@ -1,31 +1,9 @@
-import { useState, useEffect } from 'react'
-
 import AllYos from './all'
 import PopularYos from './popular'
 import LatestYos from './latest'
+import Stats from './stats'
 
 const Tabs = () => {
-    const [data, setData] = useState(null)
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(true)
-
-    const fetchData = async () => {
-        try {
-            const response = await fetch('/api/stats')
-            if (!response.ok) throw new Error(`Error: ${response.statusText}`)
-            const json = await response.json()
-            setData(json)
-        } catch (err) {
-            setError(`Failed to load data: ${err.message}`)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchData()
-    }, [])
-
     return (
         <div className="row primary-body">
             <div className="col s12">
@@ -56,15 +34,7 @@ const Tabs = () => {
                 <LatestYos />
             </div>
             <div id="stats" className="col s12">
-                {loading ? (
-                    <p>Loading...</p>
-                ) : error ? (
-                    <p>{error}</p>
-                ) : (
-                    <pre className="grey-text">
-                        {JSON.stringify(data, null, 2)}
-                    </pre>
-                )}
+                <Stats />
             </div>
         </div>
     )
