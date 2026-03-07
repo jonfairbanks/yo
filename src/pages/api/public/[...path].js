@@ -8,10 +8,30 @@
 
 import fs from 'fs'
 import path from 'path'
+import logger from '../../../lib/logger'
 
 export default function handler(req, res) {
+    if (req.method !== 'GET') {
+        return res.status(405).send('Method not allowed')
+    }
+
     const { path: filePath } = req.query
-    const fileFullPath = path.join(process.cwd(), 'public', ...filePath)
+    const pathSegments = Array.isArray(filePath) ? filePath : [filePath]
+    const publicDir = path.resolve(process.cwd(), 'public')
+    const fileFullPath = path.resolve(publicDir, ...pathSegments)
+
+    // Ensure the resolved path stays inside the public directory.
+    const relativePath = path.relative(publicDir, fileFullPath)
+    if (
+        relativePath.startsWith('..') ||
+        path.isAbsolute(relativePath) ||
+        pathSegments.some(
+            (segment) => typeof segment !== 'string' || segment.includes('\0')
+        )
+    ) {
+        logger.warn(`Invalid public file path requested: ${String(filePath)}`)
+        return res.status(400).send('Invalid file path')
+    }
 
     try {
         const file = fs.readFileSync(fileFullPath)
