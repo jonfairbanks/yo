@@ -1,14 +1,19 @@
-import { withApiAuthRequired } from '@auth0/nextjs-auth0'
 import validUrl from 'valid-url'
 
+import { auth0 } from '../../lib/auth0'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 
 import logger from '../../lib/logger'
 
-export default withApiAuthRequired(async function handler(req, res) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' })
+    }
+
+    const session = await auth0.getSession(req)
+    if (!session) {
+        return res.status(401).json({ error: 'Unauthorized' })
     }
 
     await connectToDatabase()
@@ -46,4 +51,4 @@ export default withApiAuthRequired(async function handler(req, res) {
         logger.warn(`The provided URL is improperly formatted: ${originalUrl}`)
         return res.status(400).json('The provided URL is improperly formatted.')
     }
-})
+}

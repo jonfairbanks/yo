@@ -1,4 +1,4 @@
-import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0'
+import { auth0 } from '../lib/auth0'
 
 import Tabs from '../components/tabs'
 import Header from '../components/header'
@@ -7,17 +7,22 @@ import CreateModal from '../components/create'
 
 import '../app/globals.css'
 
-// Fetch user data with getServerSideProps
-export const getServerSideProps = withPageAuthRequired({
-    async getServerSideProps(context) {
-        const session = await getSession(context.req, context.res)
-        const user = session?.user || null
+export async function getServerSideProps(context) {
+    const session = await auth0.getSession(context.req)
 
+    if (!session) {
         return {
-            props: { user },
+            redirect: {
+                destination: '/auth/login',
+                permanent: false,
+            },
         }
-    },
-})
+    }
+
+    return {
+        props: { user: session.user || null },
+    }
+}
 
 function HomePage({ user }) {
     return (
