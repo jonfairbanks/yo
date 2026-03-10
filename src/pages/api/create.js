@@ -2,6 +2,7 @@ import validUrl from 'valid-url'
 
 import { auth0 } from '../../lib/auth0'
 import { connectToDatabase } from '../../lib/mongoose'
+import { getReservedPathMatch } from '../../lib/reserved-routes'
 import Yo from '../../models/yo'
 
 import logger from '../../lib/logger'
@@ -19,6 +20,16 @@ export default async function handler(req, res) {
     await connectToDatabase()
 
     const { originalUrl, linkName, updatedAt } = req.body
+
+    const reservedPath = getReservedPathMatch(linkName)
+    if (reservedPath) {
+        logger.warn(
+            `Blocked creation for reserved alias path: ${linkName} (matched: ${reservedPath})`
+        )
+        return res.status(400).json({
+            error: 'This link name is reserved by the application.',
+        })
+    }
 
     // Validate if the provided URL is valid
     if (!validUrl.isUri(originalUrl)) {
