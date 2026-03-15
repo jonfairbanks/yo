@@ -1,8 +1,8 @@
-name: Run npm lint on PR's
+name: NPM Lint
 
 on:
   pull_request:
-    types: [opened, synchronize]  # Trigger on PR opened and when changes are pushed to the PR
+    types: [opened, synchronize] # Trigger on PR opened and when changes are pushed to the PR
 
 permissions:
   contents: read
@@ -13,12 +13,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'  # Specify the Node.js version
+          node-version: "22.x"
 
       - name: Install dependencies
         run: npm install
