@@ -26,7 +26,7 @@ const Stats = () => {
     if (error) return <p>{error}</p>
 
     return (
-        <table>
+        <table className="yo-table">
             <thead>
                 <tr>
                     <th>Metric</th>

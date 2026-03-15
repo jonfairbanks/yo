@@ -36,7 +36,7 @@ const LatestYos = () => {
     }
 
     return (
-        <table>
+        <table className="yo-table">
             <thead>
                 <tr>
                     <th>Link</th>

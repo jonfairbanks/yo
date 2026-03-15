@@ -85,9 +85,11 @@ const AllYos = () => {
                 enableSorting: true,
             }),
             columnHelper.accessor('urlHits', {
-                header: 'URL Hits',
+                header: () => (
+                    <div className="table-number-cell">URL Hits</div>
+                ),
                 cell: (info) => (
-                    <p className="grey-text text-darken-1">
+                    <p className="grey-text text-darken-1 table-number-cell">
                         {info.getValue().toLocaleString()}
                     </p>
                 ),
@@ -95,13 +97,12 @@ const AllYos = () => {
             }),
             columnHelper.display({
                 id: 'options',
-                header: 'Options',
+                header: () => <div className="table-actions">Options</div>,
                 cell: (info) => (
-                    <>
+                    <div className="table-actions">
                         <a
                             onClick={() => handleEditClick(info.row.original)}
                             className="btn-small icon-left grey grey-text text-darken-2"
-                            style={{ marginRight: '5px' }}
                             aria-label={`Edit ${info.row.original.linkName}`}
                         >
                             <i className="material-icons">edit</i>Edit
@@ -131,7 +132,7 @@ const AllYos = () => {
                                 </a>
                             </CopyToClipboard>
                         )}
-                    </>
+                    </div>
                 ),
             }),
         ],
@@ -185,7 +186,7 @@ const AllYos = () => {
                     />
                 </div>
             </div>
-            <table>
+            <table className="yo-table">
                 <thead>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <tr key={headerGroup.id}>

@@ -99,6 +99,21 @@ body {
     background-color: var(--foreground);
 } /*Color of underline*/
 
+.yo-table {
+    width: 100%;
+}
+
+.table-number-cell {
+    text-align: right;
+}
+
+.table-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    white-space: nowrap;
+}
+
 /* Limit the width of the Site URL column */
 td.site-url,
 th.site-url {
