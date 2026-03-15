@@ -1,0 +1,10 @@
+.env*
+.git
+.next
+.swc
+coverage
+node_modules
+tests
+*.md
+*.old
+*.test.js

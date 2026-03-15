@@ -12,5 +12,4 @@ variable "environment" {
 variable "root_domain" {
   description = "The root domain name to be used when creating domain names"
   type = string
-  default = "fbnks.io"
 }

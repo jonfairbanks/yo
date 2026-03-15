@@ -1,0 +1,28 @@
+name: Run npm lint on PR's
+
+on:
+  pull_request:
+    types: [opened, synchronize]  # Trigger on PR opened and when changes are pushed to the PR
+
+jobs:
+  npm-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'  # Specify the Node.js version
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: src
+
+      - name: Run npm lint
+        env:
+          TERM: xterm
+        run: npm run lint
+        working-directory: src

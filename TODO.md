@@ -1,0 +1,23 @@
+## To Do:
+
+- [x] Fix Create Modal CSS
+- [x] Add Update functionality
+- [x] Add Delete functionality
+- [x] /favicon.ico 500 errors
+- [ ] robots.txt solution
+- [x] Setup Auth0 integration
+- [ ] Setup Auth0 production keys
+- [ ] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
+- [ ] Improve terraform pre-release workflow
+- [x] Prettier integration
+- [x] Request IP addr logging
+- [ ] Migrate to Typescript
+- [x] UI for "Redirecting..."
+- [x] Remove references to `shortLink` value
+- [ ] Mobile UX Improvements
+- [ ] Event Tracking
+- [x] Sticky Footer
+- [ ] Tests
+- [ ] Dependabot
+- [x] Otel
+- [x] Fix console.logs
