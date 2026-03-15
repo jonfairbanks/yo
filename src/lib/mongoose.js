@@ -2,7 +2,13 @@ import mongoose from 'mongoose'
 import logger from './logger'
 import { setSpanAttributes, withSpan } from './tracing'
 
-let isConnected = false
+const globalForMongoose = globalThis
+const mongooseCache = globalForMongoose.__mongooseCache || {
+    conn: null,
+    promise: null,
+}
+
+globalForMongoose.__mongooseCache = mongooseCache
 
 export const connectToDatabase = async () =>
     withSpan(
@@ -12,42 +18,38 @@ export const connectToDatabase = async () =>
             'db.operation': 'connect',
         },
         async (span) => {
-            if (isConnected) {
+            if (mongooseCache.conn) {
                 span.setAttribute('db.connection.state', 'cached')
                 logger.info('Using the existing database connection')
-                return mongoose.connection
+                return mongooseCache.conn
             }
 
             try {
-                if (mongoose.connections.length > 0) {
-                    isConnected = mongoose.connections[0].readyState === 1
-
-                    if (isConnected) {
-                        span.setAttribute('db.connection.state', 'reused')
-                        logger.info('Using a previous database connection')
-                        return mongoose.connection
-                    } else if (mongoose.connections[0].readyState === 2) {
-                        span.setAttribute('db.connection.state', 'connecting')
-                        logger.info(
-                            'Database is in connecting state, reusing the connection'
-                        )
-                        return mongoose.connection
-                    }
-
-                    logger.info('Disconnecting from the database')
-                    await mongoose.disconnect()
+                if (!mongooseCache.promise) {
+                    span.setAttribute('db.connection.state', 'new')
+                    mongooseCache.promise = mongoose.connect(
+                        process.env.MONGO_URI,
+                        {
+                            bufferCommands: false,
+                            maxPoolSize: 10,
+                        }
+                    )
+                } else {
+                    span.setAttribute('db.connection.state', 'pending')
+                    logger.info(
+                        'Database connection is already in progress, reusing the promise'
+                    )
                 }
 
-                const db = await mongoose.connect(process.env.MONGO_URI)
-
-                isConnected = db.connections[0].readyState === 1
+                mongooseCache.conn = await mongooseCache.promise
                 setSpanAttributes({
-                    'db.connection.state': 'new',
-                    'db.connection.ready': isConnected,
+                    'db.connection.ready': true,
                 })
                 logger.info('New database connection established')
-                return db
+                return mongooseCache.conn
             } catch (error) {
+                mongooseCache.promise = null
+                mongooseCache.conn = null
                 setSpanAttributes({
                     'db.connection.state': 'error',
                 })

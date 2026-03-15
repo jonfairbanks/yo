@@ -29,7 +29,26 @@ export default async function handler(req, res) {
                     'db.query.summary':
                         'find aliases sorted by urlHits desc limit 10',
                 },
-                () => Yo.find({}).sort({ urlHits: -1 }).limit(10)
+                async () => {
+                    const items = await Yo.find(
+                        {},
+                        {
+                            linkName: 1,
+                            originalUrl: 1,
+                            urlHits: 1,
+                            _id: 0,
+                        }
+                    )
+                        .sort({ urlHits: -1 })
+                        .limit(10)
+                        .lean()
+
+                    return items.map((item) => ({
+                        ...item,
+                        urlHits:
+                            typeof item.urlHits === 'number' ? item.urlHits : 0,
+                    }))
+                }
             )
 
             span.setAttribute('yo.result_count', pop.length)

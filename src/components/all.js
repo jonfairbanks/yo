@@ -3,8 +3,6 @@ import {
     useReactTable,
     createColumnHelper,
     getCoreRowModel,
-    getSortedRowModel,
-    getPaginationRowModel,
 } from '@tanstack/react-table'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
@@ -19,25 +17,80 @@ const AllYos = () => {
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
     const [filterQuery, setFilterQuery] = useState('')
+    const [pageCount, setPageCount] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const [debouncedFilterQuery, setDebouncedFilterQuery] = useState('')
+    const [refreshKey, setRefreshKey] = useState(0)
 
-    const fetchData = async () => {
-        setLoading(true)
-        try {
-            const response = await fetch('/api')
-            const json = await response.json()
-            setData(json)
-            setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-            setLoading(false)
-        } catch (error) {
-            setError('Failed to load data:', error)
-            setLoading(false)
-        }
-    }
-
-    // Fetch data on component mount
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedFilterQuery(filterQuery)
+        }, 250)
+
+        return () => clearTimeout(timeoutId)
+    }, [filterQuery])
+
+    useEffect(() => {
+        setPagination((prev) =>
+            prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+        )
+    }, [debouncedFilterQuery])
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true)
+            setError(null)
+
+            try {
+                const activeSort = sorting[0] || {
+                    id: 'linkName',
+                    desc: false,
+                }
+                const params = new URLSearchParams({
+                    page: String(pagination.pageIndex + 1),
+                    pageSize: String(pagination.pageSize),
+                    sortBy: activeSort.id,
+                    sortDir: activeSort.desc ? 'desc' : 'asc',
+                })
+
+                if (debouncedFilterQuery.trim()) {
+                    params.set('q', debouncedFilterQuery.trim())
+                }
+
+                const response = await fetch(`/api?${params.toString()}`)
+                if (!response.ok) {
+                    throw new Error('Failed to load data.')
+                }
+
+                const json = await response.json()
+                setData(json.items)
+                setPageCount(json.pagination.totalPages)
+                setTotalItems(json.pagination.totalItems)
+
+                if (
+                    json.pagination.totalPages > 0 &&
+                    pagination.pageIndex + 1 > json.pagination.totalPages
+                ) {
+                    setPagination((prev) => ({
+                        ...prev,
+                        pageIndex: json.pagination.totalPages - 1,
+                    }))
+                }
+            } catch {
+                setError('Failed to load data.')
+            } finally {
+                setLoading(false)
+            }
+        }
+
         fetchData()
-    }, [])
+    }, [
+        pagination.pageIndex,
+        pagination.pageSize,
+        debouncedFilterQuery,
+        refreshKey,
+        sorting,
+    ])
 
     const handleCopyClick = (linkName) => {
         setClickedCopy(linkName)
@@ -50,7 +103,7 @@ const AllYos = () => {
 
     const handleCloseModal = () => {
         setSelectedRow(null)
-        fetchData()
+        setRefreshKey((prev) => prev + 1)
     }
 
     const columnHelper = createColumnHelper()
@@ -85,12 +138,10 @@ const AllYos = () => {
                 enableSorting: true,
             }),
             columnHelper.accessor('urlHits', {
-                header: () => (
-                    <div className="table-number-cell">URL Hits</div>
-                ),
+                header: () => <div className="table-number-cell">URL Hits</div>,
                 cell: (info) => (
                     <p className="grey-text text-darken-1 table-number-cell">
-                        {info.getValue().toLocaleString()}
+                        {(info.getValue() ?? 0).toLocaleString()}
                     </p>
                 ),
                 enableSorting: true,
@@ -139,32 +190,16 @@ const AllYos = () => {
         [clickedCopy, columnHelper]
     )
 
-    const filteredData = useMemo(() => {
-        if (!filterQuery.trim()) return data
-        const needle = filterQuery.toLowerCase()
-        return data.filter(
-            (item) =>
-                item.linkName.toLowerCase().includes(needle) ||
-                item.originalUrl.toLowerCase().includes(needle)
-        )
-    }, [data, filterQuery])
-
-    useEffect(() => {
-        // Reset to first page when filter changes so results are visible.
-        setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-    }, [filterQuery])
-
     const table = useReactTable({
-        data: filteredData,
+        data,
         columns,
         state: { sorting, pagination },
         onSortingChange: setSorting,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        manualPagination: false,
-        pageCount: Math.ceil(filteredData.length / pagination.pageSize),
+        manualSorting: true,
+        manualPagination: true,
+        pageCount,
     })
 
     if (loading) return <p>Loading...</p>
@@ -246,7 +281,7 @@ const AllYos = () => {
                     style={{ marginLeft: '10px', marginRight: '10px' }}
                 >
                     Page {table.getState().pagination.pageIndex + 1} of{' '}
-                    {table.getPageCount()}
+                    {table.getPageCount()} ({totalItems} links)
                 </span>
                 <button
                     onClick={() => table.nextPage()}

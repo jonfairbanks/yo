@@ -10,4 +10,7 @@ const yoSchema = new mongoose.Schema({
     urlHits: { type: Number, default: 0 },
 })
 
+yoSchema.index({ lastAccess: -1 })
+yoSchema.index({ urlHits: -1 })
+
 export default mongoose.models.Yo || mongoose.model('Yo', yoSchema)

@@ -29,7 +29,19 @@ export default async function handler(req, res) {
                     'db.query.summary':
                         'find aliases sorted by lastAccess desc limit 10',
                 },
-                () => Yo.find({}).sort({ lastAccess: -1 }).limit(10)
+                () =>
+                    Yo.find(
+                        {},
+                        {
+                            linkName: 1,
+                            originalUrl: 1,
+                            lastAccess: 1,
+                            _id: 0,
+                        }
+                    )
+                        .sort({ lastAccess: -1 })
+                        .limit(10)
+                        .lean()
             )
 
             span.setAttribute('yo.result_count', rec.length)
