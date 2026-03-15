@@ -4,35 +4,39 @@ on:
   push:
     branches:
       - "develop"
+      - "main"
 env:
-  TERM: 'xterm'
+  TERM: "xterm"
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   configure:
     name: Configure
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Setup deployment variables
         id: setup-vars
         run: |
-            BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
-            echo "Branch: $BRANCH_NAME"
-            if [ "$BRANCH_NAME" = "develop" ]; then
-              echo "Using Development"
-              echo "environment=development" >> $GITHUB_OUTPUT
-              echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
-              echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
-            elif [ "$BRANCH_NAME" = "main" ]; then
-              echo "Using Production"
-              echo "environment=production" >> $GITHUB_OUTPUT
-              echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
-              echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
-            fi
+          BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          echo "Branch: $BRANCH_NAME"
+          if [ "$BRANCH_NAME" = "develop" ]; then
+            echo "Using Development"
+            echo "environment=development" >> $GITHUB_OUTPUT
+            echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
+            echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH_NAME" = "main" ]; then
+            echo "Using Production"
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "aws_key=${{ secrets.aws_access_key_id }}" >> $GITHUB_OUTPUT
+            echo "aws_secret=${{ secrets.aws_secret_access_key }}" >> $GITHUB_OUTPUT
+          fi
 
   node-lint:
     name: Lint Node.js
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,7 +44,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "22.x"
 
       - name: Install dependencies
         run: npm ci
@@ -52,6 +56,8 @@ jobs:
   node-audit:
     name: Critical Vulnerability Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,7 +65,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "22.x"
 
       - name: Install dependencies
         run: npm ci
@@ -74,6 +80,9 @@ jobs:
     environment: development
     needs: [node-lint, node-audit]
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -115,7 +124,7 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
         with:
-          mask-password: 'true'
+          mask-password: "true"
 
       - name: Get Repository Name
         id: repo-name
@@ -128,8 +137,7 @@ jobs:
         run: |
           aws ecr describe-repositories --repository-names $REPO_NAME --region $AWS_REGION || \
           aws ecr create-repository --repository-name $REPO_NAME --region $AWS_REGION
-  
-        
+
       - name: Build & Push Docker image(s)
         id: docker-build
         uses: docker/build-push-action@v6
@@ -143,8 +151,6 @@ jobs:
           tags: |
             ${{ github.repository }}:develop
             ${{ steps.ecr-login.outputs.registry }}/jonfairbanks/yo-api:develop
-          # cache-from: type=local,src=/tmp/.buildx-cache
-          # cache-to: type=local,dest=/tmp/.buildx-cache
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
