@@ -10,6 +10,22 @@ import fs from 'fs'
 import path from 'path'
 import logger from '../../../lib/logger'
 
+const CONTENT_TYPES = {
+    '.css': 'text/css; charset=utf-8',
+    '.ico': 'image/x-icon',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.js': 'application/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.map': 'application/json; charset=utf-8',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml; charset=utf-8',
+    '.txt': 'text/plain; charset=utf-8',
+    '.webmanifest': 'application/manifest+json; charset=utf-8',
+    '.webp': 'image/webp',
+    '.xml': 'application/xml; charset=utf-8',
+}
+
 export default function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).send('Method not allowed')
@@ -35,24 +51,9 @@ export default function handler(req, res) {
 
     try {
         const file = fs.readFileSync(fileFullPath)
-
-        // Determine the MIME type based on the file extension
         const ext = path.extname(fileFullPath).toLowerCase()
-        let contentType
-
-        switch (ext) {
-            case '.png':
-                contentType = 'image/png'
-                break
-            case '.txt':
-                contentType = 'text/plain'
-                break
-            case '.json':
-                contentType = 'application/json'
-                break
-            default:
-                contentType = 'application/octet-stream' // Default for unknown types
-        }
+        const contentType =
+            CONTENT_TYPES[ext] || 'application/octet-stream'
 
         res.setHeader('Content-Type', contentType)
         res.send(file)
