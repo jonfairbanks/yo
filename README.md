@@ -7,11 +7,12 @@ Yo Dawg, heard you're tired of remembering URLs
 <img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
 
 ![Development CI](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/docker-build-develop.yml?branch=develop&event=push&label=Development%20CI)
-![PR Lint](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-lint.yml?event=pull_request&label=PR%20Lint)
+![Audit](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-audit.yml?event=pull_request&label=Audit)
+![Lint](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-lint.yml?event=pull_request&label=Lint)
+![Tests](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-test.yml?event=pull_request&label=Tests)
 ![GitHub top language](https://img.shields.io/github/languages/top/jonfairbanks/yo.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jonfairbanks/yo-client.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/jonfairbanks/yo.svg)
-![Lines of code](https://img.shields.io/tokei/lines/github/jonfairbanks/yo)
 ![License](https://img.shields.io/github/license/jonfairbanks/yo.svg?style=flat)
 
 Turn long, hard to remember URLs into easily sharable short-links.
