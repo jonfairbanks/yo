@@ -76,9 +76,7 @@ body {
 
 /* Override the tab background color */
 .tabs {
-    background-color: var(
-        --background
-    );
+    background-color: var(--background);
 }
 
 .tabs .tab a {
@@ -101,6 +99,86 @@ body {
 
 .yo-table {
     width: 100%;
+}
+
+.stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 12px 0 24px;
+}
+
+.stats-grid,
+.stats-spotlight-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.stats-spotlight-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.stats-card,
+.stats-spotlight-card {
+    background: rgba(36, 36, 36, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    overflow: hidden;
+    padding: 18px 20px;
+    position: relative;
+}
+
+.stats-card {
+    min-height: 152px;
+}
+
+.stats-card::before,
+.stats-spotlight-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #b2dfdb 0%, #80cbc4 100%);
+}
+
+.stats-card-label {
+    color: teal;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+}
+
+.stats-card-value,
+.stats-spotlight-value {
+    color: #757575;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stats-card-value {
+    font-size: clamp(1.9rem, 4vw, 2.8rem);
+    line-height: 1.05;
+}
+
+.stats-spotlight-value {
+    font-size: 1.6rem;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.stats-card-detail {
+    color: #757575;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 14px 0 0;
 }
 
 .table-number-cell {
@@ -207,4 +285,15 @@ th.site-url {
 .footer-override {
     margin-top: 0em;
     padding-top: 0em;
+}
+
+@media only screen and (max-width: 600px) {
+    .stats-card,
+    .stats-spotlight-card {
+        padding: 16px 18px;
+    }
+
+    .stats-card {
+        min-height: auto;
+    }
 }
