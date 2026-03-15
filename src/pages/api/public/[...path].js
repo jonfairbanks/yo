@@ -9,6 +9,7 @@
 import fs from 'fs'
 import path from 'path'
 import logger from '../../../lib/logger'
+import { withSpan } from '../../../lib/tracing'
 
 const CONTENT_TYPES = {
     '.css': 'text/css; charset=utf-8',
@@ -27,38 +28,56 @@ const CONTENT_TYPES = {
 }
 
 export default function handler(req, res) {
-    if (req.method !== 'GET') {
-        return res.status(405).send('Method not allowed')
-    }
+    return withSpan(
+        'yo.api.public_asset',
+        {
+            'http.route': '/api/public/[...path]',
+            'http.request.method': req.method,
+        },
+        async (span) => {
+            if (req.method !== 'GET') {
+                span.setAttribute('http.response.status_code', 405)
+                return res.status(405).send('Method not allowed')
+            }
 
-    const { path: filePath } = req.query
-    const pathSegments = Array.isArray(filePath) ? filePath : [filePath]
-    const publicDir = path.resolve(process.cwd(), 'public')
-    const fileFullPath = path.resolve(publicDir, ...pathSegments)
+            const { path: filePath } = req.query
+            const pathSegments = Array.isArray(filePath) ? filePath : [filePath]
+            const publicDir = path.resolve(process.cwd(), 'public')
+            const fileFullPath = path.resolve(publicDir, ...pathSegments)
 
-    // Ensure the resolved path stays inside the public directory.
-    const relativePath = path.relative(publicDir, fileFullPath)
-    if (
-        relativePath.startsWith('..') ||
-        path.isAbsolute(relativePath) ||
-        pathSegments.some(
-            (segment) => typeof segment !== 'string' || segment.includes('\0')
-        )
-    ) {
-        logger.warn(`Invalid public file path requested: ${String(filePath)}`)
-        return res.status(400).send('Invalid file path')
-    }
+            const relativePath = path.relative(publicDir, fileFullPath)
+            if (
+                relativePath.startsWith('..') ||
+                path.isAbsolute(relativePath) ||
+                pathSegments.some(
+                    (segment) =>
+                        typeof segment !== 'string' || segment.includes('\0')
+                )
+            ) {
+                span.setAttribute('yo.result', 'invalid_public_path')
+                span.setAttribute('http.response.status_code', 400)
+                logger.warn(
+                    `Invalid public file path requested: ${String(filePath)}`
+                )
+                return res.status(400).send('Invalid file path')
+            }
 
-    try {
-        const file = fs.readFileSync(fileFullPath)
-        const ext = path.extname(fileFullPath).toLowerCase()
-        const contentType =
-            CONTENT_TYPES[ext] || 'application/octet-stream'
+            try {
+                const file = fs.readFileSync(fileFullPath)
+                const ext = path.extname(fileFullPath).toLowerCase()
+                const contentType =
+                    CONTENT_TYPES[ext] || 'application/octet-stream'
 
-        res.setHeader('Content-Type', contentType)
-        res.send(file)
-    } catch (err) {
-        logger.error(`File ${fileFullPath} not found: ${err}`)
-        res.status(404).send('File not found')
-    }
+                span.setAttribute('yo.asset.extension', ext || 'unknown')
+                span.setAttribute('http.response.status_code', 200)
+                res.setHeader('Content-Type', contentType)
+                res.send(file)
+            } catch (err) {
+                span.setAttribute('yo.result', 'missing_public_asset')
+                span.setAttribute('http.response.status_code', 404)
+                logger.error(`File ${fileFullPath} not found: ${err}`)
+                res.status(404).send('File not found')
+            }
+        }
+    )
 }

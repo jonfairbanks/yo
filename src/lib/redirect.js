@@ -1,6 +1,7 @@
 import { connectToDatabase } from './mongoose'
 import Yo from '../models/yo'
 import logger from './logger'
+import { withSpan } from './tracing'
 
 const normalizePath = (value) => value.replace(/\/+/g, '/')
 
@@ -25,10 +26,9 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
         const parsedTarget = new URL(targetUrl)
         const currentHost = (req.headers.host || '').toLowerCase()
         const targetHost = parsedTarget.host.toLowerCase()
-        const normalizedTargetPath = normalizePath(parsedTarget.pathname).replace(
-            /\/+$/,
-            ''
-        )
+        const normalizedTargetPath = normalizePath(
+            parsedTarget.pathname
+        ).replace(/\/+$/, '')
         const normalizedSlugPath = normalizePath(`/${redirectParam}`).replace(
             /\/+$/,
             ''
@@ -65,27 +65,52 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
     return null
 }
 
-export const resolveRedirect = async ({ redirectParam, req }) => {
-    await connectToDatabase()
+export const resolveRedirect = async ({ redirectParam, req }) =>
+    withSpan(
+        'yo.resolve_redirect',
+        {
+            'yo.alias': redirectParam,
+        },
+        async (span) => {
+            await connectToDatabase()
 
-    const item = await Yo.findOneAndUpdate(
-        { linkName: redirectParam },
-        { $inc: { urlHits: 1 }, $set: { lastAccess: Date.now() } },
-        { new: true }
-    )
+            const item = await withSpan(
+                'mongo.yo.findOneAndUpdate_hit',
+                {
+                    'db.system': 'mongodb',
+                    'db.operation': 'findOneAndUpdate',
+                    'db.collection': 'yo',
+                    'yo.alias': redirectParam,
+                },
+                () =>
+                    Yo.findOneAndUpdate(
+                        { linkName: redirectParam },
+                        {
+                            $inc: { urlHits: 1 },
+                            $set: { lastAccess: Date.now() },
+                        },
+                        { new: true }
+                    )
+            )
 
-    if (!item) {
-        return {
-            status: 404,
-            error: `Unable to find any entries for: ${redirectParam}`,
+            if (!item) {
+                span.setAttribute('yo.result', 'missing')
+                return {
+                    status: 404,
+                    error: `Unable to find any entries for: ${redirectParam}`,
+                }
+            }
+
+            const targetUrl = buildTargetUrl(item.originalUrl, req)
+            const loop = detectRedirectLoop({ targetUrl, redirectParam, req })
+            if (loop) {
+                span.setAttribute('yo.result', 'blocked_loop')
+                span.setAttribute('http.response.status_code', loop.status)
+                return loop
+            }
+
+            span.setAttribute('yo.result', 'redirect')
+            span.setAttribute('http.response.status_code', 302)
+            return { status: 302, targetUrl }
         }
-    }
-
-    const targetUrl = buildTargetUrl(item.originalUrl, req)
-    const loop = detectRedirectLoop({ targetUrl, redirectParam, req })
-    if (loop) {
-        return loop
-    }
-
-    return { status: 302, targetUrl }
-}
+    )
