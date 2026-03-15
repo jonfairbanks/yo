@@ -1,38 +1,10 @@
-import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
 import Image from 'next/image'
+
+import { resolveRedirect } from '../lib/redirect'
 
 import '../app/globals.css'
 
 const CatchAllRoute = () => {
-    const router = useRouter()
-    const { slug } = router.query
-    const hasRedirectedRef = useRef(false)
-
-    useEffect(() => {
-        if (!router.isReady || !slug || hasRedirectedRef.current) return
-
-        const slugValue = Array.isArray(slug) ? slug.join('/') : slug
-        const normalizedSlug = slugValue.toString().toLowerCase()
-
-        // Avoid redirecting if the path is already the redirect handler
-        if (normalizedSlug.startsWith('api/redirect')) return
-
-        hasRedirectedRef.current = true
-
-        const target = `/api/redirect/${slugValue}`
-
-        const timeout = setTimeout(() => {
-            if (typeof window !== 'undefined') {
-                window.location.replace(target)
-            } else {
-                router.replace(target)
-            }
-        }, 1000)
-
-        return () => clearTimeout(timeout)
-    }, [router, slug])
-
     return (
         <div className="centered">
             <Image
@@ -43,9 +15,47 @@ const CatchAllRoute = () => {
                 priority
             />
             <b className="redirect-text teal-text">Yo Dawg...</b>
-            <i className="grey-text">Heard you were looking for a link</i>
+            <i className="grey-text">That link doesn&apos;t exist!</i>
         </div>
     )
+}
+
+export const getServerSideProps = async (context) => {
+    const { slug } = context.params || {}
+    const slugValue = Array.isArray(slug) ? slug.join('/') : slug
+
+    if (!slugValue) {
+        context.res.statusCode = 404
+        return { props: {} }
+    }
+
+    const normalizedSlug = slugValue.toString().toLowerCase()
+    if (normalizedSlug.startsWith('api/redirect')) {
+        context.res.statusCode = 400
+        return { props: {} }
+    }
+
+    try {
+        const result = await resolveRedirect({
+            redirectParam: slugValue,
+            req: context.req,
+        })
+
+        if (result.status === 302) {
+            return {
+                redirect: {
+                    destination: result.targetUrl,
+                    permanent: false,
+                },
+            }
+        }
+
+        context.res.statusCode = result.status || 500
+        return { props: {} }
+    } catch {
+        context.res.statusCode = 500
+        return { props: {} }
+    }
 }
 
 export default CatchAllRoute

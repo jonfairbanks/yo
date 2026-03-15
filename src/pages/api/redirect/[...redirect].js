@@ -1,11 +1,7 @@
-import { connectToDatabase } from '../../../lib/mongoose'
-import Yo from '../../../models/yo'
-
+import { resolveRedirect } from '../../../lib/redirect'
 import logger from '../../../lib/logger'
 
 export default async function handler(req, res) {
-    await connectToDatabase()
-
     const ip =
         req.headers['x-original-forwarded-for'] ||
         req.headers['x-forwarded-for'] ||
@@ -21,90 +17,30 @@ export default async function handler(req, res) {
     const redirectParam = Array.isArray(redirect) ? redirect.join('/') : redirect
 
     try {
-        const item = await Yo.findOneAndUpdate(
-            { linkName: redirectParam },
-            { $inc: { urlHits: 1 }, $set: { lastAccess: Date.now() } },
-            { new: true } // Return the updated document
-        )
+        const result = await resolveRedirect({ redirectParam, req })
 
-        if (item) {
-            // Ensure we redirect to a fully-qualified URL to avoid nested relative paths
-            const destination = item.originalUrl
-            let targetUrl = destination
+        if (result.log) {
+            logger.warn(result.log)
+        }
 
-            try {
-                targetUrl = new URL(destination).toString()
-            } catch {
-                const host = req.headers.host
-                const protocol =
-                    req.headers['x-forwarded-proto'] ||
-                    (req.socket?.encrypted ? 'https' : 'http') ||
-                    'http'
-                const normalizedPath = destination.startsWith('/')
-                    ? destination
-                    : `/${destination}`
-                targetUrl = new URL(
-                    normalizedPath,
-                    `${protocol}://${host}`
-                ).toString()
-            }
-
-            // Protect against redirect loops back to the same short link
-            try {
-                const parsedTarget = new URL(targetUrl)
-                const currentHost = (req.headers.host || '').toLowerCase()
-                const targetHost = parsedTarget.host.toLowerCase()
-                const normalizedTargetPath = parsedTarget.pathname.replace(
-                    /\/+$/,
-                    ''
-                )
-                const normalizedSlugPath = `/${redirectParam}`.replace(
-                    /\/+/g,
-                    '/'
-                )
-                const normalizedApiPath = `/api/redirect/${redirectParam}`.replace(
-                    /\/+/g,
-                    '/'
-                )
-
-                if (
-                    targetHost === currentHost &&
-                    (normalizedTargetPath === normalizedSlugPath ||
-                        normalizedTargetPath === normalizedApiPath)
-                ) {
-                    logger.warn(
-                        `Prevented self-referential redirect for alias ${redirectParam} -> ${targetUrl}`
-                    )
-                    res.status(400).json({
-                        error: 'Destination points back to this short link.',
-                    })
-                    return
-                }
-            } catch (parseError) {
-                logger.warn(
-                    `Failed to parse destination for alias ${redirectParam}: ${parseError}`
-                )
-            }
-
-            if (targetUrl.includes('/api/redirect/')) {
-                logger.warn(
-                    `Prevented redirect loop for alias ${redirectParam} -> ${targetUrl}`
-                )
-                res.status(400).json({
-                    error: 'Destination points back to the redirect handler.',
-                })
-                return
-            }
-
-            logger.info(`User loaded alias ${redirectParam}: ${targetUrl}`)
-            res.redirect(targetUrl)
+        if (result.status === 302) {
+            logger.info(`User loaded alias ${redirectParam}: ${result.targetUrl}`)
+            res.redirect(result.targetUrl)
             return
         }
 
-        logger.warn(`Unable to find any entries for: ${redirectParam}`)
-        res.status(404).json({
-            error: `Unable to find any entries for: ${redirectParam}`,
-        })
+        if (result.status === 404) {
+            logger.warn(result.error)
+            res.status(404).json({ error: result.error })
+            return
+        }
+
+        if (result.status === 400) {
+            res.status(400).json({ error: result.error })
+            return
+        }
+
+        res.status(500).json({ error: result.error || 'Unknown error' })
         return
     } catch (error) {
         logger.error(
