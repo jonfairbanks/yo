@@ -1,18 +1,9 @@
-import { useEffect } from 'react'
 import Head from 'next/head'
+import Script from 'next/script'
 
-import '../node_modules/@materializecss/materialize/dist/css/materialize.min.css' // Import Materialize CSS
-import '../node_modules/@materializecss/materialize/dist/js/materialize.min.js' // Import Materialize JS
+import '../public/vendor/materialize/materialize.min.css'
 
 function MyApp({ Component, pageProps }) {
-    useEffect(() => {
-        // Initialize Materialize JavaScript components
-        if (typeof window !== 'undefined') {
-            const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
-            M.AutoInit()
-        }
-    }, [])
-
     return (
         <>
             <Head>
@@ -23,6 +14,15 @@ function MyApp({ Component, pageProps }) {
                     href="/api/public/favicon.ico"
                 />
             </Head>
+            <Script
+                src="/api/public/vendor/materialize/materialize.min.js"
+                strategy="afterInteractive"
+                onLoad={() => {
+                    if (typeof window !== 'undefined' && window.M) {
+                        window.M.AutoInit()
+                    }
+                }}
+            />
             <Component {...pageProps} />
         </>
     )

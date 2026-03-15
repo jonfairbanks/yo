@@ -1,11 +1,14 @@
 import { registerOTel } from '@vercel/otel'
 
 export function register() {
-    console.log(`OTLP Export Endpoint: ${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}`);
-    console.log(`OTLP Zipkin Endpoint: ${process.env.OTEL_EXPORTER_ZIPKIN_ENDPOINT}`);
-    console.log(`OTLP Jaeger Endpoint: ${process.env.OTEL_EXPORTER_JAEGER_ENDPOINT}`);
-
-    registerOTel({ 
-        serviceName: 'yo-api'
+    registerOTel({
+        serviceName: process.env.OTEL_SERVICE_NAME || 'yo-url',
+        attributes: {
+            'deployment.environment':
+                process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
+            'service.version':
+                process.env.VERCEL_GIT_COMMIT_SHA ||
+                process.env.npm_package_version,
+        },
     })
 }

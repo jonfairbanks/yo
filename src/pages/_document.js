@@ -4,20 +4,14 @@ export default function Document() {
     return (
         <Html>
             <Head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
-                    href="https://fonts.googleapis.com/icon?family=Material+Icons&display=optional"
-                    rel="stylesheet"
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossOrigin="anonymous"
                 />
                 <link
-                    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=optional"
-                    rel="stylesheet"
-                />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=optional"
-                    rel="stylesheet"
-                />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp&display=optional"
+                    href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap"
                     rel="stylesheet"
                 />
             </Head>

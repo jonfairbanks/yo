@@ -13,10 +13,10 @@
 - [x] Request IP addr logging
 - [ ] Migrate to Typescript
 - [x] UI for "Redirecting..."
-- [ ] Remove references to `shortLink` value
+- [x] Remove references to `shortLink` value
 - [ ] Mobile UX Improvements
 - [ ] Event Tracking
-- [ ] Sticky Footer
+- [x] Sticky Footer
 - [ ] Tests
 - [ ] Dependabot
 - [x] Otel

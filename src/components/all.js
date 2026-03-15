@@ -3,8 +3,6 @@ import {
     useReactTable,
     createColumnHelper,
     getCoreRowModel,
-    getSortedRowModel,
-    getPaginationRowModel,
 } from '@tanstack/react-table'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
@@ -18,25 +16,81 @@ const AllYos = () => {
     const [selectedRow, setSelectedRow] = useState(null) // Align names
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+    const [filterQuery, setFilterQuery] = useState('')
+    const [pageCount, setPageCount] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
+    const [debouncedFilterQuery, setDebouncedFilterQuery] = useState('')
+    const [refreshKey, setRefreshKey] = useState(0)
 
-    const fetchData = async () => {
-        setLoading(true)
-        try {
-            const response = await fetch('/api')
-            const json = await response.json()
-            setData(json)
-            setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-            setLoading(false)
-        } catch (error) {
-            setError('Failed to load data:', error)
-            setLoading(false)
-        }
-    }
-
-    // Fetch data on component mount
     useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedFilterQuery(filterQuery)
+        }, 250)
+
+        return () => clearTimeout(timeoutId)
+    }, [filterQuery])
+
+    useEffect(() => {
+        setPagination((prev) =>
+            prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+        )
+    }, [debouncedFilterQuery])
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true)
+            setError(null)
+
+            try {
+                const activeSort = sorting[0] || {
+                    id: 'linkName',
+                    desc: false,
+                }
+                const params = new URLSearchParams({
+                    page: String(pagination.pageIndex + 1),
+                    pageSize: String(pagination.pageSize),
+                    sortBy: activeSort.id,
+                    sortDir: activeSort.desc ? 'desc' : 'asc',
+                })
+
+                if (debouncedFilterQuery.trim()) {
+                    params.set('q', debouncedFilterQuery.trim())
+                }
+
+                const response = await fetch(`/api?${params.toString()}`)
+                if (!response.ok) {
+                    throw new Error('Failed to load data.')
+                }
+
+                const json = await response.json()
+                setData(json.items)
+                setPageCount(json.pagination.totalPages)
+                setTotalItems(json.pagination.totalItems)
+
+                if (
+                    json.pagination.totalPages > 0 &&
+                    pagination.pageIndex + 1 > json.pagination.totalPages
+                ) {
+                    setPagination((prev) => ({
+                        ...prev,
+                        pageIndex: json.pagination.totalPages - 1,
+                    }))
+                }
+            } catch {
+                setError('Failed to load data.')
+            } finally {
+                setLoading(false)
+            }
+        }
+
         fetchData()
-    }, [])
+    }, [
+        pagination.pageIndex,
+        pagination.pageSize,
+        debouncedFilterQuery,
+        refreshKey,
+        sorting,
+    ])
 
     const handleCopyClick = (linkName) => {
         setClickedCopy(linkName)
@@ -49,7 +103,7 @@ const AllYos = () => {
 
     const handleCloseModal = () => {
         setSelectedRow(null)
-        fetchData()
+        setRefreshKey((prev) => prev + 1)
     }
 
     const columnHelper = createColumnHelper()
@@ -74,7 +128,7 @@ const AllYos = () => {
                 cell: (info) => (
                     <a
                         className="grey-text text-darken-1"
-                        href={`/api/redirect/${info.row.original.linkName}`}
+                        href={`/${info.row.original.linkName}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -84,28 +138,31 @@ const AllYos = () => {
                 enableSorting: true,
             }),
             columnHelper.accessor('urlHits', {
-                header: 'URL Hits',
+                header: () => <div className="table-number-cell">URL Hits</div>,
                 cell: (info) => (
-                    <p className="grey-text text-darken-1">
-                        {info.getValue().toLocaleString()}
+                    <p className="grey-text text-darken-1 table-number-cell">
+                        {(info.getValue() ?? 0).toLocaleString()}
                     </p>
                 ),
                 enableSorting: true,
             }),
             columnHelper.display({
                 id: 'options',
-                header: 'Options',
+                header: () => <div className="table-actions">Options</div>,
                 cell: (info) => (
-                    <>
+                    <div className="table-actions">
                         <a
                             onClick={() => handleEditClick(info.row.original)}
                             className="btn-small icon-left grey grey-text text-darken-2"
-                            style={{ marginRight: '5px' }}
+                            aria-label={`Edit ${info.row.original.linkName}`}
                         >
                             <i className="material-icons">edit</i>Edit
                         </a>
                         {clickedCopy === info.row.original.linkName ? (
-                            <a className="btn-small icon-left teal white-text text-darken-2">
+                            <a
+                                className="btn-small icon-left teal white-text text-darken-2"
+                                aria-label={`Copy ${info.row.original.linkName} link`}
+                            >
                                 <i className="material-icons">done</i> Copy
                             </a>
                         ) : (
@@ -115,7 +172,10 @@ const AllYos = () => {
                                     handleCopyClick(info.row.original.linkName)
                                 }
                             >
-                                <a className="btn-small icon-left teal darken-2 white-text text-darken-2">
+                                <a
+                                    className="btn-small icon-left teal darken-2 white-text text-darken-2"
+                                    aria-label={`Copy ${info.row.original.linkName} link`}
+                                >
                                     <i className="material-icons">
                                         content_copy
                                     </i>{' '}
@@ -123,11 +183,11 @@ const AllYos = () => {
                                 </a>
                             </CopyToClipboard>
                         )}
-                    </>
+                    </div>
                 ),
             }),
         ],
-        [clickedCopy]
+        [clickedCopy, columnHelper]
     )
 
     const table = useReactTable({
@@ -137,10 +197,9 @@ const AllYos = () => {
         onSortingChange: setSorting,
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        manualPagination: false,
-        pageCount: Math.ceil(data.length / pagination.pageSize),
+        manualSorting: true,
+        manualPagination: true,
+        pageCount,
     })
 
     if (loading) return <p>Loading...</p>
@@ -148,7 +207,21 @@ const AllYos = () => {
 
     return (
         <div>
-            <table>
+            <div className="row" style={{ marginBottom: '10px' }}>
+                <div className="s12 input-field">
+                    <input
+                        id="search"
+                        type="text"
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                        placeholder="Filter by link or URL"
+                        aria-label="Filter links"
+                        className="search-input"
+                        style={{ backgroundColor: '#424242', color: '#fff' }}
+                    />
+                </div>
+            </div>
+            <table className="yo-table">
                 <thead>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <tr key={headerGroup.id}>
@@ -208,7 +281,7 @@ const AllYos = () => {
                     style={{ marginLeft: '10px', marginRight: '10px' }}
                 >
                     Page {table.getState().pagination.pageIndex + 1} of{' '}
-                    {table.getPageCount()}
+                    {table.getPageCount()} ({totalItems} links)
                 </span>
                 <button
                     onClick={() => table.nextPage()}
