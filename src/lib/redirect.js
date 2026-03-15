@@ -67,7 +67,7 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
 
 export const resolveRedirect = async ({ redirectParam, req }) =>
     withSpan(
-        'yo.resolve_redirect',
+        'resolve alias',
         {
             'yo.alias': redirectParam,
         },
@@ -75,11 +75,13 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
             await connectToDatabase()
 
             const item = await withSpan(
-                'mongo.yo.findOneAndUpdate_hit',
+                'mongo resolve alias',
                 {
                     'db.system': 'mongodb',
                     'db.operation': 'findOneAndUpdate',
                     'db.collection': 'yo',
+                    'db.query.summary':
+                        'find alias by linkName, increment urlHits, set lastAccess',
                     'yo.alias': redirectParam,
                 },
                 () =>

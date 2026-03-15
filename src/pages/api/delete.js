@@ -6,7 +6,7 @@ import { withSpan } from '../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.delete',
+        'DELETE /api/delete',
         {
             'http.route': '/api/delete',
             'http.request.method': req.method,
@@ -39,11 +39,12 @@ export default async function handler(req, res) {
             try {
                 const user = session.user
                 const item = await withSpan(
-                    'mongo.yo.findOneAndDelete',
+                    'mongo delete alias',
                     {
                         'db.system': 'mongodb',
                         'db.operation': 'findOneAndDelete',
                         'db.collection': 'yo',
+                        'db.query.summary': 'delete alias by linkName',
                         'yo.alias': linkName,
                     },
                     () => Yo.findOneAndDelete({ linkName }).lean()

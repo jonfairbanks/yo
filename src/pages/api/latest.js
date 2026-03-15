@@ -5,7 +5,7 @@ import { withSpan } from '../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.latest',
+        'GET /api/latest',
         {
             'http.route': '/api/latest',
             'http.request.method': req.method,
@@ -21,11 +21,13 @@ export default async function handler(req, res) {
             await connectToDatabase()
 
             const rec = await withSpan(
-                'mongo.yo.find_latest',
+                'mongo find latest aliases',
                 {
                     'db.system': 'mongodb',
                     'db.operation': 'find',
                     'db.collection': 'yo',
+                    'db.query.summary':
+                        'find aliases sorted by lastAccess desc limit 10',
                 },
                 () => Yo.find({}).sort({ lastAccess: -1 }).limit(10)
             )

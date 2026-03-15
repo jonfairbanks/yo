@@ -10,7 +10,7 @@ import { withSpan } from '../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.create',
+        'POST /api/create',
         {
             'http.route': '/api/create',
             'http.request.method': req.method,
@@ -51,20 +51,19 @@ export default async function handler(req, res) {
                 logger.error(
                     `The provided URL for ${linkName} is improperly formatted: ${originalUrl}`
                 )
-                return res
-                    .status(500)
-                    .json({
-                        error: 'The provided URL is improperly formatted.',
-                    })
+                return res.status(500).json({
+                    error: 'The provided URL is improperly formatted.',
+                })
             }
 
             try {
                 const urlData = await withSpan(
-                    'mongo.yo.findOne_existing_alias',
+                    'mongo check alias availability',
                     {
                         'db.system': 'mongodb',
                         'db.operation': 'findOne',
                         'db.collection': 'yo',
+                        'db.query.summary': 'find alias by linkName',
                         'yo.alias': linkName,
                     },
                     () => Yo.findOne({ linkName: { $eq: linkName } })
@@ -91,11 +90,12 @@ export default async function handler(req, res) {
 
                 const item = new Yo(itemToBeSaved)
                 await withSpan(
-                    'mongo.yo.save',
+                    'mongo create alias',
                     {
                         'db.system': 'mongodb',
                         'db.operation': 'save',
                         'db.collection': 'yo',
+                        'db.query.summary': 'insert alias document',
                         'yo.alias': linkName,
                     },
                     () => item.save()

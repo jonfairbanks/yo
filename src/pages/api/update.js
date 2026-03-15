@@ -10,7 +10,7 @@ import { withSpan } from '../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.update',
+        'POST /api/update',
         {
             'http.route': '/api/update',
             'http.request.method': req.method,
@@ -58,11 +58,13 @@ export default async function handler(req, res) {
 
             try {
                 const item = await withSpan(
-                    'mongo.yo.findOneAndUpdate',
+                    'mongo update alias',
                     {
                         'db.system': 'mongodb',
                         'db.operation': 'findOneAndUpdate',
                         'db.collection': 'yo',
+                        'db.query.summary':
+                            'find alias by linkName and update originalUrl, updatedAt',
                         'yo.alias': linkName,
                     },
                     () =>

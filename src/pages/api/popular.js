@@ -5,7 +5,7 @@ import { withSpan } from '../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.popular',
+        'GET /api/popular',
         {
             'http.route': '/api/popular',
             'http.request.method': req.method,
@@ -21,11 +21,13 @@ export default async function handler(req, res) {
             await connectToDatabase()
 
             const pop = await withSpan(
-                'mongo.yo.find_popular',
+                'mongo find popular aliases',
                 {
                     'db.system': 'mongodb',
                     'db.operation': 'find',
                     'db.collection': 'yo',
+                    'db.query.summary':
+                        'find aliases sorted by urlHits desc limit 10',
                 },
                 () => Yo.find({}).sort({ urlHits: -1 }).limit(10)
             )

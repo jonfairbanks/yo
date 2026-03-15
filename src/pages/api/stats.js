@@ -15,7 +15,7 @@ const asDate = (value) => {
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.stats',
+        'GET /api/stats',
         {
             'http.route': '/api/stats',
             'http.request.method': req.method,
@@ -24,11 +24,13 @@ export default async function handler(req, res) {
             await connectToDatabase()
 
             const hitsData = await withSpan(
-                'mongo.yo.find_stats',
+                'mongo collect stats',
                 {
                     'db.system': 'mongodb',
                     'db.operation': 'find',
                     'db.collection': 'yo',
+                    'db.query.summary':
+                        'find aliases projection(createdAt,lastAccess,linkName,urlHits)',
                 },
                 () =>
                     Yo.find(

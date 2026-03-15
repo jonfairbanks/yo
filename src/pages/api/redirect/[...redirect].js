@@ -4,7 +4,7 @@ import { withSpan } from '../../../lib/tracing'
 
 export default async function handler(req, res) {
     return withSpan(
-        'yo.api.redirect',
+        'GET /api/redirect/[...redirect]',
         {
             'http.route': '/api/redirect/[...redirect]',
             'http.request.method': req.method,

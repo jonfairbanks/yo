@@ -6,7 +6,7 @@ let isConnected = false
 
 export const connectToDatabase = async () =>
     withSpan(
-        'mongo.connect',
+        'mongo connect',
         {
             'db.system': 'mongodb',
             'db.operation': 'connect',

@@ -10,7 +10,7 @@ export default async function handler(
     res: NextApiResponse
 ) {
     return withSpan(
-        'yo.api.index',
+        'GET /api',
         {
             'http.route': '/api',
             'http.request.method': req.method,
@@ -26,11 +26,12 @@ export default async function handler(
             await connectToDatabase()
 
             const yoUrls = await withSpan(
-                'mongo.yo.find_all',
+                'mongo list aliases',
                 {
                     'db.system': 'mongodb',
                     'db.operation': 'find',
                     'db.collection': 'yo',
+                    'db.query.summary': 'find aliases sorted by linkName asc',
                 },
                 () => Yo.find().sort({ linkName: 1 })
             )
