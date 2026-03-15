@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize]  # Trigger on PR opened and when changes are pushed to the PR
 
+permissions:
+  contents: read
+
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
