@@ -6,8 +6,8 @@ Yo Dawg, heard you're tired of remembering URLs
 
 <img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
 
-![GitHub Workflow Status](<https://img.shields.io/github/workflow/status/jonfairbanks/yo/Create%20Client%20Release(s)?label=Client%20Build>)
-![GitHub Workflow Status](<https://img.shields.io/github/workflow/status/jonfairbanks/yo/Create%20Server%20Release(s)?label=Server%20Build>)
+![Development CI](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/docker-build-develop.yml?branch=develop&event=push&label=Development%20CI)
+![PR Lint](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-lint.yml?event=pull_request&label=PR%20Lint)
 ![GitHub top language](https://img.shields.io/github/languages/top/jonfairbanks/yo.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jonfairbanks/yo-client.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/jonfairbanks/yo.svg)
