@@ -1,4 +1,5 @@
 import { auth0 } from '../../lib/auth0'
+import { normalizeLinkName } from '../../lib/link-name'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 import logger from '../../lib/logger'
@@ -29,9 +30,10 @@ export default async function handler(req, res) {
             await connectToDatabase()
 
             const { linkName } = req.body
-            span.setAttribute('yo.alias', linkName)
+            const normalizedLinkName = normalizeLinkName(linkName)
+            span.setAttribute('yo.alias', normalizedLinkName || 'unknown')
 
-            if (!linkName) {
+            if (!normalizedLinkName) {
                 span.setAttribute('http.response.status_code', 400)
                 return res.status(400).json({ error: 'No link name provided.' })
             }
@@ -45,37 +47,37 @@ export default async function handler(req, res) {
                         'db.operation': 'findOneAndDelete',
                         'db.collection': 'yo',
                         'db.query.summary': 'delete alias by linkName',
-                        'yo.alias': linkName,
+                        'yo.alias': normalizedLinkName,
                     },
-                    () => Yo.findOneAndDelete({ linkName }).lean()
+                    () => Yo.findOneAndDelete({ linkName: normalizedLinkName }).lean()
                 )
 
                 if (item) {
                     span.setAttribute('yo.result', 'deleted')
                     span.setAttribute('http.response.status_code', 200)
                     logger.info(
-                        `User ${user?.nickname || 'unknown'} deleted alias ${item.originalUrl}: ${linkName}`
+                        `User ${user?.nickname || 'unknown'} deleted alias ${item.originalUrl}: ${normalizedLinkName}`
                     )
                     return res
                         .status(200)
-                        .json({ message: `${linkName} deleted successfully.` })
+                        .json({ message: `${normalizedLinkName} deleted successfully.` })
                 }
 
                 span.setAttribute('yo.result', 'missing')
                 span.setAttribute('http.response.status_code', 404)
-                logger.warn(`Alias not found: ${linkName}`)
+                logger.warn(`Alias not found: ${normalizedLinkName}`)
                 return res
                     .status(404)
-                    .json({ error: `Alias ${linkName} not found.` })
+                    .json({ error: `Alias ${normalizedLinkName} not found.` })
             } catch (error) {
                 span.setAttribute('yo.result', 'error')
                 span.setAttribute('http.response.status_code', 500)
                 logger.error(
-                    `Failed to delete alias: ${linkName} - ${error.message}`
+                    `Failed to delete alias: ${normalizedLinkName} - ${error.message}`
                 )
                 return res
                     .status(500)
-                    .json({ error: `Failed to delete ${linkName}.` })
+                    .json({ error: `Failed to delete ${normalizedLinkName}.` })
             }
         }
     )

@@ -116,17 +116,17 @@ describe('update API handler', () => {
         await handler(req, res)
 
         expect(res._getStatusCode()).toBe(400)
-        expect(res._getJSONData()).toBe(
-            'The provided URL is improperly formatted.'
-        )
+        expect(res._getJSONData()).toEqual({
+            error: 'The provided URL is improperly formatted.',
+        })
         expect(Yo.findOneAndUpdate).not.toHaveBeenCalled()
     })
 
-    it('updates an existing alias', async () => {
+    it('updates an existing alias with a canonical link name', async () => {
         const { req, res } = createMocks({
             method: 'POST',
             body: {
-                linkName: 'docs',
+                linkName: ' /Docs/ ',
                 originalUrl: 'https://example.com/updated',
             },
         })
@@ -139,16 +139,17 @@ describe('update API handler', () => {
             {
                 $set: {
                     originalUrl: 'https://example.com/updated',
-                    updatedAt: expect.any(Date),
                 },
             },
             { new: true }
         )
         expect(res._getStatusCode()).toBe(200)
-        expect(res._getJSONData()).toBe('docs updated successfully.')
+        expect(res._getJSONData()).toEqual({
+            message: 'docs updated successfully.',
+        })
     })
 
-    it('returns a server error when the alias does not exist', async () => {
+    it('returns not found when the alias does not exist', async () => {
         Yo.findOneAndUpdate.mockResolvedValue(null)
         const { req, res } = createMocks({
             method: 'POST',
@@ -160,9 +161,9 @@ describe('update API handler', () => {
 
         await handler(req, res)
 
-        expect(res._getStatusCode()).toBe(500)
-        expect(res._getJSONData()).toBe(
-            'There was an error while trying to update that Yo'
-        )
+        expect(res._getStatusCode()).toBe(404)
+        expect(res._getJSONData()).toEqual({
+            error: 'Alias missing not found.',
+        })
     })
 })

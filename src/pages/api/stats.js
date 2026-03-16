@@ -1,3 +1,4 @@
+import { createApiHandler } from '../../lib/api-route'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 import { withSpan } from '../../lib/tracing'
@@ -13,14 +14,15 @@ const asDate = (value) => {
     return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-export default async function handler(req, res) {
-    return withSpan(
-        'GET /api/stats',
-        {
-            'http.route': '/api/stats',
-            'http.request.method': req.method,
-        },
-        async (span) => {
+export default createApiHandler(
+    {
+        internalErrorMessage: 'Failed to load stats.',
+        method: 'GET',
+        name: 'GET /api/stats',
+        requireAuth: true,
+        route: '/api/stats',
+    },
+    async ({ res, span }) => {
             await connectToDatabase()
 
             const hitsData = await withSpan(
@@ -136,6 +138,5 @@ export default async function handler(req, res) {
                 totalHits: hits,
                 unusedYos,
             })
-        }
-    )
-}
+    }
+)

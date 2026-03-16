@@ -2,8 +2,6 @@ import Image from 'next/image'
 
 import { resolveRedirect } from '../lib/redirect'
 
-import '../app/globals.css'
-
 const CatchAllRoute = () => {
     return (
         <div className="centered">

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { getShortUrl } from '../lib/browser-short-url'
+import { fetchJson } from '../lib/fetch-json'
+
 const PopularYos = () => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
@@ -10,12 +13,17 @@ const PopularYos = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('/api/popular')
-                const json = await response.json()
+                const json = await fetchJson(
+                    '/api/popular',
+                    'Failed to load popular data.'
+                )
+                if (!Array.isArray(json)) {
+                    throw new Error('Failed to load popular data.')
+                }
                 setData(json)
                 setLoading(false)
             } catch (error) {
-                setError('Failed to load popular data:', error)
+                setError(error.message || 'Failed to load popular data.')
                 setLoading(false)
             }
         }
@@ -44,11 +52,7 @@ const PopularYos = () => {
                 {data.map((item, index) => (
                     <tr key={index}>
                         <td width="15%">
-                            <CopyToClipboard
-                                text={
-                                    window.location.host + '/' + item.linkName
-                                }
-                            >
+                            <CopyToClipboard text={getShortUrl(item.linkName)}>
                                 <pre style={{ cursor: 'pointer' }}>
                                     {item.linkName}
                                 </pre>

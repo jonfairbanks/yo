@@ -129,6 +129,25 @@ describe('delete API handler', () => {
         })
     })
 
+    it('normalizes link names before deleting', async () => {
+        const { req, res } = createMocks({
+            method: 'DELETE',
+            body: {
+                linkName: ' /Docs/ ',
+            },
+        })
+
+        await handler(req, res)
+
+        expect(Yo.findOneAndDelete).toHaveBeenCalledWith({
+            linkName: 'docs',
+        })
+        expect(res._getStatusCode()).toBe(200)
+        expect(res._getJSONData()).toEqual({
+            message: 'docs deleted successfully.',
+        })
+    })
+
     it('returns not found when the alias does not exist', async () => {
         leanMock.mockResolvedValue(null)
         const { req, res } = createMocks({

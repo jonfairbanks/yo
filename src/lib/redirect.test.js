@@ -89,6 +89,31 @@ describe('resolveRedirect', () => {
         )
     })
 
+    it('normalizes the incoming alias before lookup', async () => {
+        Yo.findOneAndUpdate.mockResolvedValue({
+            originalUrl: 'https://example.com/docs',
+        })
+
+        await expect(
+            resolveRedirect({
+                redirectParam: ' /Docs/ ',
+                req: buildReq(),
+            })
+        ).resolves.toEqual({
+            status: 302,
+            targetUrl: 'https://example.com/docs',
+        })
+
+        expect(Yo.findOneAndUpdate).toHaveBeenCalledWith(
+            { linkName: 'docs' },
+            {
+                $inc: { urlHits: 1 },
+                $set: { lastAccess: expect.any(Number) },
+            },
+            { new: true }
+        )
+    })
+
     it('builds an absolute URL for relative destinations', async () => {
         Yo.findOneAndUpdate.mockResolvedValue({
             originalUrl: '/team/docs',

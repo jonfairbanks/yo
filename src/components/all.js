@@ -2,10 +2,12 @@ import { useState, useEffect, useMemo } from 'react'
 import {
     useReactTable,
     createColumnHelper,
+    flexRender,
     getCoreRowModel,
 } from '@tanstack/react-table'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { getShortUrl } from '../lib/browser-short-url'
 import UpdateModal from './update'
 
 const AllYos = () => {
@@ -114,7 +116,7 @@ const AllYos = () => {
                 header: 'Link',
                 cell: (info) => (
                     <CopyToClipboard
-                        text={`${window.location.host}/${info.getValue()}`}
+                        text={getShortUrl(info.getValue())}
                     >
                         <pre style={{ cursor: 'pointer' }}>
                             {info.getValue()}
@@ -167,7 +169,9 @@ const AllYos = () => {
                             </a>
                         ) : (
                             <CopyToClipboard
-                                text={`${window.location.host}/${info.row.original.linkName}`}
+                                text={getShortUrl(
+                                    info.row.original.linkName
+                                )}
                                 onCopy={() =>
                                     handleCopyClick(info.row.original.linkName)
                                 }
@@ -237,7 +241,10 @@ const AllYos = () => {
                                 >
                                     {header.isPlaceholder
                                         ? null
-                                        : header.column.columnDef.header}
+                                        : flexRender(
+                                              header.column.columnDef.header,
+                                              header.getContext()
+                                          )}
                                     {{
                                         asc: ' ⬆',
                                         desc: ' ⬇',
@@ -259,7 +266,8 @@ const AllYos = () => {
                                             : ''
                                     }
                                 >
-                                    {cell.column.columnDef.cell(
+                                    {flexRender(
+                                        cell.column.columnDef.cell,
                                         cell.getContext()
                                     )}
                                 </td>

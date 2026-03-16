@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { getShortUrl } from '../lib/browser-short-url'
+
 const CreateModal = () => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false) // Track success state
@@ -136,7 +138,6 @@ const CreateModal = () => {
             }
 
             const result = await response.json()
-            console.log('Created Successfully:', result)
 
             // Reset form after successful submission
             form.reset()
@@ -145,7 +146,6 @@ const CreateModal = () => {
             setSuccess(true) // Show success message
         } catch (error) {
             setError(error.message)
-            console.error('Error submitting form:', error)
         }
     }
 
@@ -185,7 +185,7 @@ const CreateModal = () => {
                                 New Yo link has been created
                             </p>
                             <pre style={{ float: 'left' }}>
-                                {window.location.host + '/' + newLink}
+                                {getShortUrl(newLink)}
                             </pre>
                             <i
                                 style={{ float: 'left' }}
@@ -218,7 +218,7 @@ const CreateModal = () => {
                                 </a>
                             ) : (
                                 <CopyToClipboard
-                                    text={window.location.host + '/' + newLink}
+                                    text={getShortUrl(newLink)}
                                 >
                                     <a
                                         href="#"

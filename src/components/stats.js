@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
+import { fetchJson } from '../lib/fetch-json'
+
 dayjs.extend(relativeTime)
 
 const formatNumber = (value, options = {}) =>
@@ -33,9 +35,7 @@ const Stats = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('/api/stats')
-                if (!response.ok) throw new Error(response.statusText)
-                const json = await response.json()
+                const json = await fetchJson('/api/stats', 'Failed to load data.')
                 setData(json)
             } catch (err) {
                 setError(`Failed to load data: ${err.message}`)

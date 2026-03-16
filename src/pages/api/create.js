@@ -1,6 +1,7 @@
 import validUrl from 'valid-url'
 
 import { auth0 } from '../../lib/auth0'
+import { normalizeLinkName } from '../../lib/link-name'
 import { connectToDatabase } from '../../lib/mongoose'
 import { getReservedPathMatch } from '../../lib/reserved-routes'
 import Yo from '../../models/yo'
@@ -30,15 +31,24 @@ export default async function handler(req, res) {
 
             await connectToDatabase()
 
-            const { originalUrl, linkName, updatedAt } = req.body
-            span.setAttribute('yo.alias', linkName)
+            const { originalUrl, linkName } = req.body
+            const normalizedLinkName = normalizeLinkName(linkName)
+            span.setAttribute('yo.alias', normalizedLinkName || 'unknown')
 
-            const reservedPath = getReservedPathMatch(linkName)
+            if (!normalizedLinkName) {
+                span.setAttribute('yo.result', 'invalid_alias')
+                span.setAttribute('http.response.status_code', 400)
+                return res.status(400).json({
+                    error: 'A link name is required.',
+                })
+            }
+
+            const reservedPath = getReservedPathMatch(normalizedLinkName)
             if (reservedPath) {
                 span.setAttribute('yo.result', 'reserved_alias')
                 span.setAttribute('http.response.status_code', 400)
                 logger.warn(
-                    `Blocked creation for reserved alias path: ${linkName} (matched: ${reservedPath})`
+                    `Blocked creation for reserved alias path: ${normalizedLinkName} (matched: ${reservedPath})`
                 )
                 return res.status(400).json({
                     error: 'This link name is reserved by the application.',
@@ -47,11 +57,11 @@ export default async function handler(req, res) {
 
             if (!validUrl.isUri(originalUrl)) {
                 span.setAttribute('yo.result', 'invalid_url')
-                span.setAttribute('http.response.status_code', 500)
-                logger.error(
-                    `The provided URL for ${linkName} is improperly formatted: ${originalUrl}`
+                span.setAttribute('http.response.status_code', 400)
+                logger.warn(
+                    `The provided URL for ${normalizedLinkName} is improperly formatted: ${originalUrl}`
                 )
-                return res.status(500).json({
+                return res.status(400).json({
                     error: 'The provided URL is improperly formatted.',
                 })
             }
@@ -64,28 +74,27 @@ export default async function handler(req, res) {
                         'db.operation': 'findOne',
                         'db.collection': 'yo',
                         'db.query.summary': 'find alias by linkName',
-                        'yo.alias': linkName,
+                        'yo.alias': normalizedLinkName,
                     },
-                    () => Yo.findOne({ linkName: { $eq: linkName } })
+                    () => Yo.findOne({ linkName: { $eq: normalizedLinkName } })
                 )
 
                 if (urlData) {
                     span.setAttribute('yo.result', 'already_exists')
                     span.setAttribute('http.response.status_code', 409)
                     logger.warn(
-                        `Could not create a Yo alias as the name is already in-use: ${linkName}`
+                        `Could not create a Yo alias as the name is already in-use: ${normalizedLinkName}`
                     )
                     return res.status(409).json({
                         error: 'This name is already in-use. Please select another name.',
                     })
                 }
 
-                const shortUrl = `${process.env.SHORT_BASE_URL}/${linkName}`
+                const shortUrl = `${process.env.SHORT_BASE_URL}/${normalizedLinkName}`
                 const itemToBeSaved = {
                     originalUrl,
                     shortUrl,
-                    linkName,
-                    updatedAt,
+                    linkName: normalizedLinkName,
                 }
 
                 const item = new Yo(itemToBeSaved)
@@ -96,7 +105,7 @@ export default async function handler(req, res) {
                         'db.operation': 'save',
                         'db.collection': 'yo',
                         'db.query.summary': 'insert alias document',
-                        'yo.alias': linkName,
+                        'yo.alias': normalizedLinkName,
                     },
                     () => item.save()
                 )
@@ -104,22 +113,22 @@ export default async function handler(req, res) {
                 span.setAttribute('yo.result', 'created')
                 span.setAttribute('http.response.status_code', 201)
                 logger.info(
-                    `New Yo alias created: ${linkName} -> ${originalUrl}`
+                    `New Yo alias created: ${normalizedLinkName} -> ${originalUrl}`
                 )
 
-                return res.status(201).json(itemToBeSaved)
+                return res.status(201).json({
+                    linkName: item.linkName,
+                    originalUrl: item.originalUrl,
+                    shortUrl: item.shortUrl,
+                })
             } catch (error) {
                 span.setAttribute('yo.result', 'error')
                 span.setAttribute('http.response.status_code', 500)
                 logger.error(
-                    `Error saving Yo alias:${linkName} -> ${originalUrl} to database: ${error}`
+                    `Error saving Yo alias:${normalizedLinkName} -> ${originalUrl} to database: ${error}`
                 )
                 return res.status(500).json({
-                    originalUrl,
-                    shortUrl: process.env.SHORT_BASE_URL,
-                    linkName,
-                    updatedAt,
-                    status: 'Failed',
+                    error: 'Failed to create the short link.',
                 })
             }
         }

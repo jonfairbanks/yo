@@ -1,5 +1,6 @@
 import { connectToDatabase } from './mongoose'
 import Yo from '../models/yo'
+import { normalizeLinkName } from './link-name'
 import logger from './logger'
 import { withSpan } from './tracing'
 
@@ -69,9 +70,19 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
     withSpan(
         'resolve alias',
         {
-            'yo.alias': redirectParam,
+            'yo.alias': normalizeLinkName(redirectParam) || 'unknown',
         },
         async (span) => {
+            const normalizedLinkName = normalizeLinkName(redirectParam)
+
+            if (!normalizedLinkName) {
+                span.setAttribute('yo.result', 'missing')
+                return {
+                    status: 404,
+                    error: `Unable to find any entries for: ${redirectParam}`,
+                }
+            }
+
             await connectToDatabase()
 
             const item = await withSpan(
@@ -82,11 +93,11 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
                     'db.collection': 'yo',
                     'db.query.summary':
                         'find alias by linkName, increment urlHits, set lastAccess',
-                    'yo.alias': redirectParam,
+                    'yo.alias': normalizedLinkName,
                 },
                 () =>
                     Yo.findOneAndUpdate(
-                        { linkName: redirectParam },
+                        { linkName: normalizedLinkName },
                         {
                             $inc: { urlHits: 1 },
                             $set: { lastAccess: Date.now() },
@@ -101,10 +112,14 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
                     status: 404,
                     error: `Unable to find any entries for: ${redirectParam}`,
                 }
-            }
+                    }
 
             const targetUrl = buildTargetUrl(item.originalUrl, req)
-            const loop = detectRedirectLoop({ targetUrl, redirectParam, req })
+            const loop = detectRedirectLoop({
+                targetUrl,
+                redirectParam: normalizedLinkName,
+                req,
+            })
             if (loop) {
                 span.setAttribute('yo.result', 'blocked_loop')
                 span.setAttribute('http.response.status_code', loop.status)

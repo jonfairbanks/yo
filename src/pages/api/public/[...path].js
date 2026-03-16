@@ -6,26 +6,11 @@
 //
 // Use-cases: favicon.ico, manifest.json, robots.txt, etc.
 
-import fs from 'fs'
+import { readFile } from 'fs/promises'
 import path from 'path'
+import mime from 'mime-types'
 import logger from '../../../lib/logger'
 import { withSpan } from '../../../lib/tracing'
-
-const CONTENT_TYPES = {
-    '.css': 'text/css; charset=utf-8',
-    '.ico': 'image/x-icon',
-    '.jpeg': 'image/jpeg',
-    '.jpg': 'image/jpeg',
-    '.js': 'application/javascript; charset=utf-8',
-    '.json': 'application/json; charset=utf-8',
-    '.map': 'application/json; charset=utf-8',
-    '.png': 'image/png',
-    '.svg': 'image/svg+xml; charset=utf-8',
-    '.txt': 'text/plain; charset=utf-8',
-    '.webmanifest': 'application/manifest+json; charset=utf-8',
-    '.webp': 'image/webp',
-    '.xml': 'application/xml; charset=utf-8',
-}
 
 export default function handler(req, res) {
     return withSpan(
@@ -63,19 +48,19 @@ export default function handler(req, res) {
             }
 
             try {
-                const file = fs.readFileSync(fileFullPath)
+                const file = await readFile(fileFullPath)
                 const ext = path.extname(fileFullPath).toLowerCase()
                 const contentType =
-                    CONTENT_TYPES[ext] || 'application/octet-stream'
+                    mime.contentType(ext) || 'application/octet-stream'
 
                 span.setAttribute('yo.asset.extension', ext || 'unknown')
                 span.setAttribute('http.response.status_code', 200)
                 res.setHeader('Content-Type', contentType)
                 res.send(file)
-            } catch (err) {
+            } catch {
                 span.setAttribute('yo.result', 'missing_public_asset')
                 span.setAttribute('http.response.status_code', 404)
-                logger.error(`File ${fileFullPath} not found: ${err}`)
+                logger.warn(`Public file not found: ${fileFullPath}`)
                 res.status(404).send('File not found')
             }
         }

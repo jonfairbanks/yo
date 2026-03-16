@@ -1,6 +1,8 @@
 import validUrl from 'valid-url'
 
+import { jsonError } from '../../lib/api-route'
 import { auth0 } from '../../lib/auth0'
+import { normalizeLinkName } from '../../lib/link-name'
 import { connectToDatabase } from '../../lib/mongoose'
 import { getReservedPathMatch } from '../../lib/reserved-routes'
 import Yo from '../../models/yo'
@@ -31,14 +33,23 @@ export default async function handler(req, res) {
             await connectToDatabase()
 
             const { originalUrl, linkName } = req.body
-            span.setAttribute('yo.alias', linkName)
+            const normalizedLinkName = normalizeLinkName(linkName)
+            span.setAttribute('yo.alias', normalizedLinkName || 'unknown')
 
-            const reservedPath = getReservedPathMatch(linkName)
+            if (!normalizedLinkName) {
+                span.setAttribute('yo.result', 'invalid_alias')
+                span.setAttribute('http.response.status_code', 400)
+                return res.status(400).json({
+                    error: 'A link name is required.',
+                })
+            }
+
+            const reservedPath = getReservedPathMatch(normalizedLinkName)
             if (reservedPath) {
                 span.setAttribute('yo.result', 'reserved_alias')
                 span.setAttribute('http.response.status_code', 400)
                 logger.warn(
-                    `Blocked update for reserved alias path: ${linkName} (matched: ${reservedPath})`
+                    `Blocked update for reserved alias path: ${normalizedLinkName} (matched: ${reservedPath})`
                 )
                 return res.status(400).json({
                     error: 'This link name is reserved by the application.',
@@ -51,9 +62,11 @@ export default async function handler(req, res) {
                 logger.warn(
                     `The provided URL is improperly formatted: ${originalUrl}`
                 )
-                return res
-                    .status(400)
-                    .json('The provided URL is improperly formatted.')
+                return jsonError(
+                    res,
+                    400,
+                    'The provided URL is improperly formatted.'
+                )
             }
 
             try {
@@ -65,12 +78,12 @@ export default async function handler(req, res) {
                         'db.collection': 'yo',
                         'db.query.summary':
                             'find alias by linkName and update originalUrl, updatedAt',
-                        'yo.alias': linkName,
+                        'yo.alias': normalizedLinkName,
                     },
                     () =>
                         Yo.findOneAndUpdate(
-                            { linkName },
-                            { $set: { originalUrl, updatedAt: new Date() } },
+                            { linkName: normalizedLinkName },
+                            { $set: { originalUrl } },
                             { new: true }
                         )
                 )
@@ -79,30 +92,34 @@ export default async function handler(req, res) {
                     span.setAttribute('yo.result', 'updated')
                     span.setAttribute('http.response.status_code', 200)
                     logger.info(
-                        `User updated alias ${linkName}: ${originalUrl}`
+                        `User updated alias ${normalizedLinkName}: ${originalUrl}`
                     )
-                    return res
-                        .status(200)
-                        .json(`${linkName} updated successfully.`)
+                    return res.status(200).json({
+                        message: `${normalizedLinkName} updated successfully.`,
+                    })
                 }
 
                 span.setAttribute('yo.result', 'missing')
-                span.setAttribute('http.response.status_code', 500)
+                span.setAttribute('http.response.status_code', 404)
                 logger.warn(
-                    `User tried updating alias: ${linkName}, but it doesn't exist.`
+                    `User tried updating alias: ${normalizedLinkName}, but it doesn't exist.`
                 )
-                return res
-                    .status(500)
-                    .json('There was an error while trying to update that Yo')
+                return jsonError(
+                    res,
+                    404,
+                    `Alias ${normalizedLinkName} not found.`
+                )
             } catch (error) {
                 span.setAttribute('yo.result', 'error')
                 span.setAttribute('http.response.status_code', 500)
                 logger.warn(
-                    `There was an error while updating alias: ${linkName}: ${error}`
+                    `There was an error while updating alias: ${normalizedLinkName}: ${error}`
                 )
-                return res
-                    .status(500)
-                    .json('There was an error while updating that Yo')
+                return jsonError(
+                    res,
+                    500,
+                    `Failed to update ${normalizedLinkName}.`
+                )
             }
         }
     )

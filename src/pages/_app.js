@@ -1,13 +1,23 @@
 import Head from 'next/head'
 import Script from 'next/script'
 
-import '../public/vendor/materialize/materialize.min.css'
+import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }) {
     return (
         <>
             <Head>
                 <title>Yo URL Shortener</title>
+                <meta
+                    name="description"
+                    content="Create, manage, and resolve short links with Yo URL Shortener."
+                />
+                {/* Keep Materialize outside the webpack bundle to avoid cache warnings. */}
+                {/* eslint-disable-next-line @next/next/no-css-tags */}
+                <link
+                    rel="stylesheet"
+                    href="/api/public/vendor/materialize/materialize.min.css"
+                />
                 <link
                     rel="icon"
                     type="image/png"
