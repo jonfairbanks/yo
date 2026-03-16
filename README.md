@@ -105,5 +105,5 @@ By default, sign-ups via the Auth0 UI are disabled. If you would like to allow u
 
 ## Contributers
 
-[Jon Fairbanks](https://github.com/jonfairbanks/) - Maintainer
-[Brandon Sorgdrager](https://github.com/bsord/) - Contributer
+- [Jon Fairbanks](https://github.com/jonfairbanks/) - Maintainer
+- [Brandon Sorgdrager](https://github.com/bsord/) - Contributer
