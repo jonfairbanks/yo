@@ -1,0 +1,4 @@
+# Add more negated globs here to skip expensive required checks for docs-only PRs.
+run:
+  - '**'
+  - '!**/README.md'

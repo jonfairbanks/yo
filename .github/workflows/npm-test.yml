@@ -6,24 +6,40 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   npm-test:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check changed files
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          predicate-quantifier: every
+          filters: .github/filters/required-checks.yml
+
+      - name: Skip filtered changes
+        if: steps.changes.outputs.run != 'true'
+        run: echo "Skipping npm tests because this PR only changes files excluded by .github/filters/required-checks.yml."
+
       - name: Checkout repository
+        if: steps.changes.outputs.run == 'true'
         uses: actions/checkout@v6
 
       - name: Set up Node.js
+        if: steps.changes.outputs.run == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: "22.x"
 
       - name: Install dependencies
+        if: steps.changes.outputs.run == 'true'
         run: npm ci
         working-directory: src
 
       - name: Run npm tests
+        if: steps.changes.outputs.run == 'true'
         run: npm test
         working-directory: src
