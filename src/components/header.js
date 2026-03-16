@@ -1,7 +1,6 @@
 import Image from 'next/image'
 
 const Header = (user) => {
-    console.log(`Logged in as ${user.user.nickname}`)
     return (
         <nav>
             <div className="nav-wrapper">
@@ -13,7 +12,11 @@ const Header = (user) => {
                     height={45}
                     priority
                 />
-                <a href="#" className="brand grey-text">
+                <a
+                    href="#"
+                    className="brand grey-text"
+                    aria-label="Go to the Yo dashboard"
+                >
                     Yo
                 </a>
                 <div>

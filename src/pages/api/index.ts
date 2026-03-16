@@ -1,8 +1,8 @@
 import type { Span } from '@opentelemetry/api'
+import { createApiHandler } from '../../lib/api-route'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { auth0 } from '../../lib/auth0'
 import { withSpan } from '../../lib/tracing'
 
 const DEFAULT_PAGE_SIZE = 10
@@ -28,24 +28,23 @@ const parsePositiveInteger = (
     return parsed
 }
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
-    return withSpan(
-        'GET /api',
-        {
-            'http.route': '/api',
-            'http.request.method': req.method,
-        },
-        async (span: Span) => {
-            const session = await auth0.getSession(req)
-            span.setAttribute('enduser.authenticated', Boolean(session))
-            if (!session) {
-                span.setAttribute('http.response.status_code', 401)
-                return res.status(401).json({ error: 'Unauthorized' })
-            }
-
+export default createApiHandler(
+    {
+        internalErrorMessage: 'Failed to load links.',
+        method: 'GET',
+        name: 'GET /api',
+        requireAuth: true,
+        route: '/api',
+    },
+    async ({
+        req,
+        res,
+        span,
+    }: {
+        req: NextApiRequest
+        res: NextApiResponse
+        span: Span
+    }) => {
             await connectToDatabase()
 
             const page = parsePositiveInteger(req.query.page, 1)
@@ -139,7 +138,7 @@ export default async function handler(
             span.setAttribute('yo.page', page)
             span.setAttribute('yo.page_size', pageSize)
             span.setAttribute('http.response.status_code', 200)
-            res.status(200).json({
+            return res.status(200).json({
                 items: yoUrls.items,
                 pagination: {
                     page,
@@ -148,6 +147,5 @@ export default async function handler(
                     totalPages,
                 },
             })
-        }
-    )
-}
+    }
+)

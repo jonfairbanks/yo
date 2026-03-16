@@ -1,23 +1,17 @@
-import { auth0 } from '../../lib/auth0'
+import { createApiHandler } from '../../lib/api-route'
 import { connectToDatabase } from '../../lib/mongoose'
 import Yo from '../../models/yo'
 import { withSpan } from '../../lib/tracing'
 
-export default async function handler(req, res) {
-    return withSpan(
-        'GET /api/latest',
-        {
-            'http.route': '/api/latest',
-            'http.request.method': req.method,
-        },
-        async (span) => {
-            const session = await auth0.getSession(req)
-            span.setAttribute('enduser.authenticated', Boolean(session))
-            if (!session) {
-                span.setAttribute('http.response.status_code', 401)
-                return res.status(401).json({ error: 'Unauthorized' })
-            }
-
+export default createApiHandler(
+    {
+        internalErrorMessage: 'Failed to load latest links.',
+        method: 'GET',
+        name: 'GET /api/latest',
+        requireAuth: true,
+        route: '/api/latest',
+    },
+    async ({ res, span }) => {
             await connectToDatabase()
 
             const rec = await withSpan(
@@ -47,6 +41,5 @@ export default async function handler(req, res) {
             span.setAttribute('yo.result_count', rec.length)
             span.setAttribute('http.response.status_code', 200)
             return res.status(200).json(rec)
-        }
-    )
-}
+    }
+)

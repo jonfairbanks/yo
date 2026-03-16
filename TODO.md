@@ -7,8 +7,7 @@
 - [ ] robots.txt solution
 - [x] Setup Auth0 integration
 - [ ] Setup Auth0 production keys
-- [ ] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
-- [ ] Improve terraform pre-release workflow
+- [x] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
 - [x] Prettier integration
 - [x] Request IP addr logging
 - [ ] Migrate to Typescript
@@ -17,7 +16,7 @@
 - [ ] Mobile UX Improvements
 - [ ] Event Tracking
 - [x] Sticky Footer
-- [ ] Tests
-- [ ] Dependabot
+- [x] Tests
+- [x] Dependabot
 - [x] Otel
 - [x] Fix console.logs

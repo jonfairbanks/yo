@@ -1,8 +1,15 @@
 import { createMocks } from 'node-mocks-http'
 
+import { auth0 } from '../../../lib/auth0'
 import handler from '../../../pages/api/stats'
 import { connectToDatabase } from '../../../lib/mongoose'
 import Yo from '../../../models/yo'
+
+jest.mock('../../../lib/auth0', () => ({
+    auth0: {
+        getSession: jest.fn(),
+    },
+}))
 
 jest.mock('../../../lib/mongoose', () => ({
     connectToDatabase: jest.fn(),
@@ -26,6 +33,9 @@ jest.mock('../../../lib/tracing', () => ({
 describe('/api/stats', () => {
     beforeEach(() => {
         jest.clearAllMocks()
+        auth0.getSession.mockResolvedValue({
+            user: { sub: 'user-1' },
+        })
         connectToDatabase.mockResolvedValue()
         jest.spyOn(Date, 'now').mockReturnValue(
             new Date('2026-03-15T12:00:00.000Z').getTime()
@@ -34,6 +44,32 @@ describe('/api/stats', () => {
 
     afterEach(() => {
         Date.now.mockRestore()
+    })
+
+    it('rejects non-GET requests', async () => {
+        const { req, res } = createMocks({
+            method: 'POST',
+        })
+
+        await handler(req, res)
+
+        expect(res._getStatusCode()).toBe(405)
+        expect(res._getJSONData()).toEqual({ error: 'Method not allowed' })
+        expect(auth0.getSession).not.toHaveBeenCalled()
+    })
+
+    it('rejects unauthenticated requests', async () => {
+        auth0.getSession.mockResolvedValue(null)
+
+        const { req, res } = createMocks({
+            method: 'GET',
+        })
+
+        await handler(req, res)
+
+        expect(res._getStatusCode()).toBe(401)
+        expect(res._getJSONData()).toEqual({ error: 'Unauthorized' })
+        expect(connectToDatabase).not.toHaveBeenCalled()
     })
 
     it('returns aggregate stats for the current link catalog', async () => {

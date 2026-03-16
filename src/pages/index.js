@@ -5,8 +5,6 @@ import Header from '../components/header'
 import Footer from '../components/footer'
 import CreateModal from '../components/create'
 
-import '../app/globals.css'
-
 export async function getServerSideProps(context) {
     const session = await auth0.getSession(context.req)
 

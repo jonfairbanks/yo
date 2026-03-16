@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { getShortUrl } from '../lib/browser-short-url'
+
 const UpdateModal = ({ item, onClose }) => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
@@ -91,11 +93,10 @@ const UpdateModal = ({ item, onClose }) => {
                 throw new Error(errorData.error || 'Unknown error occurred')
             }
 
-            // const result = await response.json()
+            await response.json()
             setSuccess(true)
         } catch (error) {
             setError(error.message)
-            console.error('Error submitting form:', error)
         }
     }
 
@@ -116,9 +117,8 @@ const UpdateModal = ({ item, onClose }) => {
 
             if (!response.ok) throw new Error('Failed to delete item')
             setDeleted(true)
-        } catch (error) {
+        } catch {
             setError('Error deleting item')
-            console.error('Error deleting item:', error)
         }
     }
 
@@ -167,7 +167,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 <span>Yo link has been updated</span>
                             </p>
                             <pre style={{ float: 'left' }}>
-                                {window.location.host + '/' + item.linkName}
+                                {getShortUrl(item.linkName)}
                             </pre>
                             <i
                                 style={{ float: 'left' }}
@@ -197,13 +197,7 @@ const UpdateModal = ({ item, onClose }) => {
                                     Copied
                                 </a>
                             ) : (
-                                <CopyToClipboard
-                                    text={
-                                        window.location.host +
-                                        '/' +
-                                        item.linkName
-                                    }
-                                >
+                                <CopyToClipboard text={getShortUrl(item.linkName)}>
                                     <a
                                         href="#"
                                         onClick={handleButtonClick}

@@ -125,11 +125,30 @@ describe('create API handler', () => {
 
         await handler(req, res)
 
-        expect(res._getStatusCode()).toBe(500)
+        expect(res._getStatusCode()).toBe(400)
         expect(res._getJSONData()).toEqual({
             error: 'The provided URL is improperly formatted.',
         })
         expect(Yo.findOne).not.toHaveBeenCalled()
+    })
+
+    it('rejects blank aliases after normalization', async () => {
+        const { req, res } = createMocks({
+            method: 'POST',
+            body: {
+                linkName: '   ',
+                originalUrl: 'https://example.com/docs',
+            },
+        })
+
+        await handler(req, res)
+
+        expect(res._getStatusCode()).toBe(400)
+        expect(res._getJSONData()).toEqual({
+            error: 'A link name is required.',
+        })
+        expect(Yo.findOne).not.toHaveBeenCalled()
+        expect(Yo.__saveMock).not.toHaveBeenCalled()
     })
 
     it('rejects duplicate aliases', async () => {
@@ -151,14 +170,13 @@ describe('create API handler', () => {
         expect(Yo.__saveMock).not.toHaveBeenCalled()
     })
 
-    it('creates a new alias', async () => {
-        const updatedAt = '2026-03-15T12:00:00.000Z'
+    it('creates a new alias with a canonical link name', async () => {
         const { req, res } = createMocks({
             method: 'POST',
             body: {
-                linkName: 'docs',
+                linkName: ' /Docs/ ',
                 originalUrl: 'https://example.com/docs',
-                updatedAt,
+                updatedAt: '2026-03-15T12:00:00.000Z',
             },
         })
 
@@ -172,7 +190,6 @@ describe('create API handler', () => {
             linkName: 'docs',
             originalUrl: 'https://example.com/docs',
             shortUrl: 'https://yo.test/docs',
-            updatedAt,
         })
         expect(Yo.__saveMock).toHaveBeenCalledTimes(1)
         expect(res._getStatusCode()).toBe(201)
@@ -180,7 +197,6 @@ describe('create API handler', () => {
             linkName: 'docs',
             originalUrl: 'https://example.com/docs',
             shortUrl: 'https://yo.test/docs',
-            updatedAt,
         })
     })
 })

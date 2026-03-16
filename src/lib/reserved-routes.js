@@ -1,3 +1,5 @@
+import { normalizeLinkName } from './link-name'
+
 const RESERVED_EXACT_PATHS = new Set([
     'api',
     'auth',
@@ -9,11 +11,6 @@ const RESERVED_EXACT_PATHS = new Set([
 ])
 
 const RESERVED_PREFIX_PATHS = ['api/', 'auth/', '_next/']
-
-const normalizeLinkName = (linkName) => {
-    if (typeof linkName !== 'string') return ''
-    return linkName.trim().replace(/^\/+|\/+$/g, '').toLowerCase()
-}
 
 export const getReservedPathMatch = (linkName) => {
     const normalized = normalizeLinkName(linkName)

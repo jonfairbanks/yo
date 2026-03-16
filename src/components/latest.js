@@ -3,6 +3,9 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { getShortUrl } from '../lib/browser-short-url'
+import { fetchJson } from '../lib/fetch-json'
+
 dayjs.extend(relativeTime)
 
 const LatestYos = () => {
@@ -14,12 +17,17 @@ const LatestYos = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('/api/latest')
-                const json = await response.json()
+                const json = await fetchJson(
+                    '/api/latest',
+                    'Failed to load latest data.'
+                )
+                if (!Array.isArray(json)) {
+                    throw new Error('Failed to load latest data.')
+                }
                 setData(json)
                 setLoading(false)
             } catch (error) {
-                setError('Failed to load latest data:', error)
+                setError(error.message || 'Failed to load latest data.')
                 setLoading(false)
             }
         }
@@ -48,11 +56,7 @@ const LatestYos = () => {
                 {data.map((item, index) => (
                     <tr key={index}>
                         <td width="15%">
-                            <CopyToClipboard
-                                text={
-                                    window.location.host + '/' + item.linkName
-                                }
-                            >
+                            <CopyToClipboard text={getShortUrl(item.linkName)}>
                                 <pre style={{ cursor: 'pointer' }}>
                                     {item.linkName}
                                 </pre>

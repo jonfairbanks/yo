@@ -86,6 +86,18 @@ describe('/api', () => {
         expect(connectToDatabase).not.toHaveBeenCalled()
     })
 
+    it('rejects non-GET requests', async () => {
+        const { req, res } = createMocks({
+            method: 'POST',
+        })
+
+        await handler(req, res)
+
+        expect(res._getStatusCode()).toBe(405)
+        expect(res._getJSONData()).toEqual({ error: 'Method not allowed' })
+        expect(auth0.getSession).not.toHaveBeenCalled()
+    })
+
     it('returns paginated aliases with defaults', async () => {
         const { req, res } = createMocks({
             method: 'GET',
