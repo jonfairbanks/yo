@@ -13,9 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Check changed files
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           predicate-quantifier: every
           filters: .github/filters/required-checks.yml
@@ -23,10 +26,6 @@ jobs:
       - name: Skip filtered changes
         if: steps.changes.outputs.run != 'true'
         run: echo "Skipping npm audit because this PR only changes files excluded by .github/filters/required-checks.yml."
-
-      - name: Checkout repository
-        if: steps.changes.outputs.run == 'true'
-        uses: actions/checkout@v6
 
       - name: Set up Node.js
         if: steps.changes.outputs.run == 'true'
