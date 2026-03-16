@@ -2,9 +2,9 @@
   Yo - The URL Shortener
 </h1>
 
-Yo Dawg, heard you're tired of remembering URLs
+Yo Dawg, heard you're tired of remembering URLs.
 
-<img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
+![Yo demo](images/yo.gif)
 
 ![Development CI](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/docker-build-develop.yml?branch=develop&event=push&label=Development%20CI)
 ![Audit](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-audit.yml?event=pull_request&label=Audit)
@@ -15,95 +15,104 @@ Yo Dawg, heard you're tired of remembering URLs
 ![GitHub last commit](https://img.shields.io/github/last-commit/jonfairbanks/yo.svg)
 ![License](https://img.shields.io/github/license/jonfairbanks/yo.svg?style=flat)
 
-Turn long, hard to remember URLs into easily sharable short-links.
+`Yo` is a single Next.js application for creating, managing, and resolving short links backed by MongoDB. Public short URLs resolve without authentication, while the dashboard and link-management APIs are protected with Auth0.
 
-## Getting Started
+## Features
 
-#### Prerequisites
+- Create, update, and delete short links
+- Public redirect handling from `/{slug}` and `/api/redirect/{slug}`
+- Dashboard views for all links, popular links, latest links, and usage stats
+- MongoDB persistence
+- Auth0-based login for the management UI
+- OpenTelemetry hooks for tracing and logs
 
-The following will need to be installed before proceeding:
+## Prerequisites
 
-- Node.js
-- Mongo DB
+- Node.js 22
+- npm
+- MongoDB
+- An Auth0 tenant/application for dashboard login
 
-#### Clone the Project
+## Local Development
 
 ```sh
-# Clone it
 git clone https://github.com/jonfairbanks/yo.git
-cd yo
-```
-
-#### Run the Project
-
-```
-# Install Dependencies
+cd yo/src
 npm install
-
-# Start Server
-npm start
 ```
 
-#### Set Environment Variables
+Create `src/.env.local` for local development and add the values your environment needs.
 
-Rename the included `.env.sample` files to `.env` and update variables as appropriate for your install.
+### Required Environment Variables
 
-###### Client:
+| Variable | Purpose |
+| --- | --- |
+| `MONGO_URI` | MongoDB connection string |
+| `SHORT_BASE_URL` | Base URL used when creating short-link records |
+| `AUTH0_DOMAIN` | Auth0 tenant domain |
+| `AUTH0_CLIENT_ID` | Auth0 client ID |
+| `AUTH0_CLIENT_SECRET` | Auth0 client secret |
+| `AUTH0_SECRET` | Session encryption secret for `@auth0/nextjs-auth0` |
 
-| ENV                          | Required? | Details                                                                                                                                                                                   | Example                                       |
-| ---------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `REACT_APP_API_URL`          | Yes       | Used to connect to the Yo API. Be sure to include the trailing slash.                                                                                                                     | `https://yo-api.mysite.io/api/`               |
-| `REACT_APP_SOCKET_URL`       | Yes       | This will be used to connect to Yo API’s Socket.io endpoint.                                                                                                                              | `https://yo-api.mysite.io`                    |
-| `REACT_APP_BASE_URL`         | Yes       | The url of the website where Yo is hosted. The slash is not required.                                                                                                                     | `https://yo.mysite.io`                        |
-| `REACT_APP_BLOCKED_NAMES`    | No        | Comma separated string of words that cannot be used as link names.                                                                                                                        | `"blocked1,blocked2"`                         |
-| `REACT_APP_ALLOWED_NAMES`    | No        | Comma separated string of words to allow through the filter. A complete list of blocked names can be found [here](https://github.com/web-mech/badwords/blob/master/lib/lang.json "here"). | `"allowed1,allowed2"`                         |
-| `REACT_APP_URL_PLACEHOLDER`  | No        | Overwrite the default URL placeholder shown on the submit form.                                                                                                                           | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
-| `REACT_APP_NAME_PLACEHOLDER` | No        | Overwrite the default link name placeholder shown on the submit form.                                                                                                                     | `Rick`                                        |
-| `REACT_APP_AUTH`             | No        | Enforces user logins via Auth0. For more details, see the _Enabling API Authentication_ section below.                                                                                    | `true`                                        |
-| `REACT_APP_SIGNUPS`          | No        | Forces the ability for users to sign-up during initial login. Not currently recommended.                                                                                                  | `true`                                        |
-| `REACT_APP_AUTH0_CLIENT`     | No        | Required for Authentication Setup                                                                                                                                                         | Provided during Auth0 Setup                   |
-| `REACT_APP_AUTH0_DOMAIN`     | No        | Required for Authentication Setup                                                                                                                                                         | `mysite.auth0.com`                            |
-| `PORT`                       | No        | Override the application port. Defaults to 3000.                                                                                                                                          | `3001`                                        |
+### Optional Environment Variables
 
-###### Server:
+| Variable | Purpose |
+| --- | --- |
+| `APP_BASE_URL` | Public base URL for the app, for example `http://localhost:3000` |
+| `NEXT_TELEMETRY_DISABLED` | Disable Next.js telemetry |
+| `OTEL_SERVICE_NAME` | Override the OpenTelemetry service name |
+| `OTEL_RESOURCE_ATTRIBUTES` | Additional OpenTelemetry resource attributes |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP exporter endpoint |
+| `OTEL_EXPORTER_OTLP_HEADERS` | OTLP exporter headers |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP exporter protocol |
+| `OTEL_LOG_LEVEL` | OpenTelemetry log verbosity |
 
-| ENV            | Required? | Details                                                                                            | Example                                      |
-| -------------- | --------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `ERROR_URL`    | Yes       | Where should users be directed when navigating to an unknown link? (Feature is WIP)                | `https://mysite.io/error`                    |
-| `BASE_URL`     | Yes       | The url where Yo client is hosted. The trailing slash is not required.                             | `https://yo.mysite.io`                       |
-| `API_URL`      | Yes       | The url where Yo client is hosted. The trailing slash _is_ required.                               | `https://yo-api.mysite.io/api/`              |
-| `MONGO_URI`    | No        | What Mongo instance to use. If the ENV is not provided, `mongodb://localhost/yo` is used.          | `mongodb://user:password@localhost:27018/yo` |
-| `LOG_LOCATION` | No        | Override where the Yo access log is written. By default the log is written into the app directory. | `/Logs/yo.log`                               |
-| `AUTH`         | No        | Enforces token authentication. If enabled, Auth0 should also be enabled on the client side.        | `true`                                       |
-| `AUTH0_DOMAIN` | No        | Required to authenticate user tokens. Should match the AUTH0_DOMAIN provided to the client.        | `mysite.auth0.com`                           |
-| `PORT`         | No        | Override the application port. Defaults to 7000.                                                   | `7001`                                       |
+Start the development server:
 
-#### Run Front End
-
-```
-# Move to client Folder
-cd client/
-
-# Install Dependencies
-npm install
-
-# Start Client
-npm start
+```sh
+npm run dev
 ```
 
-## Application Authentication
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
-By default, the Yo backend API is open which would allow anyone who knew your API endpoint to list, edit or even delete links if they chose. To prevent this, you can enable Auth0 authentication for requests between the client and server.
+For local Auth0 development, register:
 
-- Sign up for an [Auth0](https://auth0.com) account
-- Create and Setup a Regular Web Application. Configure it as you see fit.
-- In the Yo config.js files, set the Client and/or Domain provided by Auth0.
-- Before leaving Auth0, create a user account for your application under User & Roles.
-- Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully.
+- `http://localhost:3000/auth/callback` as an allowed callback URL
+- `http://localhost:3000` as an allowed logout URL
 
-By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup.
+## Available Scripts
 
-## Contributers
+Run these commands from `src/`:
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build the production app |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run Jest tests |
+| `npm run fmt` | Check formatting with Prettier |
+| `npm run fmt-fix` | Apply Prettier formatting |
+
+## Docker
+
+The Docker assets also live under `src/`.
+
+```sh
+cd src
+docker compose up
+```
+
+`docker-compose.yml` reads `src/.env.development`, so create that file before starting the containerized app.
+
+## Authentication and Routing
+
+- `/` loads the authenticated dashboard
+- `/{slug}` resolves public short links
+- `/api/redirect/{slug}` resolves redirects through the API
+- `/api/public/*` serves public assets that would otherwise conflict with slug routing
+
+## Contributors
 
 - [Jon Fairbanks](https://github.com/jonfairbanks/) - Maintainer
-- [Brandon Sorgdrager](https://github.com/bsord/) - Contributer
+- [Brandon Sorgdrager](https://github.com/bsord/) - Contributor
