@@ -196,7 +196,7 @@ const CreateModal = () => {
                             <pre>{newUrl}</pre>
                             <br />
                             <a
-                                href={`/api/redirect/${newLink}`}
+                                href={getShortUrl(newLink)}
                                 className="success-link-btn btn teal white-text icon-left"
                                 target="_blank"
                                 rel="noopener noreferrer"
