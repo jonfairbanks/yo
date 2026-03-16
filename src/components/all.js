@@ -13,6 +13,7 @@ import UpdateModal from './update'
 const AllYos = () => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
     const [error, setError] = useState(null)
     const [clickedCopy, setClickedCopy] = useState(null) // Align names
     const [selectedRow, setSelectedRow] = useState(null) // Align names
@@ -68,6 +69,7 @@ const AllYos = () => {
                 setData(json.items)
                 setPageCount(json.pagination.totalPages)
                 setTotalItems(json.pagination.totalItems)
+                setHasLoadedOnce(true)
 
                 if (
                     json.pagination.totalPages > 0 &&
@@ -206,8 +208,14 @@ const AllYos = () => {
         pageCount,
     })
 
-    if (loading) return <p>Loading...</p>
-    if (error) return <p>{error}</p>
+    const rows = table.getRowModel().rows
+    const isFilteredEmptyState = Boolean(debouncedFilterQuery.trim())
+    const emptyStateMessage = isFilteredEmptyState
+        ? 'No links match your search.'
+        : 'No links available yet.'
+
+    if (loading && !hasLoadedOnce) return <p>Loading...</p>
+    if (error && !hasLoadedOnce) return <p>{error}</p>
 
     return (
         <div>
@@ -255,27 +263,44 @@ const AllYos = () => {
                     ))}
                 </thead>
                 <tbody>
-                    {table.getRowModel().rows.map((row) => (
-                        <tr key={row.id}>
-                            {row.getVisibleCells().map((cell) => (
-                                <td
-                                    key={cell.id}
-                                    className={
-                                        cell.column.id === 'originalUrl'
-                                            ? 'url-cell'
-                                            : ''
-                                    }
-                                >
-                                    {flexRender(
-                                        cell.column.columnDef.cell,
-                                        cell.getContext()
-                                    )}
-                                </td>
-                            ))}
+                    {rows.length ? (
+                        rows.map((row) => (
+                            <tr key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <td
+                                        key={cell.id}
+                                        className={
+                                            cell.column.id === 'originalUrl'
+                                                ? 'url-cell'
+                                                : ''
+                                        }
+                                    >
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td
+                                colSpan={columns.length}
+                                style={{
+                                    color: isFilteredEmptyState
+                                        ? '#acacac'
+                                        : '#9e9e9e',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                {emptyStateMessage}
+                            </td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
+            {error ? <p className="red-text text-darken-1">{error}</p> : null}
             <br />
             <div className="pagination">
                 <button

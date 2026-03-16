@@ -70,7 +70,7 @@ const Stats = () => {
         },
         {
             detail: 'Average traffic density per short link',
-            label: 'Avg Redirects / Link',
+            label: 'Avg Redirects',
             value: formatNumber(averageHitsPerYo, averageHitOptions),
         },
         {

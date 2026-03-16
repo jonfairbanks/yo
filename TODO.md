@@ -10,7 +10,8 @@
 - [x] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
 - [x] Prettier integration
 - [x] Request IP addr logging
-- [ ] Migrate to Typescript
+- [ ] Migrate to Typescript?
+- [ ] Update to Next.js v16
 - [x] UI for "Redirecting..."
 - [x] Remove references to `shortLink` value
 - [ ] Mobile UX Improvements

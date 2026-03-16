@@ -20,7 +20,6 @@ export const connectToDatabase = async () =>
         async (span) => {
             if (mongooseCache.conn) {
                 span.setAttribute('db.connection.state', 'cached')
-                logger.info('Using the existing database connection')
                 return mongooseCache.conn
             }
 
