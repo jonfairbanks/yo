@@ -1,4 +1,5 @@
 import Image from 'next/image'
+
 import { useDashboard } from '../context/dashboard-context'
 
 const Header = (user) => {
@@ -29,17 +30,14 @@ const Header = (user) => {
                     >
                         {user.user.nickname}
                     </span>
-                    <a
-                        href="#create"
-                        className="btn filled icon-left teal white-text text-darken-2 darken-2"
+                    <button
+                        type="button"
+                        className="btn modal-trigger filled icon-left teal white-text text-darken-2 darken-2"
                         aria-label="Open create modal"
-                        onClick={(event) => {
-                            event.preventDefault()
-                            openCreateModal()
-                        }}
+                        onClick={openCreateModal}
                     >
                         <i className="material-icons">add</i>Create
-                    </a>
+                    </button>
                 </div>
             </div>
         </nav>

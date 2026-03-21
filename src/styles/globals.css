@@ -128,13 +128,19 @@ body.modal-open {
 
 .stats-card,
 .stats-spotlight-card {
+    appearance: none;
     background: rgba(36, 36, 36, 0.72);
+    border: 0;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 16px;
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    color: inherit;
+    cursor: pointer;
     overflow: hidden;
     padding: 18px 20px;
     position: relative;
+    text-align: left;
+    width: 100%;
 }
 
 .stats-card {
@@ -186,14 +192,76 @@ body.modal-open {
 }
 
 .table-number-cell {
+    padding-right: 24px;
     text-align: right;
 }
 
+.table-meta-text {
+    color: #acacac;
+    display: block;
+    font-size: 0.9rem;
+    font-style: italic;
+    line-height: 1.35;
+    margin-top: 4px;
+}
+
+.btn.grey,
+.btn-small.grey {
+    color: #4a4a4a !important;
+}
+
+.btn.grey .material-icons,
+.btn-small.grey .material-icons {
+    color: #4a4a4a !important;
+}
+
+
 .table-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 5px;
-    white-space: nowrap;
+}
+
+.table-actions.compact-actions {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 360px;
+}
+
+.table-actions.compact-actions .btn-small {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.row-actions-grid {
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(3, max-content);
+    justify-content: end;
+}
+
+.row-actions-grid .btn-small {
+    display: inline-flex;
+    font-size: 0.8rem;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0 6px;
+    min-width: 92px;
+    width: auto;
+}
+
+.row-action-button {
+    align-items: center;
+    gap: 6px;
+}
+
+.row-action-icon {
+    font-size: 1rem !important;
+    line-height: 1;
+    margin: 0 !important;
 }
 
 /* Limit the width of the Site URL column */
@@ -256,6 +324,36 @@ th.site-url {
 
 .delete-modal-btn {
     margin-right: 10px !important;
+}
+
+.modal-backdrop {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 20px;
+    position: fixed;
+    z-index: 1000;
+}
+
+.modal-react-open {
+    display: block !important;
+    margin: 0;
+    max-height: calc(100vh - 40px);
+    max-width: 720px;
+    overflow-y: auto;
+    position: relative;
+    top: 0 !important;
+    width: min(720px, 100%);
+}
+
+.modal-close-button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    float: right;
+    padding: 0;
 }
 
 .url-cell {

@@ -84,6 +84,8 @@ export const findAliases = async ({
         async () => {
             const [items, totalItems] = await Promise.all([
                 Yo.find(searchQuery, {
+                    createdAt: 1,
+                    lastAccess: 1,
                     linkName: 1,
                     originalUrl: 1,
                     urlHits: 1,

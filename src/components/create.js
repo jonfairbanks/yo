@@ -1,19 +1,30 @@
 import React, { useRef, useState } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { getShortUrl } from '../lib/browser-short-url'
 import { useDashboard } from '../context/dashboard-context'
+import { useSlugValidation } from '../hooks/use-slug-validation'
+import LinkActions from './link-actions'
 import ModalShell from './modal-shell'
 
-const CreateModal = ({ onClose }) => {
+const CreateModal = () => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
     const [newLink, setNewLink] = useState('')
     const [newUrl, setNewUrl] = useState('')
-    const [clickedCopy, setClickedCopy] = useState(false)
     const formRef = useRef(null)
     const linkNameRef = useRef(null)
-    const { refreshDashboard, scheduleRefresh } = useDashboard()
+    const {
+        closeCreateModal,
+        isCreateModalOpen,
+        refreshDashboard,
+        scheduleRefresh,
+    } = useDashboard()
+    const {
+        isCheckingDuplicate,
+        isValid: isLinkNameValid,
+        normalizedLinkName,
+        validationMessage,
+    } = useSlugValidation(newLink)
 
     const resetState = () => {
         formRef.current?.reset()
@@ -21,15 +32,18 @@ const CreateModal = ({ onClose }) => {
         setNewLink('')
         setNewUrl('')
         setError(null)
-        setClickedCopy(false)
     }
 
     const CreateNewYo = async (event) => {
         event.preventDefault() // Prevent page reload
 
-        const form = event.target
-        const linkName = form.linkName.value
-        const originalUrl = form.originalUrl.value
+        const linkName = newLink
+        const originalUrl = newUrl
+
+        if (validationMessage) {
+            setError(validationMessage)
+            return
+        }
 
         const data = {
             linkName: linkName,
@@ -38,7 +52,6 @@ const CreateModal = ({ onClose }) => {
 
         // Reset states before the new request
         setSuccess(false)
-        setClickedCopy(false)
         setError(null)
 
         try {
@@ -58,7 +71,7 @@ const CreateModal = ({ onClose }) => {
             const result = await response.json()
 
             // Reset form after successful submission
-            form.reset()
+            formRef.current?.reset()
             setNewLink(result.linkName)
             setNewUrl(result.originalUrl)
             setSuccess(true)
@@ -68,9 +81,8 @@ const CreateModal = ({ onClose }) => {
         }
     }
 
-    const handleButtonClick = () => {
-        setClickedCopy(true)
-        setTimeout(() => setClickedCopy(false), 2500)
+    if (!isCreateModalOpen) {
+        return null
     }
 
     return (
@@ -80,7 +92,7 @@ const CreateModal = ({ onClose }) => {
                 initialFocusRef={linkNameRef}
                 onClose={() => {
                     resetState()
-                    onClose()
+                    closeCreateModal()
                 }}
                 footer={
                     success ? null : (
@@ -88,6 +100,12 @@ const CreateModal = ({ onClose }) => {
                             type="submit"
                             className="waves-effect btn-flat teal white-text"
                             aria-label="Create link"
+                            disabled={
+                                !newLink.trim() ||
+                                !newUrl.trim() ||
+                                isCheckingDuplicate ||
+                                !isLinkNameValid
+                            }
                         >
                             Create
                         </button>
@@ -116,45 +134,11 @@ const CreateModal = ({ onClose }) => {
                             </i>
                             <pre>{newUrl}</pre>
                             <br />
-                            <a
-                                href={getShortUrl(newLink)}
-                                className="success-link-btn btn teal white-text icon-left"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={`Visit ${newLink} redirect`}
-                                onClick={() => scheduleRefresh()}
-                            >
-                                <i className="material-icons">redo</i> Go to
-                                Link
-                            </a>
-                            {clickedCopy ? (
-                                <a
-                                    href="#"
-                                    className="btn grey grey-text text-darken-3 icon-left"
-                                    aria-label="Link copied"
-                                >
-                                    <i className="material-icons teal-text text-darken-1">
-                                        done
-                                    </i>{' '}
-                                    Copied
-                                </a>
-                            ) : (
-                                <CopyToClipboard
-                                    text={getShortUrl(newLink)}
-                                >
-                                    <a
-                                        href="#"
-                                        onClick={handleButtonClick}
-                                        className="btn grey grey-text text-darken-3 icon-left"
-                                        aria-label={`Copy ${newLink} link`}
-                                    >
-                                        <i className="material-icons">
-                                            content_copy
-                                        </i>{' '}
-                                        Copy Link
-                                    </a>
-                                </CopyToClipboard>
-                            )}
+                            <LinkActions
+                                linkName={newLink}
+                                originalUrl={newUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </div>
                     ) : (
                         <div>
@@ -169,11 +153,38 @@ const CreateModal = ({ onClose }) => {
                                     aria-label="Link name"
                                     ref={linkNameRef}
                                     autoFocus
+                                    value={newLink}
+                                    onChange={(event) =>
+                                        setNewLink(event.target.value)
+                                    }
                                 />
                                 <label htmlFor="linkName">Link Name</label>
                                 <span className="supporting-text">
                                     What should the new link be named?
                                 </span>
+                                {newLink.trim() ? (
+                                    <p className="grey-text text-lighten-1">
+                                        Short URL preview:{' '}
+                                        <strong>
+                                            {getShortUrl(
+                                                normalizedLinkName || newLink
+                                            )}
+                                        </strong>
+                                    </p>
+                                ) : null}
+                                {isCheckingDuplicate ? (
+                                    <p className="grey-text text-lighten-1">
+                                        Checking availability...
+                                    </p>
+                                ) : validationMessage ? (
+                                    <p className="red-text text-darken-1">
+                                        {validationMessage}
+                                    </p>
+                                ) : normalizedLinkName ? (
+                                    <p className="green-text text-accent-3">
+                                        Link name is available.
+                                    </p>
+                                ) : null}
                             </div>
                             <br />
                             <br />
@@ -184,6 +195,10 @@ const CreateModal = ({ onClose }) => {
                                     placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
                                     required
                                     aria-label="Website URL"
+                                    value={newUrl}
+                                    onChange={(event) =>
+                                        setNewUrl(event.target.value)
+                                    }
                                 />
                                 <label htmlFor="originalUrl">Website URL</label>
                                 <span className="supporting-text">

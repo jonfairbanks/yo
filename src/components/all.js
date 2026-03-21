@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import {
     useReactTable,
     createColumnHelper,
@@ -7,14 +9,60 @@ import {
 } from '@tanstack/react-table'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-import { getShortUrl } from '../lib/browser-short-url'
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
+dayjs.extend(relativeTime)
+
+const QUICK_FILTERS = [
+    {
+        id: 'all',
+        label: 'All links',
+        params: {},
+    },
+    {
+        id: 'unused',
+        label: 'Unused',
+        params: { usage: 'unused' },
+    },
+    {
+        id: 'new',
+        label: 'New in 30 days',
+        params: { recent: 'created', sinceDays: '30' },
+    },
+    {
+        id: 'recently-accessed',
+        label: 'Used in 30 days',
+        params: { recent: 'accessed', sinceDays: '30' },
+    },
+]
+
+const formatTimestamp = (value, emptyText) => {
+    if (!value) {
+        return emptyText
+    }
+
+    return dayjs(value).fromNow()
+}
+
+const formatSubtitle = (createdAt, lastAccess) => {
+    const createdText = `Created: ${formatTimestamp(createdAt, 'Unknown')}`
+    const lastAccessText = lastAccess
+        ? `Last Accessed: ${formatTimestamp(lastAccess, 'No activity yet')}`
+        : 'Last Accessed: never'
+
+    return `${createdText} | ${lastAccessText}`
+}
 
 const AllYos = () => {
-    const { openUpdateModal, scheduleRefresh } = useDashboard()
+    const {
+        applyTableFilter,
+        clearTableFilter,
+        openCreateModal,
+        openUpdateModal,
+        scheduleRefresh,
+        tableFilter,
+    } = useDashboard()
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
-    const [clickedCopy, setClickedCopy] = useState(null) // Align names
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
     const [filterQuery, setFilterQuery] = useState('')
@@ -33,7 +81,7 @@ const AllYos = () => {
         setPagination((prev) =>
             prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
         )
-    }, [debouncedFilterQuery])
+    }, [debouncedFilterQuery, tableFilter])
 
     const queryUrl = useMemo(() => {
         const activeSort = sorting[0] || {
@@ -51,8 +99,20 @@ const AllYos = () => {
             params.set('q', debouncedFilterQuery.trim())
         }
 
+        Object.entries(tableFilter?.params || {}).forEach(([key, value]) => {
+            if (value) {
+                params.set(key, value)
+            }
+        })
+
         return `/api?${params.toString()}`
-    }, [debouncedFilterQuery, pagination.pageIndex, pagination.pageSize, sorting])
+    }, [
+        debouncedFilterQuery,
+        pagination.pageIndex,
+        pagination.pageSize,
+        sorting,
+        tableFilter,
+    ])
 
     const { data, error, loading } = useDashboardQuery({
         fallbackMessage: 'Failed to load data.',
@@ -88,11 +148,6 @@ const AllYos = () => {
         }
     }, [data, pagination.pageIndex])
 
-    const handleCopyClick = useCallback((linkName) => {
-        setClickedCopy(linkName)
-        setTimeout(() => setClickedCopy(null), 1500)
-    }, [])
-
     const handleVisitClick = useCallback(() => {
         scheduleRefresh()
     }, [scheduleRefresh])
@@ -101,34 +156,26 @@ const AllYos = () => {
         () => [
             columnHelper.accessor('linkName', {
                 header: 'Link',
-                cell: (info) => (
-                    <CopyToClipboard
-                        text={getShortUrl(info.getValue())}
-                    >
-                        <pre style={{ cursor: 'pointer' }}>
-                            {info.getValue()}
-                        </pre>
-                    </CopyToClipboard>
-                ),
+                cell: (info) => <pre style={{ margin: 0 }}>{info.getValue()}</pre>,
                 enableSorting: true,
             }),
             columnHelper.accessor('originalUrl', {
-                header: 'Site URL',
+                header: 'Destination',
                 cell: (info) => (
-                    <a
-                        className="grey-text text-darken-1"
-                        href={`/${info.row.original.linkName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={handleVisitClick}
-                    >
-                        {info.getValue()}
-                    </a>
+                    <div className="site-url">
+                        <div>{info.getValue()}</div>
+                        <span className="table-meta-text">
+                            {formatSubtitle(
+                                info.row.original.createdAt,
+                                info.row.original.lastAccess
+                            )}
+                        </span>
+                    </div>
                 ),
                 enableSorting: true,
             }),
             columnHelper.accessor('urlHits', {
-                header: () => <div className="table-number-cell">URL Hits</div>,
+                header: () => <div className="table-number-cell">Hits</div>,
                 cell: (info) => (
                     <p className="grey-text text-darken-1 table-number-cell">
                         {(info.getValue() ?? 0).toLocaleString()}
@@ -137,49 +184,45 @@ const AllYos = () => {
                 enableSorting: true,
             }),
             columnHelper.display({
-                id: 'options',
-                header: () => <div className="table-actions">Options</div>,
+                id: 'actions',
+                header: () => <div className="table-actions">Actions</div>,
                 cell: (info) => (
-                    <div className="table-actions">
+                    <div className="row-actions-grid">
+                        <a
+                            href={`/${info.row.original.linkName}`}
+                            className="btn-small teal white-text row-action-button"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={handleVisitClick}
+                            aria-label={`Visit ${info.row.original.linkName} page`}
+                        >
+                            <i className="material-icons row-action-icon">open_in_new</i>
+                            <span>Visit</span>
+                        </a>
+                        <CopyToClipboard
+                            text={`/${info.row.original.linkName}`}
+                        >
+                            <a
+                                className="btn-small grey grey-text text-darken-3 row-action-button"
+                                aria-label={`Copy ${info.row.original.linkName} short link`}
+                            >
+                                <i className="material-icons row-action-icon">content_copy</i>
+                                <span>Copy</span>
+                            </a>
+                        </CopyToClipboard>
                         <a
                             onClick={() => openUpdateModal(info.row.original)}
-                            className="btn-small icon-left grey grey-text text-darken-2"
+                            className="btn-small grey grey-text text-darken-3 row-action-button"
                             aria-label={`Edit ${info.row.original.linkName}`}
                         >
-                            <i className="material-icons">edit</i>Edit
+                            <i className="material-icons row-action-icon">edit</i>
+                            <span>Edit</span>
                         </a>
-                        {clickedCopy === info.row.original.linkName ? (
-                            <a
-                                className="btn-small icon-left teal white-text text-darken-2"
-                                aria-label={`Copy ${info.row.original.linkName} link`}
-                            >
-                                <i className="material-icons">done</i> Copy
-                            </a>
-                        ) : (
-                            <CopyToClipboard
-                                text={getShortUrl(
-                                    info.row.original.linkName
-                                )}
-                                onCopy={() =>
-                                    handleCopyClick(info.row.original.linkName)
-                                }
-                            >
-                                <a
-                                    className="btn-small icon-left teal darken-2 white-text text-darken-2"
-                                    aria-label={`Copy ${info.row.original.linkName} link`}
-                                >
-                                    <i className="material-icons">
-                                        content_copy
-                                    </i>{' '}
-                                    Copy
-                                </a>
-                            </CopyToClipboard>
-                        )}
                     </div>
                 ),
             }),
         ],
-        [clickedCopy, columnHelper, handleVisitClick, openUpdateModal, handleCopyClick]
+        [columnHelper, handleVisitClick, openUpdateModal]
     )
 
     const table = useReactTable({
@@ -195,11 +238,19 @@ const AllYos = () => {
     })
 
     const rows = table.getRowModel().rows
-    const isFilteredEmptyState = Boolean(debouncedFilterQuery.trim())
-    const emptyStateMessage = isFilteredEmptyState
-        ? 'No links match your search.'
-        : 'No links available yet.'
     const showInitialLoading = loading && !hasLoadedOnce
+    const hasSearchTerm = Boolean(debouncedFilterQuery.trim())
+    const hasActiveQuickFilter = tableFilter?.id && tableFilter.id !== 'all'
+    const showEmptyState = !rows.length
+
+    const emptyStateTitle =
+        hasSearchTerm || hasActiveQuickFilter
+            ? 'No links match this view.'
+            : 'No links yet.'
+    const emptyStateDetail =
+        hasSearchTerm || hasActiveQuickFilter
+            ? 'Try clearing filters or adjusting your search.'
+            : 'Create your first short link to get started.'
 
     return (
         <div>
@@ -221,10 +272,90 @@ const AllYos = () => {
                     />
                 </div>
             </div>
+
+            <div
+                className="row"
+                style={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginBottom: '16px',
+                }}
+            >
+                {QUICK_FILTERS.map((filter) => (
+                    <button
+                        key={filter.id}
+                        type="button"
+                        className={`btn-small ${
+                            tableFilter?.id === filter.id
+                                ? 'teal white-text'
+                                : 'grey darken-2 white-text'
+                        }`}
+                        onClick={() => applyTableFilter(filter)}
+                    >
+                        {filter.label}
+                    </button>
+                ))}
+                {hasActiveQuickFilter || hasSearchTerm ? (
+                    <button
+                        type="button"
+                        className="btn-small grey grey-text text-darken-3"
+                        onClick={() => {
+                            setFilterQuery('')
+                            setDebouncedFilterQuery('')
+                            clearTableFilter()
+                        }}
+                    >
+                        Clear filters
+                    </button>
+                ) : null}
+                {loading && hasLoadedOnce ? (
+                    <span className="grey-text text-lighten-1">
+                        Refreshing results...
+                    </span>
+                ) : null}
+            </div>
+
+            {hasActiveQuickFilter || hasSearchTerm ? (
+                <p className="grey-text text-lighten-1">
+                    Viewing: <strong>{tableFilter?.label || 'Filtered links'}</strong>
+                    {hasSearchTerm ? ` | Search: "${debouncedFilterQuery.trim()}"` : ''}
+                </p>
+            ) : null}
+
             {showInitialLoading ? (
                 <p>Loading...</p>
             ) : error ? (
                 <p>{error}</p>
+            ) : showEmptyState ? (
+                <div className="card-panel grey darken-3">
+                    <h5>{emptyStateTitle}</h5>
+                    <p className="grey-text text-lighten-1">{emptyStateDetail}</p>
+                    <div className="table-actions">
+                        {hasSearchTerm || hasActiveQuickFilter ? (
+                            <button
+                                type="button"
+                                className="btn-small teal white-text"
+                                onClick={() => {
+                                    setFilterQuery('')
+                                    setDebouncedFilterQuery('')
+                                    clearTableFilter()
+                                }}
+                            >
+                                Clear filters
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                className="btn-small teal white-text"
+                                onClick={() => openCreateModal()}
+                            >
+                                Create first link
+                            </button>
+                        )}
+                    </div>
+                </div>
             ) : (
                 <table className="yo-table">
                     <thead>
@@ -256,77 +387,21 @@ const AllYos = () => {
                         ))}
                     </thead>
                     <tbody>
-                        {rows.length ? (
-                            rows.map((row) => (
-                                <tr key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <td
-                                            key={cell.id}
-                                            className={
-                                                cell.column.id === 'originalUrl'
-                                                    ? 'url-cell'
-                                                    : ''
-                                            }
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td
-                                    colSpan={columns.length}
-                                    style={{
-                                        color: isFilteredEmptyState
-                                            ? '#acacac'
-                                            : '#9e9e9e',
-                                        textAlign: 'center',
-                                    }}
-                                >
-                                    {emptyStateMessage}
-                                </td>
+                        {rows.map((row) => (
+                            <tr key={row.id}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <td key={cell.id}>
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
+                                    </td>
+                                ))}
                             </tr>
-                        )}
+                        ))}
                     </tbody>
                 </table>
             )}
-            {loading && !showInitialLoading && !error ? (
-                <p
-                    className="grey-text text-darken-1"
-                    style={{ marginTop: '10px' }}
-                >
-                    Refreshing results...
-                </p>
-            ) : null}
-            {!showInitialLoading && error ? (
-                <p className="red-text text-darken-1">{error}</p>
-            ) : null}
-            <br />
-            <div className="pagination">
-                <button
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    ⇤
-                </button>
-                <span
-                    className="grey-text text-darken-1"
-                    style={{ marginLeft: '10px', marginRight: '10px' }}
-                >
-                    Page {table.getState().pagination.pageIndex + 1} of{' '}
-                    {table.getPageCount()} ({data.pagination.totalItems} links)
-                </span>
-                <button
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    ⇥
-                </button>
-            </div>
         </div>
     )
 }

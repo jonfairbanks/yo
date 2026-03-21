@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
-import { getShortUrl } from '../lib/browser-short-url'
+import LinkActions from './link-actions'
 
 const PopularYos = () => {
     const { scheduleRefresh } = useDashboard()
@@ -36,17 +34,16 @@ const PopularYos = () => {
                     <th>Link</th>
                     <th>Site URL</th>
                     <th>URL Hits</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
                         <td width="15%">
-                            <CopyToClipboard text={getShortUrl(item.linkName)}>
-                                <pre style={{ cursor: 'pointer' }}>
-                                    {item.linkName}
-                                </pre>
-                            </CopyToClipboard>
+                            <pre style={{ cursor: 'pointer' }}>
+                                {item.linkName}
+                            </pre>
                         </td>
                         <td className="site-url" width="75%">
                             <a
@@ -61,6 +58,14 @@ const PopularYos = () => {
                         </td>
                         <td className="url-hits" width="10%">
                             {(item.urlHits ?? 0).toLocaleString()}
+                        </td>
+                        <td width="20%">
+                            <LinkActions
+                                compact
+                                linkName={item.linkName}
+                                originalUrl={item.originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </td>
                     </tr>
                 ))}
