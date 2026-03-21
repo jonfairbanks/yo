@@ -17,7 +17,7 @@ export default function Document() {
                 {/* eslint-disable-next-line @next/next/no-css-tags */}
                 <link
                     rel="stylesheet"
-                    href="/api/public/vendor/materialize/materialize.min.css"
+                    href="/vendor/materialize/materialize.min.css"
                 />
             </Head>
             <body>

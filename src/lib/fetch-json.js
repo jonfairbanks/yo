@@ -1,11 +1,18 @@
 const parseResponseBody = async (response) => {
-    const contentType = response.headers.get('content-type') || ''
+    const contentType =
+        typeof response.headers?.get === 'function'
+            ? response.headers.get('content-type') || ''
+            : ''
 
     if (contentType.includes('application/json')) {
         return response.json()
     }
 
-    return response.text()
+    if (typeof response.text === 'function') {
+        return response.text()
+    }
+
+    return response.json()
 }
 
 export const fetchJson = async (url, fallbackMessage) => {

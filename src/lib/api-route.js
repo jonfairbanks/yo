@@ -9,6 +9,14 @@ export const jsonError = (res, statusCode, error) =>
 const defaultErrorMessage = (route) =>
     `Unexpected error while handling ${route}.`
 
+const safeLog = (level, payload) => {
+    try {
+        logger[level]?.(payload)
+    } catch {
+        return
+    }
+}
+
 export const createApiHandler =
     (
         {
@@ -31,6 +39,12 @@ export const createApiHandler =
             },
             async (span) => {
                 if (req.method !== method) {
+                    safeLog('warn', {
+                        event: 'request_method_not_allowed',
+                        method: req.method,
+                        route,
+                        status: 405,
+                    })
                     span.setAttribute('http.response.status_code', 405)
                     return jsonError(res, 405, methodNotAllowedMessage)
                 }
@@ -45,6 +59,11 @@ export const createApiHandler =
                         )
 
                         if (!session) {
+                            safeLog('warn', {
+                                event: 'auth_failure',
+                                route,
+                                status: 401,
+                            })
                             span.setAttribute('http.response.status_code', 401)
                             return jsonError(res, 401, 'Unauthorized')
                         }
@@ -70,9 +89,15 @@ export const createApiHandler =
                     if (typeof onError === 'function') {
                         onError(error, { req, route, session, span })
                     } else {
-                        logger.error(
-                            `${defaultErrorMessage(route)} ${error instanceof Error ? error.message : String(error)}`
-                        )
+                        safeLog('error', {
+                            event: 'request_failed',
+                            route,
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                            status: 500,
+                        })
                     }
 
                     return jsonError(

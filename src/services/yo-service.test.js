@@ -14,7 +14,7 @@ jest.mock('../repositories/yo-repository', () => ({
     findAliases: jest.fn(),
     findLatestAliases: jest.fn(),
     findPopularAliases: jest.fn(),
-    findStatsSourceData: jest.fn(),
+    findStatsSummary: jest.fn(),
     insertAlias: jest.fn(),
     updateAliasByLinkName: jest.fn(),
 }))
@@ -220,20 +220,28 @@ describe('yo-service', () => {
         jest.spyOn(Date, 'now').mockReturnValue(
             new Date('2026-03-15T12:00:00.000Z').getTime()
         )
-        repository.findStatsSourceData.mockResolvedValue([
-            {
-                createdAt: '2026-03-10T10:00:00.000Z',
+        repository.findStatsSummary.mockResolvedValue({
+            latestAccessedYo: {
                 lastAccess: '2026-03-14T09:00:00.000Z',
+                linkName: 'alpha',
+            },
+            newestYo: {
+                createdAt: '2026-03-10T10:00:00.000Z',
+                linkName: 'alpha',
+            },
+            popularYo: {
                 linkName: 'alpha',
                 urlHits: 10,
             },
-            {
-                createdAt: '2026-01-10T10:00:00.000Z',
-                lastAccess: null,
-                linkName: 'beta',
-                urlHits: 0,
+            totals: {
+                activeYos: 1,
+                recentlyAccessedYos: 1,
+                recentlyCreatedYos: 1,
+                totalHits: 10,
+                totalYos: 2,
+                unusedYos: 1,
             },
-        ])
+        })
 
         await expect(getStats({ span })).resolves.toEqual({
             activeYos: 1,

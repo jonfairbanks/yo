@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
-import { fetchJson } from '../lib/fetch-json'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
 
 dayjs.extend(relativeTime)
 
@@ -28,24 +28,13 @@ const formatMoment = (value) => {
 }
 
 const Stats = () => {
-    const [data, setData] = useState(null)
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const json = await fetchJson('/api/stats', 'Failed to load data.')
-                setData(json)
-            } catch (err) {
-                setError(`Failed to load data: ${err.message}`)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [])
+    const queryUrl = useMemo(() => '/api/stats', [])
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load data.',
+        url: queryUrl,
+        initialData: null,
+        parse: (json) => json,
+    })
 
     if (loading) return <p>Loading...</p>
     if (error) return <p>{error}</p>

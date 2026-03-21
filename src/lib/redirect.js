@@ -76,6 +76,11 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
             const normalizedLinkName = normalizeLinkName(redirectParam)
 
             if (!normalizedLinkName) {
+                logger.warn({
+                    event: 'redirect_missing',
+                    alias: String(redirectParam || ''),
+                    status: 404,
+                })
                 span.setAttribute('yo.result', 'missing')
                 return {
                     status: 404,
@@ -98,6 +103,11 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
             )
 
             if (!item) {
+                logger.warn({
+                    event: 'redirect_missing',
+                    alias: normalizedLinkName,
+                    status: 404,
+                })
                 span.setAttribute('yo.result', 'missing')
                 return {
                     status: 404,
@@ -112,6 +122,13 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
                 req,
             })
             if (loop) {
+                logger.warn({
+                    event: 'redirect_blocked',
+                    alias: normalizedLinkName,
+                    reason: loop.error,
+                    status: loop.status,
+                    targetUrl,
+                })
                 span.setAttribute('yo.result', 'blocked_loop')
                 span.setAttribute('http.response.status_code', loop.status)
                 return loop
@@ -139,6 +156,12 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
 
             span.setAttribute('yo.result', 'redirect')
             span.setAttribute('http.response.status_code', 302)
+            logger.info({
+                event: 'redirect_success',
+                alias: normalizedLinkName,
+                status: 302,
+                targetUrl,
+            })
             return { status: 302, targetUrl }
         }
     )

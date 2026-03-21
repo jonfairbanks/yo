@@ -6,7 +6,7 @@ import {
     findAliases,
     findLatestAliases,
     findPopularAliases,
-    findStatsSourceData,
+    findStatsSummary,
     insertAlias,
     updateAliasByLinkName,
 } from '../repositories/yo-repository'
@@ -25,19 +25,26 @@ const isDuplicateKeyError = (error) =>
     typeof error === 'object' &&
     error.code === DUPLICATE_KEY_ERROR_CODE
 
-const asDate = (value) => {
-    if (!value) {
-        return null
-    }
-
-    const parsed = new Date(value)
-    return Number.isNaN(parsed.getTime()) ? null : parsed
-}
-
 const withDefaultHits = (item) => ({
     ...item,
     urlHits: typeof item.urlHits === 'number' ? item.urlHits : 0,
 })
+
+const toIsoDateField = (item, key) => {
+    if (!item || !item[key]) {
+        return null
+    }
+
+    const parsed = new Date(item[key])
+    if (Number.isNaN(parsed.getTime())) {
+        return null
+    }
+
+    return {
+        ...item,
+        [key]: parsed.toISOString(),
+    }
+}
 
 export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span }) => {
     const normalizedLinkName = normalizeRequiredLinkName(linkName)
@@ -53,9 +60,11 @@ export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span })
         })
 
         span?.setAttribute('yo.result', 'created')
-        logger.info(
-            `New Yo alias created: ${normalizedLinkName} -> ${originalUrl}`
-        )
+        logger.info({
+            event: 'alias_created',
+            alias: normalizedLinkName,
+            originalUrl,
+        })
 
         return {
             linkName: item.linkName,
@@ -64,9 +73,11 @@ export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span })
         }
     } catch (error) {
         if (isDuplicateKeyError(error)) {
-            logger.warn(
-                `Could not create a Yo alias as the name is already in-use: ${normalizedLinkName}`
-            )
+            logger.warn({
+                event: 'alias_create_conflict',
+                alias: normalizedLinkName,
+                status: 409,
+            })
             throw new ApiError(
                 409,
                 'This name is already in-use. Please select another name.',
@@ -76,9 +87,12 @@ export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span })
             )
         }
 
-        logger.error(
-            `Error saving Yo alias:${normalizedLinkName} -> ${originalUrl} to database: ${error}`
-        )
+        logger.error({
+            event: 'alias_create_failed',
+            alias: normalizedLinkName,
+            originalUrl,
+            error: error instanceof Error ? error.message : String(error),
+        })
         throw error
     }
 }
@@ -95,16 +109,22 @@ export const updateAlias = async ({ linkName, originalUrl, span }) => {
     })
 
     if (!item) {
-        logger.warn(
-            `User tried updating alias: ${normalizedLinkName}, but it doesn't exist.`
-        )
+        logger.warn({
+            event: 'alias_update_missing',
+            alias: normalizedLinkName,
+            status: 404,
+        })
         throw new ApiError(404, `Alias ${normalizedLinkName} not found.`, {
             code: 'missing',
         })
     }
 
     span?.setAttribute('yo.result', 'updated')
-    logger.info(`User updated alias ${normalizedLinkName}: ${originalUrl}`)
+    logger.info({
+        event: 'alias_updated',
+        alias: normalizedLinkName,
+        originalUrl,
+    })
 
     return {
         message: `${normalizedLinkName} updated successfully.`,
@@ -121,16 +141,23 @@ export const deleteAlias = async ({ linkName, actorNickname, span }) => {
     const item = await deleteAliasByLinkName(normalizedLinkName)
 
     if (!item) {
-        logger.warn(`Alias not found: ${normalizedLinkName}`)
+        logger.warn({
+            event: 'alias_delete_missing',
+            alias: normalizedLinkName,
+            status: 404,
+        })
         throw new ApiError(404, `Alias ${normalizedLinkName} not found.`, {
             code: 'missing',
         })
     }
 
     span?.setAttribute('yo.result', 'deleted')
-    logger.info(
-        `User ${actorNickname || 'unknown'} deleted alias ${item.originalUrl}: ${normalizedLinkName}`
-    )
+    logger.info({
+        event: 'alias_deleted',
+        actorNickname: actorNickname || 'unknown',
+        alias: normalizedLinkName,
+        originalUrl: item.originalUrl,
+    })
 
     return {
         message: `${normalizedLinkName} deleted successfully.`,
@@ -138,7 +165,7 @@ export const deleteAlias = async ({ linkName, actorNickname, span }) => {
 }
 
 export const listAliases = async ({ query, span }) => {
-    const { page, pageSize, searchQuery, sortBy, sortDir } =
+    const { page, pageSize, searchMode, searchQuery, searchTerm, sortBy, sortDir } =
         parseListAliasesQuery(query)
     const yoUrls = await findAliases({
         page,
@@ -155,6 +182,10 @@ export const listAliases = async ({ query, span }) => {
     span?.setAttribute('yo.total_count', yoUrls.totalItems)
     span?.setAttribute('yo.page', page)
     span?.setAttribute('yo.page_size', pageSize)
+    span?.setAttribute('yo.search.mode', searchMode)
+    span?.setAttribute('yo.search.term_length', searchTerm.length)
+    span?.setAttribute('yo.sort.field', sortBy)
+    span?.setAttribute('yo.sort.direction', sortDir === -1 ? 'desc' : 'asc')
 
     return {
         items,
@@ -184,75 +215,21 @@ export const getPopularAliases = async ({ span, limit = 10 } = {}) => {
 }
 
 export const getStats = async ({ span } = {}) => {
-    const hitsData = await findStatsSourceData()
     const recentThreshold = new Date(
         Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000
     )
-
-    let hits = 0
-    let activeYos = 0
-    let unusedYos = 0
-    let recentlyCreatedYos = 0
-    let recentlyAccessedYos = 0
-    let popularYo = null
-    let newestYo = null
-    let latestAccessedYo = null
-
-    hitsData.forEach((data) => {
-        const urlHits =
-            typeof data.urlHits === 'number' && data.urlHits > 0
-                ? data.urlHits
-                : 0
-        const createdAt = asDate(data.createdAt)
-        const lastAccess = asDate(data.lastAccess)
-
-        hits += urlHits
-
-        if (urlHits > 0) {
-            activeYos += 1
-        } else {
-            unusedYos += 1
-        }
-
-        if (createdAt && createdAt >= recentThreshold) {
-            recentlyCreatedYos += 1
-        }
-
-        if (lastAccess && lastAccess >= recentThreshold) {
-            recentlyAccessedYos += 1
-        }
-
-        if (!popularYo || urlHits > popularYo.urlHits) {
-            popularYo = {
-                linkName: data.linkName,
-                urlHits,
-            }
-        }
-
-        if (createdAt && (!newestYo || createdAt > new Date(newestYo.createdAt))) {
-            newestYo = {
-                createdAt: createdAt.toISOString(),
-                linkName: data.linkName,
-            }
-        }
-
-        if (
-            lastAccess &&
-            (!latestAccessedYo ||
-                lastAccess > new Date(latestAccessedYo.lastAccess))
-        ) {
-            latestAccessedYo = {
-                lastAccess: lastAccess.toISOString(),
-                linkName: data.linkName,
-            }
-        }
-    })
-
+    const stats = await findStatsSummary({ recentThreshold })
+    const totalYos = stats.totals.totalYos || 0
+    const totalHits = stats.totals.totalHits || 0
+    const activeYos = stats.totals.activeYos || 0
+    const unusedYos = stats.totals.unusedYos || 0
+    const recentlyCreatedYos = stats.totals.recentlyCreatedYos || 0
+    const recentlyAccessedYos = stats.totals.recentlyAccessedYos || 0
     const averageHitsPerYo =
-        hitsData.length === 0 ? 0 : Number((hits / hitsData.length).toFixed(1))
+        totalYos === 0 ? 0 : Number((totalHits / totalYos).toFixed(1))
 
-    span?.setAttribute('yo.total_count', hitsData.length)
-    span?.setAttribute('yo.total_hits', hits)
+    span?.setAttribute('yo.total_count', totalYos)
+    span?.setAttribute('yo.total_hits', totalHits)
     span?.setAttribute('yo.active_count', activeYos)
     span?.setAttribute('yo.unused_count', unusedYos)
     span?.setAttribute('yo.recent_created_count', recentlyCreatedYos)
@@ -261,14 +238,14 @@ export const getStats = async ({ span } = {}) => {
     return {
         activeYos,
         averageHitsPerYo,
-        latestAccessedYo,
-        newestYo,
-        popularYo: hits > 0 ? popularYo : null,
+        latestAccessedYo: toIsoDateField(stats.latestAccessedYo, 'lastAccess'),
+        newestYo: toIsoDateField(stats.newestYo, 'createdAt'),
+        popularYo: totalHits > 0 ? stats.popularYo : null,
         recentlyAccessedYos,
         recentlyCreatedYos,
         recentWindowDays: RECENT_WINDOW_DAYS,
-        totalYos: hitsData.length,
-        totalHits: hits,
+        totalYos,
+        totalHits,
         unusedYos,
     }
 }

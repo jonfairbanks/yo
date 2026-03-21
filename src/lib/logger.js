@@ -2,7 +2,10 @@ import winston from 'winston'
 import { getActiveSpanContext } from './tracing'
 
 const addTraceContext = winston.format((info) => {
-    const spanContext = getActiveSpanContext()
+    const spanContext =
+        typeof getActiveSpanContext === 'function'
+            ? getActiveSpanContext()
+            : null
     if (!spanContext) {
         return info
     }
