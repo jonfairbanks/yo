@@ -18,5 +18,9 @@ const yoSchema = new mongoose.Schema({
 
 yoSchema.index({ lastAccess: -1 })
 yoSchema.index({ urlHits: -1 })
+yoSchema.index({ createdAt: -1 })
+yoSchema.index({ lastAccess: -1, linkName: 1 })
+yoSchema.index({ urlHits: -1, linkName: 1 })
+yoSchema.index({ createdAt: -1, linkName: 1 })
 
 export default mongoose.models.Yo || mongoose.model('Yo', yoSchema)
