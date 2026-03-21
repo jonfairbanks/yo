@@ -15,11 +15,11 @@ function MyApp({ Component, pageProps }) {
                 <link
                     rel="icon"
                     type="image/png"
-                    href="/api/public/favicon.ico"
+                    href="/favicon.ico"
                 />
             </Head>
             <Script
-                src="/api/public/vendor/materialize/materialize.min.js"
+                src="/vendor/materialize/materialize.min.js"
                 strategy="afterInteractive"
                 onLoad={() => {
                     if (typeof window !== 'undefined' && window.M) {

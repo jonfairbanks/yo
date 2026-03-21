@@ -89,7 +89,7 @@ export const findAliases = async ({
                     urlHits: 1,
                     _id: 0,
                 })
-                    .sort({ [sortBy]: sortDir })
+                    .sort({ [sortBy]: sortDir, linkName: 1 })
                     .skip((page - 1) * pageSize)
                     .limit(pageSize)
                     .lean(),
@@ -122,7 +122,7 @@ export const findLatestAliases = async (limit = 10) => {
                     _id: 0,
                 }
             )
-                .sort({ lastAccess: -1 })
+                .sort({ lastAccess: -1, linkName: 1 })
                 .limit(limit)
                 .lean()
     )
@@ -149,34 +149,213 @@ export const findPopularAliases = async (limit = 10) => {
                     _id: 0,
                 }
             )
-                .sort({ urlHits: -1 })
+                .sort({ urlHits: -1, linkName: 1 })
                 .limit(limit)
                 .lean()
     )
 }
 
-export const findStatsSourceData = async () => {
+export const findStatsSummary = async ({ recentThreshold }) => {
     await connectToDatabase()
 
     return withSpan(
         'mongo collect stats',
         {
             'db.system': 'mongodb',
-            'db.operation': 'find',
+            'db.operation': 'aggregate',
             'db.collection': 'yo',
             'db.query.summary':
-                'find aliases projection(createdAt,lastAccess,linkName,urlHits)',
+                'aggregate alias stats, newest alias, latest access, and popular alias',
         },
-        () =>
-            Yo.find(
-                {},
+        async () => {
+            const [result = {}] = await Yo.aggregate([
                 {
-                    createdAt: 1,
-                    lastAccess: 1,
-                    linkName: 1,
-                    urlHits: 1,
-                    _id: 0,
-                }
-            ).lean()
+                    $facet: {
+                        latestAccessedYo: [
+                            {
+                                $match: {
+                                    lastAccess: { $type: 'date' },
+                                },
+                            },
+                            {
+                                $sort: {
+                                    lastAccess: -1,
+                                    linkName: 1,
+                                },
+                            },
+                            { $limit: 1 },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    lastAccess: 1,
+                                    linkName: 1,
+                                },
+                            },
+                        ],
+                        newestYo: [
+                            {
+                                $match: {
+                                    createdAt: { $type: 'date' },
+                                },
+                            },
+                            {
+                                $sort: {
+                                    createdAt: -1,
+                                    linkName: 1,
+                                },
+                            },
+                            { $limit: 1 },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    createdAt: 1,
+                                    linkName: 1,
+                                },
+                            },
+                        ],
+                        popularYo: [
+                            {
+                                $project: {
+                                    linkName: 1,
+                                    urlHits: {
+                                        $cond: [
+                                            { $gt: [{ $ifNull: ['$urlHits', 0] }, 0] },
+                                            { $ifNull: ['$urlHits', 0] },
+                                            0,
+                                        ],
+                                    },
+                                },
+                            },
+                            {
+                                $sort: {
+                                    urlHits: -1,
+                                    linkName: 1,
+                                },
+                            },
+                            { $limit: 1 },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    linkName: 1,
+                                    urlHits: 1,
+                                },
+                            },
+                        ],
+                        totals: [
+                            {
+                                $group: {
+                                    _id: null,
+                                    activeYos: {
+                                        $sum: {
+                                            $cond: [
+                                                {
+                                                    $gt: [
+                                                        { $ifNull: ['$urlHits', 0] },
+                                                        0,
+                                                    ],
+                                                },
+                                                1,
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    recentlyAccessedYos: {
+                                        $sum: {
+                                            $cond: [
+                                                {
+                                                    $and: [
+                                                        {
+                                                            $ne: [
+                                                                { $ifNull: ['$lastAccess', null] },
+                                                                null,
+                                                            ],
+                                                        },
+                                                        {
+                                                            $gte: [
+                                                                '$lastAccess',
+                                                                recentThreshold,
+                                                            ],
+                                                        },
+                                                    ],
+                                                },
+                                                1,
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    recentlyCreatedYos: {
+                                        $sum: {
+                                            $cond: [
+                                                {
+                                                    $and: [
+                                                        {
+                                                            $ne: [
+                                                                { $ifNull: ['$createdAt', null] },
+                                                                null,
+                                                            ],
+                                                        },
+                                                        {
+                                                            $gte: [
+                                                                '$createdAt',
+                                                                recentThreshold,
+                                                            ],
+                                                        },
+                                                    ],
+                                                },
+                                                1,
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    totalHits: {
+                                        $sum: {
+                                            $cond: [
+                                                {
+                                                    $gt: [
+                                                        { $ifNull: ['$urlHits', 0] },
+                                                        0,
+                                                    ],
+                                                },
+                                                { $ifNull: ['$urlHits', 0] },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    totalYos: { $sum: 1 },
+                                },
+                            },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    activeYos: 1,
+                                    recentlyAccessedYos: 1,
+                                    recentlyCreatedYos: 1,
+                                    totalHits: 1,
+                                    totalYos: 1,
+                                    unusedYos: {
+                                        $subtract: ['$totalYos', '$activeYos'],
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            ])
+
+            return {
+                latestAccessedYo: result.latestAccessedYo?.[0] || null,
+                newestYo: result.newestYo?.[0] || null,
+                popularYo: result.popularYo?.[0] || null,
+                totals:
+                    result.totals?.[0] || {
+                        activeYos: 0,
+                        recentlyAccessedYos: 0,
+                        recentlyCreatedYos: 0,
+                        totalHits: 0,
+                        totalYos: 0,
+                        unusedYos: 0,
+                    },
+            }
+        }
     )
 }

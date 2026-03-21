@@ -7,6 +7,7 @@ import { getReservedPathMatch } from '../lib/reserved-routes'
 export const DEFAULT_PAGE_SIZE = 10
 export const MAX_PAGE_SIZE = 100
 export const SORT_FIELDS = new Set(['linkName', 'originalUrl', 'urlHits'])
+export const SEARCH_MODE = 'case_insensitive_substring'
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -101,7 +102,9 @@ export const parseListAliasesQuery = (query) => {
     return {
         page,
         pageSize,
+        searchMode: SEARCH_MODE,
         searchQuery,
+        searchTerm: trimmedFilter,
         sortBy,
         sortDir,
     }

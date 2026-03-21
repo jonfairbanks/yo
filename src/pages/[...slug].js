@@ -1,5 +1,6 @@
 import Image from 'next/image'
 
+import { isReservedPath } from '../lib/reserved-routes'
 import { resolveRedirect } from '../lib/redirect'
 
 const CatchAllRoute = () => {
@@ -28,8 +29,11 @@ export const getServerSideProps = async (context) => {
     }
 
     const normalizedSlug = slugValue.toString().toLowerCase()
-    if (normalizedSlug.startsWith('api/redirect')) {
-        context.res.statusCode = 400
+    if (
+        normalizedSlug.startsWith('api/redirect') ||
+        isReservedPath(normalizedSlug)
+    ) {
+        context.res.statusCode = 404
         return { props: {} }
     }
 
