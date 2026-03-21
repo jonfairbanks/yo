@@ -1,9 +1,8 @@
 import { createMocks } from 'node-mocks-http'
 
 import { auth0 } from '../../../lib/auth0'
-import { connectToDatabase } from '../../../lib/mongoose'
-import Yo from '../../../models/yo'
 import handler from '../../../pages/api/create'
+import { createAlias } from '../../../services/yo-service'
 
 jest.mock('../../../lib/auth0', () => ({
     auth0: {
@@ -11,25 +10,9 @@ jest.mock('../../../lib/auth0', () => ({
     },
 }))
 
-jest.mock('../../../lib/mongoose', () => ({
-    connectToDatabase: jest.fn(),
+jest.mock('../../../services/yo-service', () => ({
+    createAlias: jest.fn(),
 }))
-
-jest.mock('../../../models/yo', () => {
-    const saveMock = jest.fn()
-    const YoModel = jest.fn(function YoModel(data) {
-        Object.assign(this, data)
-        this.save = saveMock
-    })
-
-    YoModel.findOne = jest.fn()
-    YoModel.__saveMock = saveMock
-
-    return {
-        __esModule: true,
-        default: YoModel,
-    }
-})
 
 jest.mock('../../../lib/logger', () => ({
     __esModule: true,
@@ -61,9 +44,11 @@ describe('create API handler', () => {
         auth0.getSession.mockResolvedValue({
             user: { sub: 'user-1' },
         })
-        connectToDatabase.mockResolvedValue({})
-        Yo.findOne.mockResolvedValue(null)
-        Yo.__saveMock.mockResolvedValue(undefined)
+        createAlias.mockResolvedValue({
+            linkName: 'docs',
+            originalUrl: 'https://example.com/docs',
+            shortUrl: 'https://yo.test/docs',
+        })
     })
 
     it('rejects non-POST requests', async () => {
@@ -92,10 +77,15 @@ describe('create API handler', () => {
 
         expect(res._getStatusCode()).toBe(401)
         expect(res._getJSONData()).toEqual({ error: 'Unauthorized' })
-        expect(connectToDatabase).not.toHaveBeenCalled()
+        expect(createAlias).not.toHaveBeenCalled()
     })
 
     it('blocks reserved aliases', async () => {
+        createAlias.mockRejectedValue({
+            code: 'reserved_alias',
+            message: 'This link name is reserved by the application.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -110,11 +100,15 @@ describe('create API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'This link name is reserved by the application.',
         })
-        expect(Yo.findOne).not.toHaveBeenCalled()
-        expect(Yo.__saveMock).not.toHaveBeenCalled()
+        expect(createAlias).toHaveBeenCalledTimes(1)
     })
 
     it('rejects invalid destination URLs', async () => {
+        createAlias.mockRejectedValue({
+            code: 'invalid_url',
+            message: 'The provided URL is improperly formatted.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -129,10 +123,14 @@ describe('create API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'The provided URL is improperly formatted.',
         })
-        expect(Yo.findOne).not.toHaveBeenCalled()
     })
 
     it('rejects blank aliases after normalization', async () => {
+        createAlias.mockRejectedValue({
+            code: 'invalid_alias',
+            message: 'A link name is required.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -147,12 +145,15 @@ describe('create API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'A link name is required.',
         })
-        expect(Yo.findOne).not.toHaveBeenCalled()
-        expect(Yo.__saveMock).not.toHaveBeenCalled()
+        expect(createAlias).toHaveBeenCalledTimes(1)
     })
 
-    it('rejects duplicate aliases', async () => {
-        Yo.findOne.mockResolvedValue({ linkName: 'docs' })
+    it('maps duplicate key errors to a conflict response', async () => {
+        createAlias.mockRejectedValue({
+            code: 'already_exists',
+            message: 'This name is already in-use. Please select another name.',
+            statusCode: 409,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -167,7 +168,7 @@ describe('create API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'This name is already in-use. Please select another name.',
         })
-        expect(Yo.__saveMock).not.toHaveBeenCalled()
+        expect(createAlias).toHaveBeenCalledTimes(1)
     })
 
     it('creates a new alias with a canonical link name', async () => {
@@ -182,16 +183,12 @@ describe('create API handler', () => {
 
         await handler(req, res)
 
-        expect(connectToDatabase).toHaveBeenCalledTimes(1)
-        expect(Yo.findOne).toHaveBeenCalledWith({
-            linkName: { $eq: 'docs' },
-        })
-        expect(Yo).toHaveBeenCalledWith({
-            linkName: 'docs',
+        expect(createAlias).toHaveBeenCalledWith({
+            linkName: ' /Docs/ ',
             originalUrl: 'https://example.com/docs',
-            shortUrl: 'https://yo.test/docs',
+            shortBaseUrl: 'https://yo.test',
+            span: expect.any(Object),
         })
-        expect(Yo.__saveMock).toHaveBeenCalledTimes(1)
         expect(res._getStatusCode()).toBe(201)
         expect(res._getJSONData()).toEqual({
             linkName: 'docs',

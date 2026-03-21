@@ -24,6 +24,7 @@ const AllYos = () => {
     const [totalItems, setTotalItems] = useState(0)
     const [debouncedFilterQuery, setDebouncedFilterQuery] = useState('')
     const [refreshKey, setRefreshKey] = useState(0)
+    const columnHelper = useMemo(() => createColumnHelper(), [])
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -105,12 +106,16 @@ const AllYos = () => {
         setSelectedRow(item)
     }
 
+    const handleVisitClick = () => {
+        window.setTimeout(() => {
+            setRefreshKey((prev) => prev + 1)
+        }, 500)
+    }
+
     const handleCloseModal = () => {
         setSelectedRow(null)
         setRefreshKey((prev) => prev + 1)
     }
-
-    const columnHelper = createColumnHelper()
 
     const columns = useMemo(
         () => [
@@ -135,6 +140,7 @@ const AllYos = () => {
                         href={`/${info.row.original.linkName}`}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={handleVisitClick}
                     >
                         {info.getValue()}
                     </a>
@@ -213,9 +219,7 @@ const AllYos = () => {
     const emptyStateMessage = isFilteredEmptyState
         ? 'No links match your search.'
         : 'No links available yet.'
-
-    if (loading && !hasLoadedOnce) return <p>Loading...</p>
-    if (error && !hasLoadedOnce) return <p>{error}</p>
+    const showInitialLoading = loading && !hasLoadedOnce
 
     return (
         <div>
@@ -224,6 +228,10 @@ const AllYos = () => {
                     <input
                         id="search"
                         type="text"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         value={filterQuery}
                         onChange={(e) => setFilterQuery(e.target.value)}
                         placeholder="Filter by link or URL"
@@ -233,74 +241,90 @@ const AllYos = () => {
                     />
                 </div>
             </div>
-            <table className="yo-table">
-                <thead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => (
-                                <th
-                                    key={header.id}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                    style={{
-                                        cursor: header.column.getCanSort()
-                                            ? 'pointer'
-                                            : 'default',
-                                    }}
-                                >
-                                    {header.isPlaceholder
-                                        ? null
-                                        : flexRender(
-                                              header.column.columnDef.header,
-                                              header.getContext()
-                                          )}
-                                    {{
-                                        asc: ' ⬆',
-                                        desc: ' ⬇',
-                                    }[header.column.getIsSorted()] || null}
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </thead>
-                <tbody>
-                    {rows.length ? (
-                        rows.map((row) => (
-                            <tr key={row.id}>
-                                {row.getVisibleCells().map((cell) => (
-                                    <td
-                                        key={cell.id}
-                                        className={
-                                            cell.column.id === 'originalUrl'
-                                                ? 'url-cell'
-                                                : ''
-                                        }
+            {showInitialLoading ? (
+                <p>Loading...</p>
+            ) : error ? (
+                <p>{error}</p>
+            ) : (
+                <table className="yo-table">
+                    <thead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <th
+                                        key={header.id}
+                                        onClick={header.column.getToggleSortingHandler()}
+                                        style={{
+                                            cursor: header.column.getCanSort()
+                                                ? 'pointer'
+                                                : 'default',
+                                        }}
                                     >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </td>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                  header.column.columnDef.header,
+                                                  header.getContext()
+                                              )}
+                                        {{
+                                            asc: ' ⬆',
+                                            desc: ' ⬇',
+                                        }[header.column.getIsSorted()] || null}
+                                    </th>
                                 ))}
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td
-                                colSpan={columns.length}
-                                style={{
-                                    color: isFilteredEmptyState
-                                        ? '#acacac'
-                                        : '#9e9e9e',
-                                    textAlign: 'center',
-                                }}
-                            >
-                                {emptyStateMessage}
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-            {error ? <p className="red-text text-darken-1">{error}</p> : null}
+                        ))}
+                    </thead>
+                    <tbody>
+                        {rows.length ? (
+                            rows.map((row) => (
+                                <tr key={row.id}>
+                                    {row.getVisibleCells().map((cell) => (
+                                        <td
+                                            key={cell.id}
+                                            className={
+                                                cell.column.id === 'originalUrl'
+                                                    ? 'url-cell'
+                                                    : ''
+                                            }
+                                        >
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td
+                                    colSpan={columns.length}
+                                    style={{
+                                        color: isFilteredEmptyState
+                                            ? '#acacac'
+                                            : '#9e9e9e',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    {emptyStateMessage}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            )}
+            {loading && !showInitialLoading && !error ? (
+                <p
+                    className="grey-text text-darken-1"
+                    style={{ marginTop: '10px' }}
+                >
+                    Refreshing results...
+                </p>
+            ) : null}
+            {!showInitialLoading && error ? (
+                <p className="red-text text-darken-1">{error}</p>
+            ) : null}
             <br />
             <div className="pagination">
                 <button

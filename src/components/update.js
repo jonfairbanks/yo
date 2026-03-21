@@ -178,7 +178,7 @@ const UpdateModal = ({ item, onClose }) => {
                             <pre>{originalUrl}</pre>
                             <br />
                             <a
-                                href={`/api/redirect/${item.linkName}`}
+                                href={`/${item.linkName}`}
                                 className="success-link-btn btn teal white-text icon-left"
                                 target="_blank"
                                 rel="noopener noreferrer"

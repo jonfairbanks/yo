@@ -2,8 +2,7 @@ import { createMocks } from 'node-mocks-http'
 
 import { auth0 } from '../../../lib/auth0'
 import handler from '../../../pages/api/popular'
-import { connectToDatabase } from '../../../lib/mongoose'
-import Yo from '../../../models/yo'
+import { getPopularAliases } from '../../../services/yo-service'
 
 jest.mock('../../../lib/auth0', () => ({
     auth0: {
@@ -11,15 +10,8 @@ jest.mock('../../../lib/auth0', () => ({
     },
 }))
 
-jest.mock('../../../lib/mongoose', () => ({
-    connectToDatabase: jest.fn(),
-}))
-
-jest.mock('../../../models/yo', () => ({
-    __esModule: true,
-    default: {
-        find: jest.fn(),
-    },
+jest.mock('../../../services/yo-service', () => ({
+    getPopularAliases: jest.fn(),
 }))
 
 jest.mock('../../../lib/logger', () => ({
@@ -43,32 +35,19 @@ jest.mock('../../../lib/tracing', () => ({
 }))
 
 describe('/api/popular', () => {
-    let leanMock
-    let limitMock
-    let sortMock
-
     beforeEach(() => {
         jest.clearAllMocks()
 
-        leanMock = jest.fn().mockResolvedValue([
+        getPopularAliases.mockResolvedValue([
             {
                 linkName: 'docs',
                 originalUrl: 'https://example.com/docs',
+                urlHits: 0,
             },
         ])
-        limitMock = jest.fn(() => ({
-            lean: leanMock,
-        }))
-        sortMock = jest.fn(() => ({
-            limit: limitMock,
-        }))
 
         auth0.getSession.mockResolvedValue({
             user: { sub: 'user-1' },
-        })
-        connectToDatabase.mockResolvedValue({})
-        Yo.find.mockReturnValue({
-            sort: sortMock,
         })
     })
 
@@ -94,7 +73,7 @@ describe('/api/popular', () => {
 
         expect(res._getStatusCode()).toBe(401)
         expect(res._getJSONData()).toEqual({ error: 'Unauthorized' })
-        expect(connectToDatabase).not.toHaveBeenCalled()
+        expect(getPopularAliases).not.toHaveBeenCalled()
     })
 
     it('returns the most popular links', async () => {
@@ -104,18 +83,9 @@ describe('/api/popular', () => {
 
         await handler(req, res)
 
-        expect(connectToDatabase).toHaveBeenCalledTimes(1)
-        expect(Yo.find).toHaveBeenCalledWith(
-            {},
-            {
-                linkName: 1,
-                originalUrl: 1,
-                urlHits: 1,
-                _id: 0,
-            }
-        )
-        expect(sortMock).toHaveBeenCalledWith({ urlHits: -1 })
-        expect(limitMock).toHaveBeenCalledWith(10)
+        expect(getPopularAliases).toHaveBeenCalledWith({
+            span: expect.any(Object),
+        })
         expect(res._getStatusCode()).toBe(200)
         expect(res._getJSONData()).toEqual([
             {

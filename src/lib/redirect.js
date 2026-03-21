@@ -86,24 +86,15 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
             await connectToDatabase()
 
             const item = await withSpan(
-                'mongo resolve alias',
+                'mongo find alias',
                 {
                     'db.system': 'mongodb',
-                    'db.operation': 'findOneAndUpdate',
+                    'db.operation': 'findOne',
                     'db.collection': 'yo',
-                    'db.query.summary':
-                        'find alias by linkName, increment urlHits, set lastAccess',
+                    'db.query.summary': 'find alias by linkName',
                     'yo.alias': normalizedLinkName,
                 },
-                () =>
-                    Yo.findOneAndUpdate(
-                        { linkName: normalizedLinkName },
-                        {
-                            $inc: { urlHits: 1 },
-                            $set: { lastAccess: Date.now() },
-                        },
-                        { new: true }
-                    )
+                () => Yo.findOne({ linkName: normalizedLinkName }, { originalUrl: 1 })
             )
 
             if (!item) {
@@ -112,7 +103,7 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
                     status: 404,
                     error: `Unable to find any entries for: ${redirectParam}`,
                 }
-                    }
+            }
 
             const targetUrl = buildTargetUrl(item.originalUrl, req)
             const loop = detectRedirectLoop({
@@ -125,6 +116,26 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
                 span.setAttribute('http.response.status_code', loop.status)
                 return loop
             }
+
+            await withSpan(
+                'mongo record redirect hit',
+                {
+                    'db.system': 'mongodb',
+                    'db.operation': 'updateOne',
+                    'db.collection': 'yo',
+                    'db.query.summary':
+                        'increment urlHits and set lastAccess for resolved alias',
+                    'yo.alias': normalizedLinkName,
+                },
+                () =>
+                    Yo.updateOne(
+                        { _id: item._id },
+                        {
+                            $inc: { urlHits: 1 },
+                            $set: { lastAccess: Date.now() },
+                        }
+                    )
+            )
 
             span.setAttribute('yo.result', 'redirect')
             span.setAttribute('http.response.status_code', 302)

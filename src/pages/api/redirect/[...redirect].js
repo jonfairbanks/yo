@@ -1,6 +1,6 @@
 import { createApiHandler, jsonError } from '../../../lib/api-route'
-import { resolveRedirect } from '../../../lib/redirect'
 import logger from '../../../lib/logger'
+import { resolveAlias } from '../../../services/yo-service'
 export default createApiHandler(
     {
         internalErrorMessage: 'Failed to resolve redirect.',
@@ -16,7 +16,7 @@ export default createApiHandler(
 
             span.setAttribute('yo.alias', redirectParam)
 
-            const result = await resolveRedirect({ redirectParam, req })
+            const result = await resolveAlias({ redirectParam, req })
 
             if (result.log) {
                 logger.warn(result.log)

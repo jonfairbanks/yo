@@ -14,6 +14,11 @@ export default function Document() {
                     href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap"
                     rel="stylesheet"
                 />
+                {/* eslint-disable-next-line @next/next/no-css-tags */}
+                <link
+                    rel="stylesheet"
+                    href="/api/public/vendor/materialize/materialize.min.css"
+                />
             </Head>
             <body>
                 <Main />

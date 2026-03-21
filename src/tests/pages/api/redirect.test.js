@@ -2,7 +2,7 @@ import { createMocks } from 'node-mocks-http'
 
 import { auth0 } from '../../../lib/auth0'
 import handler from '../../../pages/api/redirect/[...redirect]'
-import { resolveRedirect } from '../../../lib/redirect'
+import { resolveAlias } from '../../../services/yo-service'
 
 jest.mock('../../../lib/auth0', () => ({
     auth0: {
@@ -10,8 +10,8 @@ jest.mock('../../../lib/auth0', () => ({
     },
 }))
 
-jest.mock('../../../lib/redirect', () => ({
-    resolveRedirect: jest.fn(),
+jest.mock('../../../services/yo-service', () => ({
+    resolveAlias: jest.fn(),
 }))
 
 jest.mock('../../../lib/logger', () => ({
@@ -52,11 +52,11 @@ describe('/api/redirect/[...redirect]', () => {
 
         expect(res._getStatusCode()).toBe(405)
         expect(res._getJSONData()).toEqual({ error: 'Method not allowed' })
-        expect(resolveRedirect).not.toHaveBeenCalled()
+        expect(resolveAlias).not.toHaveBeenCalled()
     })
 
     it('redirects when the alias resolves', async () => {
-        resolveRedirect.mockResolvedValue({
+        resolveAlias.mockResolvedValue({
             status: 302,
             targetUrl: 'https://example.com/docs',
         })
@@ -70,7 +70,7 @@ describe('/api/redirect/[...redirect]', () => {
 
         await handler(req, res)
 
-        expect(resolveRedirect).toHaveBeenCalledWith({
+        expect(resolveAlias).toHaveBeenCalledWith({
             redirectParam: 'docs',
             req,
         })
@@ -79,7 +79,7 @@ describe('/api/redirect/[...redirect]', () => {
     })
 
     it('returns structured JSON errors for blocked aliases', async () => {
-        resolveRedirect.mockResolvedValue({
+        resolveAlias.mockResolvedValue({
             error: 'Destination points back to this short link.',
             status: 400,
         })
