@@ -61,7 +61,7 @@ const PopularYos = () => {
                         <td className="site-url" width="75%">
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/api/redirect/' + item.linkName}
+                                href={'/' + item.linkName}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >

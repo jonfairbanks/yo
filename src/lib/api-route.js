@@ -1,4 +1,5 @@
 import { auth0 } from './auth0'
+import { isApiError } from './api-error'
 import logger from './logger'
 import { withSpan } from './tracing'
 
@@ -15,6 +16,7 @@ export const createApiHandler =
             name,
             route,
             requireAuth = false,
+            methodNotAllowedMessage = 'Method not allowed',
             internalErrorMessage,
             onError = null,
         },
@@ -30,7 +32,7 @@ export const createApiHandler =
             async (span) => {
                 if (req.method !== method) {
                     span.setAttribute('http.response.status_code', 405)
-                    return jsonError(res, 405, 'Method not allowed')
+                    return jsonError(res, 405, methodNotAllowedMessage)
                 }
 
                 let session = null
@@ -50,6 +52,18 @@ export const createApiHandler =
 
                     return await callback({ req, res, session, span })
                 } catch (error) {
+                    if (isApiError(error)) {
+                        span.setAttribute(
+                            'yo.result',
+                            error.code || 'request_error'
+                        )
+                        span.setAttribute(
+                            'http.response.status_code',
+                            error.statusCode
+                        )
+                        return jsonError(res, error.statusCode, error.message)
+                    }
+
                     span.setAttribute('yo.result', 'error')
                     span.setAttribute('http.response.status_code', 500)
 

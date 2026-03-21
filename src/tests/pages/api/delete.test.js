@@ -1,9 +1,8 @@
 import { createMocks } from 'node-mocks-http'
 
 import { auth0 } from '../../../lib/auth0'
-import { connectToDatabase } from '../../../lib/mongoose'
-import Yo from '../../../models/yo'
 import handler from '../../../pages/api/delete'
+import { deleteAlias } from '../../../services/yo-service'
 
 jest.mock('../../../lib/auth0', () => ({
     auth0: {
@@ -11,15 +10,8 @@ jest.mock('../../../lib/auth0', () => ({
     },
 }))
 
-jest.mock('../../../lib/mongoose', () => ({
-    connectToDatabase: jest.fn(),
-}))
-
-jest.mock('../../../models/yo', () => ({
-    __esModule: true,
-    default: {
-        findOneAndDelete: jest.fn(),
-    },
+jest.mock('../../../services/yo-service', () => ({
+    deleteAlias: jest.fn(),
 }))
 
 jest.mock('../../../lib/logger', () => ({
@@ -45,21 +37,14 @@ jest.mock('../../../lib/tracing', () => ({
 }))
 
 describe('delete API handler', () => {
-    let leanMock
-
     beforeEach(() => {
         jest.clearAllMocks()
-        leanMock = jest.fn().mockResolvedValue({
-            linkName: 'docs',
-            originalUrl: 'https://example.com/docs',
-        })
 
         auth0.getSession.mockResolvedValue({
             user: { nickname: 'tester' },
         })
-        connectToDatabase.mockResolvedValue({})
-        Yo.findOneAndDelete.mockReturnValue({
-            lean: leanMock,
+        deleteAlias.mockResolvedValue({
+            message: 'docs deleted successfully.',
         })
     })
 
@@ -90,10 +75,15 @@ describe('delete API handler', () => {
 
         expect(res._getStatusCode()).toBe(401)
         expect(res._getJSONData()).toEqual({ error: 'Unauthorized' })
-        expect(connectToDatabase).not.toHaveBeenCalled()
+        expect(deleteAlias).not.toHaveBeenCalled()
     })
 
     it('requires a link name', async () => {
+        deleteAlias.mockRejectedValue({
+            code: 'invalid_alias',
+            message: 'No link name provided.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'DELETE',
             body: {},
@@ -105,7 +95,7 @@ describe('delete API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'No link name provided.',
         })
-        expect(Yo.findOneAndDelete).not.toHaveBeenCalled()
+        expect(deleteAlias).toHaveBeenCalledTimes(1)
     })
 
     it('deletes an existing alias', async () => {
@@ -118,11 +108,11 @@ describe('delete API handler', () => {
 
         await handler(req, res)
 
-        expect(connectToDatabase).toHaveBeenCalledTimes(1)
-        expect(Yo.findOneAndDelete).toHaveBeenCalledWith({
+        expect(deleteAlias).toHaveBeenCalledWith({
+            actorNickname: 'tester',
             linkName: 'docs',
+            span: expect.any(Object),
         })
-        expect(leanMock).toHaveBeenCalledTimes(1)
         expect(res._getStatusCode()).toBe(200)
         expect(res._getJSONData()).toEqual({
             message: 'docs deleted successfully.',
@@ -139,9 +129,7 @@ describe('delete API handler', () => {
 
         await handler(req, res)
 
-        expect(Yo.findOneAndDelete).toHaveBeenCalledWith({
-            linkName: 'docs',
-        })
+        expect(deleteAlias).toHaveBeenCalledTimes(1)
         expect(res._getStatusCode()).toBe(200)
         expect(res._getJSONData()).toEqual({
             message: 'docs deleted successfully.',
@@ -149,7 +137,11 @@ describe('delete API handler', () => {
     })
 
     it('returns not found when the alias does not exist', async () => {
-        leanMock.mockResolvedValue(null)
+        deleteAlias.mockRejectedValue({
+            code: 'missing',
+            message: 'Alias missing not found.',
+            statusCode: 404,
+        })
         const { req, res } = createMocks({
             method: 'DELETE',
             body: {
@@ -166,7 +158,7 @@ describe('delete API handler', () => {
     })
 
     it('returns a server error when deletion fails', async () => {
-        leanMock.mockRejectedValue(new Error('db down'))
+        deleteAlias.mockRejectedValue(new Error('db down'))
         const { req, res } = createMocks({
             method: 'DELETE',
             body: {
@@ -178,7 +170,7 @@ describe('delete API handler', () => {
 
         expect(res._getStatusCode()).toBe(500)
         expect(res._getJSONData()).toEqual({
-            error: 'Failed to delete docs.',
+            error: 'Failed to delete the short link.',
         })
     })
 })
