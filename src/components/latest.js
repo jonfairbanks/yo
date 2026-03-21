@@ -32,7 +32,7 @@ const LatestYos = () => {
     }
 
     return (
-        <table className="yo-table">
+        <table className="yo-table yo-table-cards">
             <thead>
                 <tr>
                     <th>Link</th>
@@ -44,12 +44,14 @@ const LatestYos = () => {
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td width="15%">
-                            <pre style={{ cursor: 'pointer' }}>
-                                {item.linkName}
-                            </pre>
+                        <td width="15%" data-label="Link">
+                            <pre className="row-link-name">{item.linkName}</pre>
                         </td>
-                        <td className="site-url" width="75%">
+                        <td
+                            className="site-url"
+                            width="75%"
+                            data-label="Site URL"
+                        >
                             <a
                                 className="grey-text text-darken-1"
                                 href={'/' + item.linkName}
@@ -60,10 +62,10 @@ const LatestYos = () => {
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td width="10%">
+                        <td width="10%" data-label="Last Access">
                             {dayjs(item.lastAccess).toNow(true)} ago
                         </td>
-                        <td width="20%">
+                        <td width="20%" data-label="Actions">
                             <LinkActions
                                 compact
                                 linkName={item.linkName}

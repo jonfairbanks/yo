@@ -28,7 +28,7 @@ const PopularYos = () => {
     }
 
     return (
-        <table className="yo-table">
+        <table className="yo-table yo-table-cards">
             <thead>
                 <tr>
                     <th>Link</th>
@@ -40,12 +40,14 @@ const PopularYos = () => {
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td width="15%">
-                            <pre style={{ cursor: 'pointer' }}>
-                                {item.linkName}
-                            </pre>
+                        <td width="15%" data-label="Link">
+                            <pre className="row-link-name">{item.linkName}</pre>
                         </td>
-                        <td className="site-url" width="75%">
+                        <td
+                            className="site-url"
+                            width="75%"
+                            data-label="Site URL"
+                        >
                             <a
                                 className="grey-text text-darken-1"
                                 href={'/' + item.linkName}
@@ -56,10 +58,14 @@ const PopularYos = () => {
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td className="url-hits" width="10%">
+                        <td
+                            className="url-hits"
+                            width="10%"
+                            data-label="URL Hits"
+                        >
                             {(item.urlHits ?? 0).toLocaleString()}
                         </td>
-                        <td width="20%">
+                        <td width="20%" data-label="Actions">
                             <LinkActions
                                 compact
                                 linkName={item.linkName}

@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useDashboard } from '../context/dashboard-context'
 
 const parseResponseBody = async (response) => {
-    const contentType = response.headers.get('content-type') || ''
+    const contentType = response.headers?.get?.('content-type') || ''
 
-    if (contentType.includes('application/json')) {
+    if (
+        contentType.includes('application/json') ||
+        typeof response.json === 'function'
+    ) {
         return response.json()
     }
 
@@ -18,10 +21,7 @@ const getErrorMessage = (body, response, fallbackMessage) => {
     }
 
     return (
-        body?.error ||
-        body?.message ||
-        response?.statusText ||
-        fallbackMessage
+        body?.error || body?.message || response?.statusText || fallbackMessage
     )
 }
 

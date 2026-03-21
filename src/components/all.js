@@ -156,8 +156,13 @@ const AllYos = () => {
         () => [
             columnHelper.accessor('linkName', {
                 header: 'Link',
-                cell: (info) => <pre style={{ margin: 0 }}>{info.getValue()}</pre>,
+                cell: (info) => (
+                    <pre className="row-link-name">{info.getValue()}</pre>
+                ),
                 enableSorting: true,
+                meta: {
+                    mobileLabel: 'Link',
+                },
             }),
             columnHelper.accessor('originalUrl', {
                 header: 'Destination',
@@ -173,6 +178,9 @@ const AllYos = () => {
                     </div>
                 ),
                 enableSorting: true,
+                meta: {
+                    mobileLabel: 'Destination',
+                },
             }),
             columnHelper.accessor('urlHits', {
                 header: () => <div className="table-number-cell">Hits</div>,
@@ -182,6 +190,9 @@ const AllYos = () => {
                     </p>
                 ),
                 enableSorting: true,
+                meta: {
+                    mobileLabel: 'Hits',
+                },
             }),
             columnHelper.display({
                 id: 'actions',
@@ -196,7 +207,9 @@ const AllYos = () => {
                             onClick={handleVisitClick}
                             aria-label={`Visit ${info.row.original.linkName} page`}
                         >
-                            <i className="material-icons row-action-icon">open_in_new</i>
+                            <i className="material-icons row-action-icon">
+                                open_in_new
+                            </i>
                             <span>Visit</span>
                         </a>
                         <CopyToClipboard
@@ -206,7 +219,9 @@ const AllYos = () => {
                                 className="btn-small grey grey-text text-darken-3 row-action-button"
                                 aria-label={`Copy ${info.row.original.linkName} short link`}
                             >
-                                <i className="material-icons row-action-icon">content_copy</i>
+                                <i className="material-icons row-action-icon">
+                                    content_copy
+                                </i>
                                 <span>Copy</span>
                             </a>
                         </CopyToClipboard>
@@ -215,11 +230,16 @@ const AllYos = () => {
                             className="btn-small grey grey-text text-darken-3 row-action-button"
                             aria-label={`Edit ${info.row.original.linkName}`}
                         >
-                            <i className="material-icons row-action-icon">edit</i>
+                            <i className="material-icons row-action-icon">
+                                edit
+                            </i>
                             <span>Edit</span>
                         </a>
                     </div>
                 ),
+                meta: {
+                    mobileLabel: 'Actions',
+                },
             }),
         ],
         [columnHelper, handleVisitClick, openUpdateModal]
@@ -254,7 +274,7 @@ const AllYos = () => {
 
     return (
         <div>
-            <div className="row" style={{ marginBottom: '10px' }}>
+            <div className="row table-search-row">
                 <div className="s12 input-field">
                     <input
                         id="search"
@@ -273,16 +293,7 @@ const AllYos = () => {
                 </div>
             </div>
 
-            <div
-                className="row"
-                style={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '8px',
-                    marginBottom: '16px',
-                }}
-            >
+            <div className="row filter-toolbar">
                 {QUICK_FILTERS.map((filter) => (
                     <button
                         key={filter.id}
@@ -319,8 +330,11 @@ const AllYos = () => {
 
             {hasActiveQuickFilter || hasSearchTerm ? (
                 <p className="grey-text text-lighten-1">
-                    Viewing: <strong>{tableFilter?.label || 'Filtered links'}</strong>
-                    {hasSearchTerm ? ` | Search: "${debouncedFilterQuery.trim()}"` : ''}
+                    Viewing:{' '}
+                    <strong>{tableFilter?.label || 'Filtered links'}</strong>
+                    {hasSearchTerm
+                        ? ` | Search: "${debouncedFilterQuery.trim()}"`
+                        : ''}
                 </p>
             ) : null}
 
@@ -331,7 +345,9 @@ const AllYos = () => {
             ) : showEmptyState ? (
                 <div className="card-panel grey darken-3">
                     <h5>{emptyStateTitle}</h5>
-                    <p className="grey-text text-lighten-1">{emptyStateDetail}</p>
+                    <p className="grey-text text-lighten-1">
+                        {emptyStateDetail}
+                    </p>
                     <div className="table-actions">
                         {hasSearchTerm || hasActiveQuickFilter ? (
                             <button
@@ -357,7 +373,7 @@ const AllYos = () => {
                     </div>
                 </div>
             ) : (
-                <table className="yo-table">
+                <table className="yo-table yo-table-cards">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>
@@ -374,7 +390,8 @@ const AllYos = () => {
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
-                                                  header.column.columnDef.header,
+                                                  header.column.columnDef
+                                                      .header,
                                                   header.getContext()
                                               )}
                                         {{
@@ -390,7 +407,13 @@ const AllYos = () => {
                         {rows.map((row) => (
                             <tr key={row.id}>
                                 {row.getVisibleCells().map((cell) => (
-                                    <td key={cell.id}>
+                                    <td
+                                        key={cell.id}
+                                        data-label={
+                                            cell.column.columnDef.meta
+                                                ?.mobileLabel || cell.column.id
+                                        }
+                                    >
                                         {flexRender(
                                             cell.column.columnDef.cell,
                                             cell.getContext()
