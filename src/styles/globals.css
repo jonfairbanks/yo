@@ -21,6 +21,10 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 .page-container {
     min-height: 100vh;
     display: flex;
@@ -211,6 +215,36 @@ th.site-url {
 
 .success-link-btn {
     margin-right: 10px;
+}
+
+.modal-backdrop {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 20px;
+    position: fixed;
+    z-index: 1000;
+}
+
+.modal-react-open {
+    display: block !important;
+    margin: 0;
+    max-height: calc(100vh - 40px);
+    max-width: 720px;
+    overflow-y: auto;
+    position: relative;
+    top: 0 !important;
+    width: min(720px, 100%);
+}
+
+.modal-close-button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    float: right;
+    padding: 0;
 }
 
 .header-logo {

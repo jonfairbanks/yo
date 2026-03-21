@@ -3,7 +3,7 @@ import { auth0 } from '../lib/auth0'
 import Tabs from '../components/tabs'
 import Header from '../components/header'
 import Footer from '../components/footer'
-import CreateModal from '../components/create'
+import { DashboardProvider } from '../context/dashboard-context'
 
 export async function getServerSideProps(context) {
     const session = await auth0.getSession(context.req)
@@ -24,14 +24,15 @@ export async function getServerSideProps(context) {
 
 function HomePage({ user }) {
     return (
-        <div className="page-container">
-            <div className="page-content">
-                <Header user={user} />
-                <Tabs />
-                <CreateModal />
+        <DashboardProvider>
+            <div className="page-container">
+                <div className="page-content">
+                    <Header user={user} />
+                    <Tabs />
+                </div>
+                <Footer />
             </div>
-            <Footer />
-        </div>
+        </DashboardProvider>
     )
 }
 

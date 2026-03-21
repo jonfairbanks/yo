@@ -3,19 +3,10 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import CreateModal from '../../components/create'
+import { DashboardProvider } from '../../context/dashboard-context'
 
 jest.mock('react-copy-to-clipboard', () => ({
     CopyToClipboard: ({ children }) => children,
-}))
-
-jest.mock('@materializecss/materialize', () => ({
-    Modal: {
-        getInstance: jest.fn(() => null),
-        init: jest.fn((_element, options) => ({
-            destroy: jest.fn(),
-            options: { ...options },
-        })),
-    },
 }))
 
 describe('CreateModal', () => {
@@ -34,7 +25,11 @@ describe('CreateModal', () => {
     })
 
     it('links to the short URL after a successful create', async () => {
-        const { container } = render(<CreateModal />)
+        const { container } = render(
+            <DashboardProvider>
+                <CreateModal onClose={() => {}} />
+            </DashboardProvider>
+        )
 
         const linkNameInput = screen.getByLabelText('Link name')
         const originalUrlInput = screen.getByLabelText('Website URL')

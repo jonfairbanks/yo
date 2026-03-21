@@ -1,31 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { getShortUrl } from '../lib/browser-short-url'
+import { useDashboard } from '../context/dashboard-context'
+import ModalShell from './modal-shell'
 
-const CreateModal = () => {
+const CreateModal = ({ onClose }) => {
     const [error, setError] = useState(null)
-    const [success, setSuccess] = useState(false) // Track success state
-    const [newLink, setNewLink] = useState('') // Track newly created link
-    const [newUrl, setNewUrl] = useState('') // Track original url for new link
-    const [clickedCopy, setClickedCopy] = useState(false) // Track original url for new link
+    const [success, setSuccess] = useState(false)
+    const [newLink, setNewLink] = useState('')
+    const [newUrl, setNewUrl] = useState('')
+    const [clickedCopy, setClickedCopy] = useState(false)
     const formRef = useRef(null)
-    const modalRef = useRef(null)
     const linkNameRef = useRef(null)
-
-    const focusLinkInputWithRetries = () => {
-        const attempts = [0, 50, 120, 220, 400]
-        attempts.forEach((delay) => {
-            setTimeout(() => {
-                if (linkNameRef.current) {
-                    linkNameRef.current.focus({ preventScroll: true })
-                    linkNameRef.current.select()
-                } else {
-                    modalRef.current?.querySelector('input')?.focus()
-                }
-            }, delay)
-        })
-    }
+    const { refreshDashboard, scheduleRefresh } = useDashboard()
 
     const resetState = () => {
         formRef.current?.reset()
@@ -35,76 +23,6 @@ const CreateModal = () => {
         setError(null)
         setClickedCopy(false)
     }
-
-    useEffect(() => {
-        const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
-        const elem = document.getElementById('create')
-        if (!elem) return undefined
-        const modalElement = modalRef.current || elem
-
-        const trapFocus = (event) => {
-            if (event.key !== 'Tab' || !modalElement) return
-            const focusable = Array.from(
-                modalElement.querySelectorAll(
-                    'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-                )
-            ).filter(
-                (el) =>
-                    !el.hasAttribute('disabled') &&
-                    el.getAttribute('tabindex') !== '-1' &&
-                    el.offsetParent !== null
-            )
-            if (!focusable.length) return
-            const first = focusable[0]
-            const last = focusable[focusable.length - 1]
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault()
-                last.focus()
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault()
-                first.focus()
-            }
-        }
-
-        const instance =
-            M.Modal.getInstance(elem) ||
-            M.Modal.init(elem, {
-                onOpenStart: () => {
-                    resetState()
-                    focusLinkInputWithRetries()
-                },
-                onOpenEnd: focusLinkInputWithRetries,
-                onCloseEnd: resetState,
-            })
-
-        instance.options.onOpenStart = () => {
-            resetState()
-            focusLinkInputWithRetries()
-        }
-        instance.options.onOpenEnd = focusLinkInputWithRetries
-        instance.options.onCloseEnd = resetState
-        modalElement?.addEventListener('keydown', trapFocus)
-
-        const triggers = Array.from(
-            document.querySelectorAll('.modal-trigger[href="#create"]')
-        )
-        const handleTriggerClick = () => {
-            resetState()
-            setTimeout(focusLinkInputWithRetries, 100)
-        }
-        triggers.forEach((trigger) =>
-            trigger.addEventListener('click', handleTriggerClick)
-        )
-
-        return () => {
-            instance.destroy()
-            triggers.forEach((trigger) =>
-                trigger.removeEventListener('click', handleTriggerClick)
-            )
-            modalElement?.removeEventListener('keydown', trapFocus)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
 
     const CreateNewYo = async (event) => {
         event.preventDefault() // Prevent page reload
@@ -141,9 +59,10 @@ const CreateModal = () => {
 
             // Reset form after successful submission
             form.reset()
-            setNewLink(result.linkName) // Store the new link name
-            setNewUrl(result.originalUrl) // Store the original url
-            setSuccess(true) // Show success message
+            setNewLink(result.linkName)
+            setNewUrl(result.originalUrl)
+            setSuccess(true)
+            refreshDashboard()
         } catch (error) {
             setError(error.message)
         }
@@ -151,28 +70,30 @@ const CreateModal = () => {
 
     const handleButtonClick = () => {
         setClickedCopy(true)
-        setTimeout(() => setClickedCopy(false), 2500) // Reset `clickedCopy` after N seconds
+        setTimeout(() => setClickedCopy(false), 2500)
     }
 
     return (
         <form className="row" onSubmit={CreateNewYo} ref={formRef}>
-            <div
-                id="create"
-                className="modal"
-                ref={modalRef}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="create-modal-title"
+            <ModalShell
+                ariaLabelledBy="create-modal-title"
+                initialFocusRef={linkNameRef}
+                onClose={() => {
+                    resetState()
+                    onClose()
+                }}
+                footer={
+                    success ? null : (
+                        <button
+                            type="submit"
+                            className="waves-effect btn-flat teal white-text"
+                            aria-label="Create link"
+                        >
+                            Create
+                        </button>
+                    )
+                }
             >
-                <div className="modal-content">
-                    <a
-                        href="#!"
-                        className="modal-close grey-text text-darken-1"
-                        aria-label="Close create modal"
-                        style={{ float: 'right' }}
-                    >
-                        <i className="material-icons">close</i>
-                    </a>
                     {success ? (
                         <div>
                             <h1
@@ -201,6 +122,7 @@ const CreateModal = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={`Visit ${newLink} redirect`}
+                                onClick={() => scheduleRefresh()}
                             >
                                 <i className="material-icons">redo</i> Go to
                                 Link
@@ -275,20 +197,7 @@ const CreateModal = () => {
 
                     {/* Show error message if there is an error */}
                     {error && <p className="red-text text-darken-1">{error}</p>}
-                </div>
-
-                {success ? null : (
-                    <div className="modal-footer">
-                        <button
-                            type="submit"
-                            className="waves-effect btn-flat teal white-text"
-                            aria-label="Create link"
-                        >
-                            Create
-                        </button>
-                    </div>
-                )}
-            </div>
+            </ModalShell>
         </form>
     )
 }

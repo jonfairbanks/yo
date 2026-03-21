@@ -1,35 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { useDashboard } from '../context/dashboard-context'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
 import { getShortUrl } from '../lib/browser-short-url'
-import { fetchJson } from '../lib/fetch-json'
 
 const PopularYos = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    // Fetch data from API on component mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const json = await fetchJson(
-                    '/api/popular',
-                    'Failed to load popular data.'
-                )
-                if (!Array.isArray(json)) {
-                    throw new Error('Failed to load popular data.')
-                }
-                setData(json)
-                setLoading(false)
-            } catch (error) {
-                setError(error.message || 'Failed to load popular data.')
-                setLoading(false)
+    const { scheduleRefresh } = useDashboard()
+    const queryUrl = useMemo(() => '/api/popular', [])
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load popular data.',
+        url: queryUrl,
+        initialData: [],
+        parse: (json) => {
+            if (!Array.isArray(json)) {
+                throw new Error('Failed to load popular data.')
             }
-        }
 
-        fetchData()
-    }, []) // Empty dependency array means this effect runs once on mount
+            return json
+        },
+    })
 
     if (loading) {
         return <p>Loading...</p>
@@ -64,6 +54,7 @@ const PopularYos = () => {
                                 href={'/' + item.linkName}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => scheduleRefresh()}
                             >
                                 {item.originalUrl}
                             </a>

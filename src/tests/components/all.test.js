@@ -4,6 +4,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import AllYos from '../../components/all'
+import { DashboardProvider } from '../../context/dashboard-context'
 
 jest.mock('../../components/update', () => () => null)
 
@@ -13,6 +14,9 @@ jest.mock('react-copy-to-clipboard', () => ({
 
 describe('AllYos', () => {
     let resolvePendingSearch
+
+    const renderWithProvider = (ui) =>
+        render(<DashboardProvider>{ui}</DashboardProvider>)
 
     beforeEach(() => {
         jest.useFakeTimers()
@@ -78,7 +82,7 @@ describe('AllYos', () => {
     })
 
     it('renders a placeholder row when a search has no matches', async () => {
-        render(<AllYos />)
+        renderWithProvider(<AllYos />)
 
         await screen.findByText('docs')
 
@@ -98,7 +102,7 @@ describe('AllYos', () => {
     })
 
     it('keeps focus in the search box while a search request is in flight', async () => {
-        render(<AllYos />)
+        renderWithProvider(<AllYos />)
 
         await screen.findByText('docs')
 

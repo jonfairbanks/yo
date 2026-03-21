@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
     useReactTable,
     createColumnHelper,
@@ -8,22 +8,17 @@ import {
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { getShortUrl } from '../lib/browser-short-url'
-import UpdateModal from './update'
+import { useDashboard } from '../context/dashboard-context'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
 
 const AllYos = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(true)
+    const { openUpdateModal, scheduleRefresh } = useDashboard()
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
-    const [error, setError] = useState(null)
     const [clickedCopy, setClickedCopy] = useState(null) // Align names
-    const [selectedRow, setSelectedRow] = useState(null) // Align names
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
     const [filterQuery, setFilterQuery] = useState('')
-    const [pageCount, setPageCount] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
     const [debouncedFilterQuery, setDebouncedFilterQuery] = useState('')
-    const [refreshKey, setRefreshKey] = useState(0)
     const columnHelper = useMemo(() => createColumnHelper(), [])
 
     useEffect(() => {
@@ -40,82 +35,67 @@ const AllYos = () => {
         )
     }, [debouncedFilterQuery])
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true)
-            setError(null)
+    const queryUrl = useMemo(() => {
+        const activeSort = sorting[0] || {
+            id: 'linkName',
+            desc: false,
+        }
+        const params = new URLSearchParams({
+            page: String(pagination.pageIndex + 1),
+            pageSize: String(pagination.pageSize),
+            sortBy: activeSort.id,
+            sortDir: activeSort.desc ? 'desc' : 'asc',
+        })
 
-            try {
-                const activeSort = sorting[0] || {
-                    id: 'linkName',
-                    desc: false,
-                }
-                const params = new URLSearchParams({
-                    page: String(pagination.pageIndex + 1),
-                    pageSize: String(pagination.pageSize),
-                    sortBy: activeSort.id,
-                    sortDir: activeSort.desc ? 'desc' : 'asc',
-                })
-
-                if (debouncedFilterQuery.trim()) {
-                    params.set('q', debouncedFilterQuery.trim())
-                }
-
-                const response = await fetch(`/api?${params.toString()}`)
-                if (!response.ok) {
-                    throw new Error('Failed to load data.')
-                }
-
-                const json = await response.json()
-                setData(json.items)
-                setPageCount(json.pagination.totalPages)
-                setTotalItems(json.pagination.totalItems)
-                setHasLoadedOnce(true)
-
-                if (
-                    json.pagination.totalPages > 0 &&
-                    pagination.pageIndex + 1 > json.pagination.totalPages
-                ) {
-                    setPagination((prev) => ({
-                        ...prev,
-                        pageIndex: json.pagination.totalPages - 1,
-                    }))
-                }
-            } catch {
-                setError('Failed to load data.')
-            } finally {
-                setLoading(false)
-            }
+        if (debouncedFilterQuery.trim()) {
+            params.set('q', debouncedFilterQuery.trim())
         }
 
-        fetchData()
-    }, [
-        pagination.pageIndex,
-        pagination.pageSize,
-        debouncedFilterQuery,
-        refreshKey,
-        sorting,
-    ])
+        return `/api?${params.toString()}`
+    }, [debouncedFilterQuery, pagination.pageIndex, pagination.pageSize, sorting])
 
-    const handleCopyClick = (linkName) => {
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load data.',
+        url: queryUrl,
+        initialData: {
+            items: [],
+            pagination: {
+                totalItems: 0,
+                totalPages: 1,
+            },
+        },
+        parse: (json) => {
+            if (!json?.items || !json?.pagination) {
+                throw new Error('Failed to load data.')
+            }
+            return json
+        },
+    })
+
+    useEffect(() => {
+        if (data?.pagination) {
+            setHasLoadedOnce(true)
+
+            if (
+                data.pagination.totalPages > 0 &&
+                pagination.pageIndex + 1 > data.pagination.totalPages
+            ) {
+                setPagination((prev) => ({
+                    ...prev,
+                    pageIndex: data.pagination.totalPages - 1,
+                }))
+            }
+        }
+    }, [data, pagination.pageIndex])
+
+    const handleCopyClick = useCallback((linkName) => {
         setClickedCopy(linkName)
         setTimeout(() => setClickedCopy(null), 1500)
-    }
+    }, [])
 
-    const handleEditClick = (item) => {
-        setSelectedRow(item)
-    }
-
-    const handleVisitClick = () => {
-        window.setTimeout(() => {
-            setRefreshKey((prev) => prev + 1)
-        }, 500)
-    }
-
-    const handleCloseModal = () => {
-        setSelectedRow(null)
-        setRefreshKey((prev) => prev + 1)
-    }
+    const handleVisitClick = useCallback(() => {
+        scheduleRefresh()
+    }, [scheduleRefresh])
 
     const columns = useMemo(
         () => [
@@ -162,7 +142,7 @@ const AllYos = () => {
                 cell: (info) => (
                     <div className="table-actions">
                         <a
-                            onClick={() => handleEditClick(info.row.original)}
+                            onClick={() => openUpdateModal(info.row.original)}
                             className="btn-small icon-left grey grey-text text-darken-2"
                             aria-label={`Edit ${info.row.original.linkName}`}
                         >
@@ -199,11 +179,11 @@ const AllYos = () => {
                 ),
             }),
         ],
-        [clickedCopy, columnHelper]
+        [clickedCopy, columnHelper, handleVisitClick, openUpdateModal, handleCopyClick]
     )
 
     const table = useReactTable({
-        data,
+        data: data.items,
         columns,
         state: { sorting, pagination },
         onSortingChange: setSorting,
@@ -211,7 +191,7 @@ const AllYos = () => {
         getCoreRowModel: getCoreRowModel(),
         manualSorting: true,
         manualPagination: true,
-        pageCount,
+        pageCount: data.pagination.totalPages,
     })
 
     const rows = table.getRowModel().rows
@@ -338,7 +318,7 @@ const AllYos = () => {
                     style={{ marginLeft: '10px', marginRight: '10px' }}
                 >
                     Page {table.getState().pagination.pageIndex + 1} of{' '}
-                    {table.getPageCount()} ({totalItems} links)
+                    {table.getPageCount()} ({data.pagination.totalItems} links)
                 </span>
                 <button
                     onClick={() => table.nextPage()}
@@ -347,10 +327,6 @@ const AllYos = () => {
                     ⇥
                 </button>
             </div>
-
-            {selectedRow && (
-                <UpdateModal item={selectedRow} onClose={handleCloseModal} />
-            )}
         </div>
     )
 }

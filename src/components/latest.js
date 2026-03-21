@@ -1,39 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
+import { useDashboard } from '../context/dashboard-context'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
 import { getShortUrl } from '../lib/browser-short-url'
-import { fetchJson } from '../lib/fetch-json'
 
 dayjs.extend(relativeTime)
 
 const LatestYos = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    // Fetch data from API on component mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const json = await fetchJson(
-                    '/api/latest',
-                    'Failed to load latest data.'
-                )
-                if (!Array.isArray(json)) {
-                    throw new Error('Failed to load latest data.')
-                }
-                setData(json)
-                setLoading(false)
-            } catch (error) {
-                setError(error.message || 'Failed to load latest data.')
-                setLoading(false)
+    const { scheduleRefresh } = useDashboard()
+    const queryUrl = useMemo(() => '/api/latest', [])
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load latest data.',
+        url: queryUrl,
+        initialData: [],
+        parse: (json) => {
+            if (!Array.isArray(json)) {
+                throw new Error('Failed to load latest data.')
             }
-        }
 
-        fetchData()
-    }, []) // Empty dependency array means this effect runs once on mount
+            return json
+        },
+    })
 
     if (loading) {
         return <p>Loading...</p>
@@ -68,6 +58,7 @@ const LatestYos = () => {
                                 href={'/' + item.linkName}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => scheduleRefresh()}
                             >
                                 {item.originalUrl}
                             </a>

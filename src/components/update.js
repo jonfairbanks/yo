@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { getShortUrl } from '../lib/browser-short-url'
+import { useDashboard } from '../context/dashboard-context'
+import ModalShell from './modal-shell'
 
 const UpdateModal = ({ item, onClose }) => {
     const [error, setError] = useState(null)
@@ -9,69 +11,21 @@ const UpdateModal = ({ item, onClose }) => {
     const [deleted, setDeleted] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
     const [clickedCopy, setClickedCopy] = useState(null)
+    const originalUrlRef = useRef(null)
+    const { refreshDashboard, scheduleRefresh } = useDashboard()
 
     useEffect(() => {
         if (item) {
             setOriginalUrl(item.originalUrl || '')
+            setError(null)
+            setSuccess(false)
+            setDeleted(false)
+            setClickedCopy(false)
         }
     }, [item])
 
-    useEffect(() => {
-        const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
-        const elem = document.getElementById('update')
-        const instance = M.Modal.init(elem, {
-            dismissible: true,
-            onOpenStart: () => {
-                elem?.querySelector('input:not([disabled])')?.focus()
-            },
-            onCloseEnd: () => {
-                if (onClose) onClose()
-                setSuccess(false) // Reset the state when the Modal closes
-                setDeleted(false) // Reset the state when the Modal closes
-            },
-        })
-
-        const trapFocus = (event) => {
-            if (event.key !== 'Tab') return
-            const focusable = Array.from(
-                elem.querySelectorAll(
-                    'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-                )
-            ).filter(
-                (el) =>
-                    !el.hasAttribute('disabled') &&
-                    el.getAttribute('tabindex') !== '-1' &&
-                    el.offsetParent !== null
-            )
-            if (!focusable.length) return
-            const first = focusable[0]
-            const last = focusable[focusable.length - 1]
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault()
-                last.focus()
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault()
-                first.focus()
-            }
-        }
-
-        elem?.addEventListener('keydown', trapFocus)
-        instance.open()
-
-        return () => {
-            elem?.removeEventListener('keydown', trapFocus)
-            instance.destroy()
-        }
-    }, [onClose])
-
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
-
-        // Show a confirmation dialog before updating
-        const confirmed = window.confirm(
-            'Are you sure you want to update this link?'
-        )
-        if (!confirmed) return // Exit if user cancels
 
         const data = {
             linkName: item.linkName,
@@ -95,17 +49,13 @@ const UpdateModal = ({ item, onClose }) => {
 
             await response.json()
             setSuccess(true)
+            refreshDashboard()
         } catch (error) {
             setError(error.message)
         }
     }
 
     const DeleteYo = async () => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete this link?'
-        )
-        if (!confirmed) return
-
         const data = { linkName: item.linkName }
 
         try {
@@ -117,6 +67,7 @@ const UpdateModal = ({ item, onClose }) => {
 
             if (!response.ok) throw new Error('Failed to delete item')
             setDeleted(true)
+            refreshDashboard()
         } catch {
             setError('Error deleting item')
         }
@@ -129,22 +80,32 @@ const UpdateModal = ({ item, onClose }) => {
 
     return (
         <form className="row" onSubmit={UpdateYo}>
-            <div
-                id="update"
-                className="modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="update-modal-title"
+            <ModalShell
+                ariaLabelledBy="update-modal-title"
+                initialFocusRef={originalUrlRef}
+                onClose={onClose}
+                footer={
+                    !success && !deleted ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={DeleteYo}
+                                className="delete-modal-btn waves-effect btn-flat red white-text"
+                                aria-label={`Delete ${item.linkName}`}
+                            >
+                                Delete
+                            </button>
+                            <button
+                                type="submit"
+                                className="update-modal-btn waves-effect btn-flat teal white-text"
+                                aria-label={`Update ${item.linkName}`}
+                            >
+                                Update
+                            </button>
+                        </>
+                    ) : null
+                }
             >
-                <div className="modal-content">
-                    <a
-                        href="#!"
-                        className="modal-close grey-text text-darken-1"
-                        aria-label="Close update modal"
-                        style={{ float: 'right' }}
-                    >
-                        <i className="material-icons">close</i>
-                    </a>
                     {success ? (
                         <div>
                             <h1
@@ -182,6 +143,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 className="success-link-btn btn teal white-text icon-left"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => scheduleRefresh()}
                             >
                                 <i className="material-icons">redo</i> Go to
                                 Link
@@ -252,6 +214,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 <input
                                     id="originalUrl"
                                     type="url"
+                                    ref={originalUrlRef}
                                     value={originalUrl}
                                     onChange={(e) =>
                                         setOriginalUrl(e.target.value)
@@ -270,28 +233,7 @@ const UpdateModal = ({ item, onClose }) => {
                         </div>
                     )}
                     {error && <p className="red-text text-darken-1">{error}</p>}
-                </div>
-
-                {!success && !deleted && (
-                    <div className="modal-footer">
-                        <button
-                            type="button"
-                            onClick={DeleteYo}
-                            className="delete-modal-btn waves-effect btn-flat red white-text"
-                            aria-label={`Delete ${item.linkName}`}
-                        >
-                            Delete
-                        </button>
-                        <button
-                            type="submit"
-                            className="update-modal-btn waves-effect btn-flat teal white-text"
-                            aria-label={`Update ${item.linkName}`}
-                        >
-                            Update
-                        </button>
-                    </div>
-                )}
-            </div>
+            </ModalShell>
         </form>
     )
 }
