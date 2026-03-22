@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useMemo,
+    useState,
+} from 'react'
 
 const DashboardContext = createContext(null)
 const DEFAULT_TABLE_FILTER = {
@@ -43,7 +49,26 @@ export const DashboardProvider = ({ children }) => {
         setTableFilter(filter || DEFAULT_TABLE_FILTER)
 
         if (typeof window !== 'undefined') {
+            const tabsElement = document.querySelector('.tabs')
+            const tabsInstance = window.M?.Tabs?.getInstance?.(tabsElement)
+
             window.location.hash = 'all'
+
+            if (tabsInstance?.select) {
+                tabsInstance.select('all')
+            } else {
+                document.querySelector('.tabs a[href="#all"]')?.dispatchEvent(
+                    new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                )
+            }
+
+            document.getElementById('all')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            })
         }
     }, [])
 
