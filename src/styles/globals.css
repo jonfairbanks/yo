@@ -127,19 +127,33 @@ body.modal-open {
     vertical-align: top;
 }
 
-.yo-table th:first-child,
-.yo-table td:first-child {
+.yo-table-all th:first-child,
+.yo-table-all td:first-child {
     width: 148px;
 }
 
-.yo-table th:nth-child(3),
-.yo-table td:nth-child(3) {
+.yo-table-all th:nth-child(3),
+.yo-table-all td:nth-child(3) {
     width: 96px;
 }
 
-.yo-table th:last-child,
-.yo-table td:last-child {
-    width: 320px;
+.yo-table-all th:last-child,
+.yo-table-all td:last-child {
+    width: 196px;
+}
+
+.yo-table-popular th:nth-child(3),
+.yo-table-popular td:nth-child(3),
+.yo-table-latest th:nth-child(3),
+.yo-table-latest td:nth-child(3) {
+    width: 136px;
+}
+
+.yo-table-popular th:last-child,
+.yo-table-popular td:last-child,
+.yo-table-latest th:last-child,
+.yo-table-latest td:last-child {
+    width: 196px;
 }
 
 .stats-section {

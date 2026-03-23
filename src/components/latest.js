@@ -32,7 +32,7 @@ const LatestYos = () => {
     }
 
     return (
-        <table className="yo-table yo-table-cards">
+        <table className="yo-table yo-table-cards yo-table-latest">
             <thead>
                 <tr>
                     <th>Link</th>

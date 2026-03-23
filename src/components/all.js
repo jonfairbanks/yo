@@ -396,7 +396,7 @@ const AllYos = () => {
                 </div>
             ) : (
                 <>
-                    <table className="yo-table yo-table-cards">
+                    <table className="yo-table yo-table-cards yo-table-all">
                         <thead>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <tr key={headerGroup.id}>

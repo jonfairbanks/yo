@@ -28,7 +28,7 @@ const PopularYos = () => {
     }
 
     return (
-        <table className="yo-table yo-table-cards">
+        <table className="yo-table yo-table-cards yo-table-popular">
             <thead>
                 <tr>
                     <th>Link</th>
