@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const ModalShell = ({
     ariaLabelledBy,
@@ -7,24 +7,35 @@ const ModalShell = ({
     initialFocusRef,
     onClose,
 }) => {
+    const onCloseRef = useRef(onClose)
+
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {
             initialFocusRef?.current?.focus?.()
         }, 0)
 
+        return () => {
+            window.clearTimeout(timeoutId)
+        }
+    }, [initialFocusRef])
+
+    useEffect(() => {
+        onCloseRef.current = onClose
+    }, [onClose])
+
+    useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
-                onClose?.()
+                onCloseRef.current?.()
             }
         }
 
         document.addEventListener('keydown', handleKeyDown)
 
         return () => {
-            window.clearTimeout(timeoutId)
             document.removeEventListener('keydown', handleKeyDown)
         }
-    }, [initialFocusRef, onClose])
+    }, [])
 
     return (
         <div

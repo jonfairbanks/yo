@@ -11,6 +11,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
+import { getShortUrl } from '../lib/browser-short-url'
 dayjs.extend(relativeTime)
 
 const QUICK_FILTERS = [
@@ -51,6 +52,55 @@ const formatSubtitle = (createdAt, lastAccess) => {
         : 'Last Accessed: never'
 
     return `${createdText} | ${lastAccessText}`
+}
+
+const RowActions = ({ item, onEdit, onVisit }) => {
+    const [copied, setCopied] = useState(false)
+
+    const handleCopied = () => {
+        setCopied(true)
+        window.setTimeout(() => {
+            setCopied(false)
+        }, 1500)
+    }
+
+    return (
+        <div className="row-actions-grid">
+            <a
+                href={`/${item.linkName}`}
+                className="btn-small teal white-text row-action-button"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onVisit}
+                aria-label={`Visit ${item.linkName} page`}
+            >
+                <i className="material-icons row-action-icon">open_in_new</i>
+                <span>Visit</span>
+            </a>
+            <CopyToClipboard
+                text={getShortUrl(item.linkName)}
+                onCopy={handleCopied}
+            >
+                <a
+                    className="btn-small grey grey-text text-darken-3 row-action-button"
+                    aria-label={`Copy ${item.linkName} short link`}
+                >
+                    <i className="material-icons row-action-icon">
+                        {copied ? 'done' : 'content_copy'}
+                    </i>
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                </a>
+            </CopyToClipboard>
+            <a
+                onClick={() => onEdit(item)}
+                className="btn-small grey grey-text text-darken-3 row-action-button"
+                aria-label={`Edit ${item.linkName}`}
+            >
+                <i className="material-icons row-action-icon">edit</i>
+                <span>Edit</span>
+            </a>
+        </div>
+    )
 }
 
 const AllYos = () => {
@@ -157,7 +207,9 @@ const AllYos = () => {
             columnHelper.accessor('linkName', {
                 header: 'Link',
                 cell: (info) => (
-                    <pre className="row-link-name">{info.getValue()}</pre>
+                    <pre className="row-link-name" title={info.getValue()}>
+                        {info.getValue()}
+                    </pre>
                 ),
                 enableSorting: true,
                 meta: {
@@ -198,44 +250,11 @@ const AllYos = () => {
                 id: 'actions',
                 header: () => <div className="table-actions">Actions</div>,
                 cell: (info) => (
-                    <div className="row-actions-grid">
-                        <a
-                            href={`/${info.row.original.linkName}`}
-                            className="btn-small teal white-text row-action-button"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={handleVisitClick}
-                            aria-label={`Visit ${info.row.original.linkName} page`}
-                        >
-                            <i className="material-icons row-action-icon">
-                                open_in_new
-                            </i>
-                            <span>Visit</span>
-                        </a>
-                        <CopyToClipboard
-                            text={`/${info.row.original.linkName}`}
-                        >
-                            <a
-                                className="btn-small grey grey-text text-darken-3 row-action-button"
-                                aria-label={`Copy ${info.row.original.linkName} short link`}
-                            >
-                                <i className="material-icons row-action-icon">
-                                    content_copy
-                                </i>
-                                <span>Copy</span>
-                            </a>
-                        </CopyToClipboard>
-                        <a
-                            onClick={() => openUpdateModal(info.row.original)}
-                            className="btn-small grey grey-text text-darken-3 row-action-button"
-                            aria-label={`Edit ${info.row.original.linkName}`}
-                        >
-                            <i className="material-icons row-action-icon">
-                                edit
-                            </i>
-                            <span>Edit</span>
-                        </a>
-                    </div>
+                    <RowActions
+                        item={info.row.original}
+                        onEdit={openUpdateModal}
+                        onVisit={handleVisitClick}
+                    />
                 ),
                 meta: {
                     mobileLabel: 'Actions',
@@ -262,6 +281,9 @@ const AllYos = () => {
     const hasSearchTerm = Boolean(debouncedFilterQuery.trim())
     const hasActiveQuickFilter = tableFilter?.id && tableFilter.id !== 'all'
     const showEmptyState = !rows.length
+    const currentPage = pagination.pageIndex + 1
+    const totalPages = data.pagination.totalPages || 1
+    const totalItems = data.pagination.totalItems || 0
 
     const emptyStateTitle =
         hasSearchTerm || hasActiveQuickFilter
@@ -373,57 +395,94 @@ const AllYos = () => {
                     </div>
                 </div>
             ) : (
-                <table className="yo-table yo-table-cards">
-                    <thead>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <th
-                                        key={header.id}
-                                        onClick={header.column.getToggleSortingHandler()}
-                                        style={{
-                                            cursor: header.column.getCanSort()
-                                                ? 'pointer'
-                                                : 'default',
-                                        }}
-                                    >
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                  header.column.columnDef
-                                                      .header,
-                                                  header.getContext()
-                                              )}
-                                        {{
-                                            asc: ' ⬆',
-                                            desc: ' ⬇',
-                                        }[header.column.getIsSorted()] || null}
-                                    </th>
-                                ))}
-                            </tr>
-                        ))}
-                    </thead>
-                    <tbody>
-                        {rows.map((row) => (
-                            <tr key={row.id}>
-                                {row.getVisibleCells().map((cell) => (
-                                    <td
-                                        key={cell.id}
-                                        data-label={
-                                            cell.column.columnDef.meta
-                                                ?.mobileLabel || cell.column.id
-                                        }
-                                    >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <>
+                    <table className="yo-table yo-table-cards">
+                        <thead>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <tr key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <th
+                                            key={header.id}
+                                            onClick={header.column.getToggleSortingHandler()}
+                                            style={{
+                                                cursor: header.column.getCanSort()
+                                                    ? 'pointer'
+                                                    : 'default',
+                                            }}
+                                        >
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext()
+                                                  )}
+                                            {{
+                                                asc: ' ⬆',
+                                                desc: ' ⬇',
+                                            }[header.column.getIsSorted()] ||
+                                                null}
+                                        </th>
+                                    ))}
+                                </tr>
+                            ))}
+                        </thead>
+                        <tbody>
+                            {rows.map((row) => (
+                                <tr key={row.id}>
+                                    {row.getVisibleCells().map((cell) => (
+                                        <td
+                                            key={cell.id}
+                                            data-label={
+                                                cell.column.columnDef.meta
+                                                    ?.mobileLabel ||
+                                                cell.column.id
+                                            }
+                                        >
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div className="table-pagination" aria-label="Pagination">
+                        <p className="table-pagination-summary grey-text text-lighten-1">
+                            Page {currentPage} of {totalPages} ({totalItems}{' '}
+                            links)
+                        </p>
+                        <div className="table-pagination-actions">
+                            <button
+                                type="button"
+                                className="btn-small grey grey-text text-darken-3"
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                                aria-label="Go to previous page"
+                            >
+                                <i className="material-icons left">
+                                    chevron_left
+                                </i>
+                                Previous
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-small teal white-text"
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                                aria-label="Go to next page"
+                            >
+                                Next
+                                <i className="material-icons right">
+                                    chevron_right
+                                </i>
+                            </button>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     )

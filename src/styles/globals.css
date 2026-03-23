@@ -118,12 +118,28 @@ body.modal-open {
 } /*Color of underline*/
 
 .yo-table {
+    table-layout: fixed;
     width: 100%;
 }
 
 .yo-table th,
 .yo-table td {
     vertical-align: top;
+}
+
+.yo-table th:first-child,
+.yo-table td:first-child {
+    width: 148px;
+}
+
+.yo-table th:nth-child(3),
+.yo-table td:nth-child(3) {
+    width: 96px;
+}
+
+.yo-table th:last-child,
+.yo-table td:last-child {
+    width: 320px;
 }
 
 .stats-section {
@@ -229,6 +245,8 @@ body.modal-open {
 .site-url,
 .site-url a {
     color: #acacac;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .btn.grey,
@@ -254,9 +272,29 @@ body.modal-open {
 }
 
 .row-link-name {
+    display: block;
     margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 18px;
+}
+
+.table-pagination-summary {
+    margin: 0;
+}
+
+.table-pagination-actions {
+    display: flex;
+    gap: 8px;
 }
 
 .table-actions {
@@ -359,6 +397,19 @@ th.site-url {
     padding: 0;
 }
 
+.modal-react-open .modal-footer {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 0 24px 24px;
+}
+
+.modal-react-open .modal-footer .btn,
+.modal-react-open .modal-footer .btn-flat {
+    margin: 0;
+}
+
 .header-logo {
     cursor: pointer;
 }
@@ -422,6 +473,27 @@ th.site-url {
 .search-input:focus {
     border-bottom: 1px solid teal !important;
     box-shadow: 0 1px 0 0 teal !important;
+}
+
+.input-field input[type='text']:focus:not([readonly]),
+.input-field input[type='url']:focus:not([readonly]),
+.input-field input[type='email']:focus:not([readonly]),
+.input-field input[type='password']:focus:not([readonly]),
+.input-field textarea:focus:not([readonly]) {
+    border-bottom: 1px solid teal !important;
+    box-shadow: 0 1px 0 0 teal !important;
+}
+
+.input-field input[type='text']:focus:not([readonly]) + label,
+.input-field input[type='url']:focus:not([readonly]) + label,
+.input-field input[type='email']:focus:not([readonly]) + label,
+.input-field input[type='password']:focus:not([readonly]) + label,
+.input-field textarea:focus:not([readonly]) + label {
+    color: teal !important;
+}
+
+.input-field .supporting-text {
+    color: #757575;
 }
 
 .centered {
@@ -566,6 +638,12 @@ th.site-url {
         width: 100%;
     }
 
+    .yo-table-cards td:first-child,
+    .yo-table-cards td:nth-child(3),
+    .yo-table-cards td:last-child {
+        width: 100%;
+    }
+
     .yo-table-cards tbody {
         display: grid;
         gap: 12px;
@@ -577,7 +655,7 @@ th.site-url {
         border-radius: 14px;
         box-shadow: 0 12px 24px rgba(0, 0, 0, 0.14);
         overflow: hidden;
-        padding: 14px;
+        padding: 12px 10px;
     }
 
     .yo-table-cards td {
@@ -605,11 +683,19 @@ th.site-url {
         text-align: left;
     }
 
+    .yo-table-cards .row-link-name {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
     .yo-table-cards .site-url,
     .yo-table-cards .site-url a,
     .yo-table-cards .url-cell,
     .yo-table-cards .url-cell a {
-        overflow-wrap: anywhere;
+        max-width: none;
+        overflow-wrap: break-word;
         word-break: break-word;
     }
 
@@ -629,6 +715,10 @@ th.site-url {
 }
 
 @media only screen and (max-width: 600px) {
+    .modal-react-open .modal-footer {
+        padding: 0 18px 18px;
+    }
+
     .header-user-actions .btn {
         min-width: 0;
         padding-inline: 14px;
@@ -640,6 +730,19 @@ th.site-url {
 
     .filter-toolbar .btn-small {
         width: 100%;
+    }
+
+    .table-pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .table-pagination-actions {
+        width: 100%;
+    }
+
+    .table-pagination-actions .btn-small {
+        flex: 1 1 0;
     }
 
     .row-actions-grid,

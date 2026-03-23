@@ -37,7 +37,7 @@ const LatestYos = () => {
                 <tr>
                     <th>Link</th>
                     <th>Site URL</th>
-                    <th>Last Access</th>
+                    <th>Accessed</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -45,7 +45,12 @@ const LatestYos = () => {
                 {data.map((item, index) => (
                     <tr key={index}>
                         <td width="15%" data-label="Link">
-                            <pre className="row-link-name">{item.linkName}</pre>
+                            <pre
+                                className="row-link-name"
+                                title={item.linkName}
+                            >
+                                {item.linkName}
+                            </pre>
                         </td>
                         <td
                             className="site-url"
@@ -62,7 +67,11 @@ const LatestYos = () => {
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td width="10%" data-label="Last Access">
+                        <td
+                            width="10%"
+                            data-label="Accessed"
+                            className="grey-text text-darken-1"
+                        >
                             {dayjs(item.lastAccess).toNow(true)} ago
                         </td>
                         <td width="20%" data-label="Actions">

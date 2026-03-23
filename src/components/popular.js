@@ -41,7 +41,12 @@ const PopularYos = () => {
                 {data.map((item, index) => (
                     <tr key={index}>
                         <td width="15%" data-label="Link">
-                            <pre className="row-link-name">{item.linkName}</pre>
+                            <pre
+                                className="row-link-name"
+                                title={item.linkName}
+                            >
+                                {item.linkName}
+                            </pre>
                         </td>
                         <td
                             className="site-url"
@@ -59,7 +64,7 @@ const PopularYos = () => {
                             </a>
                         </td>
                         <td
-                            className="url-hits"
+                            className="url-hits grey-text text-darken-1"
                             width="10%"
                             data-label="URL Hits"
                         >
