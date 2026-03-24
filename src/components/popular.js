@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
-import { getShortUrl } from '../lib/browser-short-url'
+import { getShortPath } from '../lib/browser-short-url'
+import LinkActions from './link-actions'
 
 const PopularYos = () => {
     const { scheduleRefresh } = useDashboard()
@@ -30,28 +29,34 @@ const PopularYos = () => {
     }
 
     return (
-        <table className="yo-table">
+        <table className="yo-table yo-table-cards yo-table-popular">
             <thead>
                 <tr>
                     <th>Link</th>
                     <th>Site URL</th>
                     <th>URL Hits</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td width="15%">
-                            <CopyToClipboard text={getShortUrl(item.linkName)}>
-                                <pre style={{ cursor: 'pointer' }}>
-                                    {item.linkName}
-                                </pre>
-                            </CopyToClipboard>
+                        <td width="15%" data-label="Link">
+                            <pre
+                                className="row-link-name"
+                                title={item.linkName}
+                            >
+                                {item.linkName}
+                            </pre>
                         </td>
-                        <td className="site-url" width="75%">
+                        <td
+                            className="site-url"
+                            width="75%"
+                            data-label="Site URL"
+                        >
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/' + item.linkName}
+                                href={getShortPath(item.linkName)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => scheduleRefresh()}
@@ -59,8 +64,20 @@ const PopularYos = () => {
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td className="url-hits" width="10%">
+                        <td
+                            className="url-hits grey-text text-darken-1"
+                            width="10%"
+                            data-label="URL Hits"
+                        >
                             {(item.urlHits ?? 0).toLocaleString()}
+                        </td>
+                        <td width="20%" data-label="Actions">
+                            <LinkActions
+                                compact
+                                linkName={item.linkName}
+                                originalUrl={item.originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </td>
                     </tr>
                 ))}

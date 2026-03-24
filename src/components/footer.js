@@ -2,8 +2,8 @@ const Footer = () => {
     return (
         <footer className="page-footer footer-override">
             <div className="footer-copyright">
-                <div className="container">
-                    <div className="left">
+                <div className="container footer-inner">
+                    <div className="left footer-copy">
                         <a
                             href="https://fairbanks.io"
                             target="_blank"

@@ -1,34 +1,40 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-import { getShortUrl } from '../lib/browser-short-url'
 import { useDashboard } from '../context/dashboard-context'
+import LinkActions from './link-actions'
 import ModalShell from './modal-shell'
 
-const UpdateModal = ({ item, onClose }) => {
+const UpdateModal = () => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
     const [deleted, setDeleted] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
-    const [clickedCopy, setClickedCopy] = useState(null)
     const originalUrlRef = useRef(null)
-    const { refreshDashboard, scheduleRefresh } = useDashboard()
+    const {
+        closeUpdateModal,
+        refreshDashboard,
+        scheduleRefresh,
+        selectedItem,
+    } = useDashboard()
 
     useEffect(() => {
-        if (item) {
-            setOriginalUrl(item.originalUrl || '')
+        if (selectedItem) {
+            setOriginalUrl(selectedItem.originalUrl || '')
             setError(null)
             setSuccess(false)
             setDeleted(false)
-            setClickedCopy(false)
         }
-    }, [item])
+    }, [selectedItem])
+
+    if (!selectedItem) {
+        return null
+    }
 
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
 
         const data = {
-            linkName: item.linkName,
+            linkName: selectedItem.linkName,
             originalUrl,
         }
 
@@ -56,7 +62,7 @@ const UpdateModal = ({ item, onClose }) => {
     }
 
     const DeleteYo = async () => {
-        const data = { linkName: item.linkName }
+        const data = { linkName: selectedItem.linkName }
 
         try {
             const response = await fetch(`/api/delete`, {
@@ -73,17 +79,12 @@ const UpdateModal = ({ item, onClose }) => {
         }
     }
 
-    const handleButtonClick = () => {
-        setClickedCopy(true)
-        setTimeout(() => setClickedCopy(false), 2500) // Reset `clickedCopy` after N seconds
-    }
-
     return (
         <form className="row" onSubmit={UpdateYo}>
             <ModalShell
                 ariaLabelledBy="update-modal-title"
                 initialFocusRef={originalUrlRef}
-                onClose={onClose}
+                onClose={closeUpdateModal}
                 footer={
                     !success && !deleted ? (
                         <>
@@ -91,14 +92,14 @@ const UpdateModal = ({ item, onClose }) => {
                                 type="button"
                                 onClick={DeleteYo}
                                 className="delete-modal-btn waves-effect btn-flat red white-text"
-                                aria-label={`Delete ${item.linkName}`}
+                                aria-label={`Delete ${selectedItem.linkName}`}
                             >
                                 Delete
                             </button>
                             <button
                                 type="submit"
                                 className="update-modal-btn waves-effect btn-flat teal white-text"
-                                aria-label={`Update ${item.linkName}`}
+                                aria-label={`Update ${selectedItem.linkName}`}
                             >
                                 Update
                             </button>
@@ -123,55 +124,17 @@ const UpdateModal = ({ item, onClose }) => {
                                         marginRight: '5px',
                                     }}
                                 >
-                                    {item.linkName}
+                                    {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been updated</span>
                             </p>
-                            <pre style={{ float: 'left' }}>
-                                {getShortUrl(item.linkName)}
-                            </pre>
-                            <i
-                                style={{ float: 'left' }}
-                                className="material-icons grey-text"
-                            >
-                                arrow_right_alt
-                            </i>
                             <pre>{originalUrl}</pre>
                             <br />
-                            <a
-                                href={`/${item.linkName}`}
-                                className="success-link-btn btn teal white-text icon-left"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => scheduleRefresh()}
-                            >
-                                <i className="material-icons">redo</i> Go to
-                                Link
-                            </a>
-                            {clickedCopy ? (
-                                <a
-                                    href="#"
-                                    className="btn grey grey-text text-darken-3 icon-left"
-                                >
-                                    <i className="material-icons teal-text text-darken-1">
-                                        done
-                                    </i>{' '}
-                                    Copied
-                                </a>
-                            ) : (
-                                <CopyToClipboard text={getShortUrl(item.linkName)}>
-                                    <a
-                                        href="#"
-                                        onClick={handleButtonClick}
-                                        className="btn grey grey-text text-darken-3 icon-left"
-                                    >
-                                        <i className="material-icons">
-                                            content_copy
-                                        </i>{' '}
-                                        Copy Link
-                                    </a>
-                                </CopyToClipboard>
-                            )}
+                            <LinkActions
+                                linkName={selectedItem.linkName}
+                                originalUrl={originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </div>
                     ) : deleted ? (
                         <div>
@@ -185,7 +148,7 @@ const UpdateModal = ({ item, onClose }) => {
                                         marginRight: '5px',
                                     }}
                                 >
-                                    {item.linkName}
+                                    {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been deleted!</span>
                             </p>
@@ -197,7 +160,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 <input
                                     id="linkName"
                                     type="text"
-                                    value={item.linkName}
+                                    value={selectedItem.linkName}
                                     placeholder="rick"
                                     maxLength="120"
                                     disabled

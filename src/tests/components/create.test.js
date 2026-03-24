@@ -54,9 +54,9 @@ describe('CreateModal', () => {
         fireEvent.submit(form)
 
         const visitLink = await screen.findByRole('link', {
-            name: 'Visit docs redirect',
+            name: 'Test docs redirect',
         })
 
-        expect(visitLink).toHaveAttribute('href', 'http://localhost/docs')
+        expect(visitLink).toHaveAttribute('href', '/docs')
     })
 })

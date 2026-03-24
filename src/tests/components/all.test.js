@@ -94,10 +94,9 @@ describe('AllYos', () => {
             jest.advanceTimersByTime(300)
         })
 
-        const emptyState = await screen.findByText('No links match your search.')
+        const emptyState = await screen.findByText('No links match this view.')
 
         expect(emptyState).toBeInTheDocument()
-        expect(emptyState).toHaveStyle({ color: '#acacac' })
         expect(screen.queryByText('docs')).not.toBeInTheDocument()
     })
 

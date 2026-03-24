@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
-import { getShortUrl } from '../lib/browser-short-url'
+import { getShortPath } from '../lib/browser-short-url'
+import LinkActions from './link-actions'
 
 dayjs.extend(relativeTime)
 
@@ -34,28 +33,34 @@ const LatestYos = () => {
     }
 
     return (
-        <table className="yo-table">
+        <table className="yo-table yo-table-cards yo-table-latest">
             <thead>
                 <tr>
                     <th>Link</th>
                     <th>Site URL</th>
-                    <th>Last Access</th>
+                    <th>Accessed</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td width="15%">
-                            <CopyToClipboard text={getShortUrl(item.linkName)}>
-                                <pre style={{ cursor: 'pointer' }}>
-                                    {item.linkName}
-                                </pre>
-                            </CopyToClipboard>
+                        <td width="15%" data-label="Link">
+                            <pre
+                                className="row-link-name"
+                                title={item.linkName}
+                            >
+                                {item.linkName}
+                            </pre>
                         </td>
-                        <td className="site-url" width="75%">
+                        <td
+                            className="site-url"
+                            width="75%"
+                            data-label="Site URL"
+                        >
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/' + item.linkName}
+                                href={getShortPath(item.linkName)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => scheduleRefresh()}
@@ -63,8 +68,20 @@ const LatestYos = () => {
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td width="10%">
+                        <td
+                            width="10%"
+                            data-label="Accessed"
+                            className="grey-text text-darken-1"
+                        >
                             {dayjs(item.lastAccess).toNow(true)} ago
+                        </td>
+                        <td width="20%" data-label="Actions">
+                            <LinkActions
+                                compact
+                                linkName={item.linkName}
+                                originalUrl={item.originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </td>
                     </tr>
                 ))}

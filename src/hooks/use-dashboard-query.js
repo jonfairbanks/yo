@@ -1,68 +1,97 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { fetchJson } from '../lib/fetch-json'
 import { useDashboard } from '../context/dashboard-context'
 
+const parseResponseBody = async (response) => {
+    const contentType = response.headers?.get?.('content-type') || ''
+
+    if (
+        contentType.includes('application/json') ||
+        typeof response.text !== 'function'
+    ) {
+        return response.json()
+    }
+
+    return response.text()
+}
+
+const getErrorMessage = (body, response, fallbackMessage) => {
+    if (typeof body === 'string') {
+        return body || fallbackMessage
+    }
+
+    return (
+        body?.error || body?.message || response?.statusText || fallbackMessage
+    )
+}
+
 export const useDashboardQuery = ({
-    enabled = true,
     fallbackMessage,
-    url,
     initialData,
-    parse,
+    parse = (json) => json,
+    url,
 }) => {
     const { refreshVersion } = useDashboard()
     const [data, setData] = useState(initialData)
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(true)
     const parseRef = useRef(parse)
+    const fallbackMessageRef = useRef(fallbackMessage)
 
     useEffect(() => {
         parseRef.current = parse
-    }, [parse])
+        fallbackMessageRef.current = fallbackMessage
+    }, [fallbackMessage, parse])
 
     useEffect(() => {
-        if (!enabled) {
-            return undefined
-        }
+        let isActive = true
+        const controller = new AbortController()
 
-        let cancelled = false
-
-        const fetchData = async () => {
+        const load = async () => {
             setLoading(true)
             setError(null)
 
             try {
-                const json = await fetchJson(url, fallbackMessage)
-                const nextData =
-                    typeof parseRef.current === 'function'
-                        ? parseRef.current(json)
-                        : json
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                })
+                const body = await parseResponseBody(response)
 
-                if (!cancelled) {
+                if (!response.ok) {
+                    throw new Error(
+                        getErrorMessage(
+                            body,
+                            response,
+                            fallbackMessageRef.current
+                        )
+                    )
+                }
+
+                const nextData = parseRef.current(body)
+
+                if (isActive) {
                     setData(nextData)
                 }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(err.message || fallbackMessage)
+            } catch (error) {
+                if (controller.signal.aborted || !isActive) {
+                    return
                 }
+
+                setError(error.message || fallbackMessageRef.current)
             } finally {
-                if (!cancelled) {
+                if (isActive && !controller.signal.aborted) {
                     setLoading(false)
                 }
             }
         }
 
-        fetchData()
+        load()
 
         return () => {
-            cancelled = true
+            isActive = false
+            controller.abort()
         }
-    }, [enabled, fallbackMessage, refreshVersion, url])
+    }, [refreshVersion, url])
 
-    return {
-        data,
-        error,
-        loading,
-        setData,
-    }
+    return { data, error, loading }
 }

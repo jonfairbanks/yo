@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Script from 'next/script'
 
+import { DashboardProvider } from '../context/dashboard-context'
 import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }) {
@@ -27,7 +28,9 @@ function MyApp({ Component, pageProps }) {
                     }
                 }}
             />
-            <Component {...pageProps} />
+            <DashboardProvider>
+                <Component {...pageProps} />
+            </DashboardProvider>
         </>
     )
 }
