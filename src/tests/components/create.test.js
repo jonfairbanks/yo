@@ -57,6 +57,6 @@ describe('CreateModal', () => {
             name: 'Test docs redirect',
         })
 
-        expect(visitLink).toHaveAttribute('href', 'http://localhost/docs')
+        expect(visitLink).toHaveAttribute('href', '/docs')
     })
 })

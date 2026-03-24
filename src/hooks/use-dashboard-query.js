@@ -7,7 +7,7 @@ const parseResponseBody = async (response) => {
 
     if (
         contentType.includes('application/json') ||
-        typeof response.json === 'function'
+        typeof response.text !== 'function'
     ) {
         return response.json()
     }

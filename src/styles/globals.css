@@ -263,13 +263,13 @@ body.modal-open {
     word-break: break-word;
 }
 
-.btn.grey,
-.btn-small.grey {
+.row-action-button.btn.grey,
+.row-action-button.btn-small.grey {
     color: #4a4a4a !important;
 }
 
-.btn.grey .material-icons,
-.btn-small.grey .material-icons {
+.row-action-button.btn.grey .material-icons,
+.row-action-button.btn-small.grey .material-icons {
     color: #4a4a4a !important;
 }
 

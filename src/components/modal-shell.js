@@ -31,9 +31,11 @@ const ModalShell = ({
         }
 
         document.addEventListener('keydown', handleKeyDown)
+        document.body.classList.add('modal-open')
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown)
+            document.body.classList.remove('modal-open')
         }
     }, [])
 
