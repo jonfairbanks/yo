@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
+import { getShortPath } from '../lib/browser-short-url'
 import LinkActions from './link-actions'
 
 dayjs.extend(relativeTime)
@@ -59,7 +60,7 @@ const LatestYos = () => {
                         >
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/' + item.linkName}
+                                href={getShortPath(item.linkName)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => scheduleRefresh()}

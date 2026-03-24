@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
-import { getShortUrl } from '../lib/browser-short-url'
+import { getShortPath, getShortUrl } from '../lib/browser-short-url'
 
 const LinkActions = ({
     compact = false,
@@ -14,6 +14,7 @@ const LinkActions = ({
 }) => {
     const [copiedState, setCopiedState] = useState(null)
 
+    const shortPath = getShortPath(linkName)
     const shortUrl = getShortUrl(linkName)
     const buttonClass = compact ? 'btn-small' : 'btn'
 
@@ -32,7 +33,7 @@ const LinkActions = ({
         <div className={compactClassName}>
             {includeTest ? (
                 <a
-                    href={shortUrl}
+                    href={shortPath}
                     className={`${buttonClass} teal white-text row-action-button`}
                     target="_blank"
                     rel="noopener noreferrer"

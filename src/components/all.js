@@ -11,7 +11,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
-import { getShortUrl } from '../lib/browser-short-url'
+import { getShortPath, getShortUrl } from '../lib/browser-short-url'
 dayjs.extend(relativeTime)
 
 const QUICK_FILTERS = [
@@ -67,7 +67,7 @@ const RowActions = ({ item, onEdit, onVisit }) => {
     return (
         <div className="row-actions-grid">
             <a
-                href={`/${item.linkName}`}
+                href={getShortPath(item.linkName)}
                 className="btn-small teal white-text row-action-button"
                 target="_blank"
                 rel="noopener noreferrer"

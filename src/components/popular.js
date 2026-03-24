@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
+import { getShortPath } from '../lib/browser-short-url'
 import LinkActions from './link-actions'
 
 const PopularYos = () => {
@@ -55,7 +56,7 @@ const PopularYos = () => {
                         >
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/' + item.linkName}
+                                href={getShortPath(item.linkName)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => scheduleRefresh()}
