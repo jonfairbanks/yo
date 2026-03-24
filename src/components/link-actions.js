@@ -50,7 +50,8 @@ const LinkActions = ({
                 text={shortUrl}
                 onCopy={() => handleCopied('short')}
             >
-                <a
+                <button
+                    type="button"
                     className={`${buttonClass} grey grey-text text-darken-3 row-action-button`}
                     aria-label={`Copy ${linkName} short link`}
                 >
@@ -64,7 +65,7 @@ const LinkActions = ({
                         : compact
                           ? 'Copy'
                           : 'Copy Link'}
-                </a>
+                </button>
             </CopyToClipboard>
             {/* Temporarily hide Copy URL until we revisit that action. */}
             {false && includeCopyDestination && originalUrl ? (
@@ -72,7 +73,8 @@ const LinkActions = ({
                     text={originalUrl}
                     onCopy={() => handleCopied('destination')}
                 >
-                    <a
+                    <button
+                        type="button"
                         className={`${buttonClass} grey grey-text text-darken-3 row-action-button`}
                         aria-label={`Copy ${linkName} destination URL`}
                     >
@@ -82,7 +84,7 @@ const LinkActions = ({
                         {copiedState === 'destination'
                             ? 'Copied URL'
                             : 'Copy URL'}
-                    </a>
+                    </button>
                 </CopyToClipboard>
             ) : null}
         </div>
