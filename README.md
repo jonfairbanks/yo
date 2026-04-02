@@ -1,109 +1,73 @@
-<h1 align="center">
-  Yo - The URL Shortener
-</h1>
+# Yo URL Shortener
 
-Yo Dawg, heard you're tired of remembering URLs
+[![Docker Builds](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/docker-build-develop.yml?branch=develop&event=push&label=Development%20CI)](https://github.com/jonfairbanks/yo/actions/workflows/docker-build-develop.yml)
+[![Audit](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-audit.yml?event=pull_request&label=Audit)](https://github.com/jonfairbanks/yo/actions/workflows/npm-audit.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-test.yml?event=pull_request&label=Tests)](https://github.com/jonfairbanks/yo/actions/workflows/npm-test.yml)
+[![License](https://img.shields.io/github/license/jonfairbanks/yo.svg?style=flat)](https://github.com/jonfairbanks/yo/blob/main/LICENSE)
 
-<img src="https://raw.githubusercontent.com/jonfairbanks/yo/master/images/yo.gif" alt="yo-demo" />
+`Yo` is a deployable URL shortener built as a single Next.js application with MongoDB for persistence and Auth0 for dashboard authentication.
 
-![Development CI](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/docker-build-develop.yml?branch=develop&event=push&label=Development%20CI)
-![Audit](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-audit.yml?event=pull_request&label=Audit)
-![Lint](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-lint.yml?event=pull_request&label=Lint)
-![Tests](https://img.shields.io/github/actions/workflow/status/jonfairbanks/yo/npm-test.yml?event=pull_request&label=Tests)
-![GitHub top language](https://img.shields.io/github/languages/top/jonfairbanks/yo.svg)
-![Docker Pulls](https://img.shields.io/docker/pulls/jonfairbanks/yo-client.svg)
-![GitHub last commit](https://img.shields.io/github/last-commit/jonfairbanks/yo.svg)
-![License](https://img.shields.io/github/license/jonfairbanks/yo.svg?style=flat)
+![Yo demo](images/yo.gif)
 
-Turn long, hard to remember URLs into easily sharable short-links.
+The application supports:
 
-## Getting Started
+- authenticated link management at `/`
+- public short-link redirects at `/{slug}`
+- API-based redirects at `/api/redirect/{slug}`
+- dashboard views for all links, latest links, popular links, and usage stats
 
-#### Prerequisites
+## Stack
 
-The following will need to be installed before proceeding:
+- Next.js 15 Pages Router
+- React 19
+- MongoDB with Mongoose
+- Auth0 via `@auth0/nextjs-auth0`
 
-- Node.js
-- Mongo DB
+## Prerequisites
 
-#### Clone the Project
+- Node.js 24
+- npm 10+
+- MongoDB
+- An Auth0 application for dashboard login
+
+## Quick Start
 
 ```sh
-# Clone it
 git clone https://github.com/jonfairbanks/yo.git
-cd yo
-```
-
-#### Run the Project
-
-```
-# Install Dependencies
+cd yo/src
 npm install
-
-# Start Server
-npm start
 ```
 
-#### Set Environment Variables
+Create `src/.env.local`, then start the development server:
 
-Rename the included `.env.sample` files to `.env` and update variables as appropriate for your install.
-
-###### Client:
-
-| ENV                          | Required? | Details                                                                                                                                                                                   | Example                                       |
-| ---------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `REACT_APP_API_URL`          | Yes       | Used to connect to the Yo API. Be sure to include the trailing slash.                                                                                                                     | `https://yo-api.mysite.io/api/`               |
-| `REACT_APP_SOCKET_URL`       | Yes       | This will be used to connect to Yo API’s Socket.io endpoint.                                                                                                                              | `https://yo-api.mysite.io`                    |
-| `REACT_APP_BASE_URL`         | Yes       | The url of the website where Yo is hosted. The slash is not required.                                                                                                                     | `https://yo.mysite.io`                        |
-| `REACT_APP_BLOCKED_NAMES`    | No        | Comma separated string of words that cannot be used as link names.                                                                                                                        | `"blocked1,blocked2"`                         |
-| `REACT_APP_ALLOWED_NAMES`    | No        | Comma separated string of words to allow through the filter. A complete list of blocked names can be found [here](https://github.com/web-mech/badwords/blob/master/lib/lang.json "here"). | `"allowed1,allowed2"`                         |
-| `REACT_APP_URL_PLACEHOLDER`  | No        | Overwrite the default URL placeholder shown on the submit form.                                                                                                                           | `https://www.youtube.com/watch?v=dQw4w9WgXcQ` |
-| `REACT_APP_NAME_PLACEHOLDER` | No        | Overwrite the default link name placeholder shown on the submit form.                                                                                                                     | `Rick`                                        |
-| `REACT_APP_AUTH`             | No        | Enforces user logins via Auth0. For more details, see the _Enabling API Authentication_ section below.                                                                                    | `true`                                        |
-| `REACT_APP_SIGNUPS`          | No        | Forces the ability for users to sign-up during initial login. Not currently recommended.                                                                                                  | `true`                                        |
-| `REACT_APP_AUTH0_CLIENT`     | No        | Required for Authentication Setup                                                                                                                                                         | Provided during Auth0 Setup                   |
-| `REACT_APP_AUTH0_DOMAIN`     | No        | Required for Authentication Setup                                                                                                                                                         | `mysite.auth0.com`                            |
-| `PORT`                       | No        | Override the application port. Defaults to 3000.                                                                                                                                          | `3001`                                        |
-
-###### Server:
-
-| ENV            | Required? | Details                                                                                            | Example                                      |
-| -------------- | --------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `ERROR_URL`    | Yes       | Where should users be directed when navigating to an unknown link? (Feature is WIP)                | `https://mysite.io/error`                    |
-| `BASE_URL`     | Yes       | The url where Yo client is hosted. The trailing slash is not required.                             | `https://yo.mysite.io`                       |
-| `API_URL`      | Yes       | The url where Yo client is hosted. The trailing slash _is_ required.                               | `https://yo-api.mysite.io/api/`              |
-| `MONGO_URI`    | No        | What Mongo instance to use. If the ENV is not provided, `mongodb://localhost/yo` is used.          | `mongodb://user:password@localhost:27018/yo` |
-| `LOG_LOCATION` | No        | Override where the Yo access log is written. By default the log is written into the app directory. | `/Logs/yo.log`                               |
-| `AUTH`         | No        | Enforces token authentication. If enabled, Auth0 should also be enabled on the client side.        | `true`                                       |
-| `AUTH0_DOMAIN` | No        | Required to authenticate user tokens. Should match the AUTH0_DOMAIN provided to the client.        | `mysite.auth0.com`                           |
-| `PORT`         | No        | Override the application port. Defaults to 7000.                                                   | `7001`                                       |
-
-#### Run Front End
-
-```
-# Move to client Folder
-cd client/
-
-# Install Dependencies
-npm install
-
-# Start Client
-npm start
+```sh
+npm run dev
 ```
 
-## Application Authentication
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
-By default, the Yo backend API is open which would allow anyone who knew your API endpoint to list, edit or even delete links if they chose. To prevent this, you can enable Auth0 authentication for requests between the client and server.
+## Docs
 
-- Sign up for an [Auth0](https://auth0.com) account
-- Create and Setup a Regular Web Application. Configure it as you see fit.
-- In the Yo config.js files, set the Client and/or Domain provided by Auth0.
-- Before leaving Auth0, create a user account for your application under User & Roles.
-- Navigate to Yo and login with the previously created user. If successful, you should be logged into the dashboard successfully.
+- [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md)
+- [Runtime Behavior](/Users/jonfairbanks/Documents/GitHub/yo/docs/runtime.md)
+- [Deployment](/Users/jonfairbanks/Documents/GitHub/yo/docs/deployment.md)
 
-By default, sign-ups via the Auth0 UI are disabled. If you would like to allow user-signup however, you can force this on by passing `REACT_APP_SIGNUPS=true` during Yo client startup.
+## Local Commands
 
-## Contributers
+Run these commands from [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/src):
 
-[Jon Fairbanks](https://github.com/jonfairbanks/) - Maintainer
-[Brandon Sorgdrager](https://github.com/bsord/) - Contributer
+| Command                   | Purpose                      |
+| ------------------------- | ---------------------------- |
+| `npm run dev`             | Start the development server |
+| `npm run build`           | Build the production app     |
+| `npm run start`           | Start the production server  |
+| `npm run lint`            | Run ESLint                   |
+| `npm test -- --runInBand` | Run the Jest suite in-band   |
+
+Recommended pre-deploy checks:
+
+```sh
+npm run lint
+npm test -- --runInBand
+npm run build
+```

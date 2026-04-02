@@ -7,7 +7,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+    runtime: 'nodejs',
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api/).*)',
+        '/((?!_next/static|_next/image|api/|favicon.ico|manifest.json|browserconfig.xml|sitemap.xml|robots.txt|images/|vendor/).*)',
     ],
 }

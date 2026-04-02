@@ -1,78 +1,40 @@
-import React, { useState, useEffect } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
+import React, { useEffect, useRef, useState } from 'react'
 
-const UpdateModal = ({ item, onClose }) => {
+import { useDashboard } from '../context/dashboard-context'
+import LinkActions from './link-actions'
+import ModalShell from './modal-shell'
+
+const UpdateModal = () => {
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
     const [deleted, setDeleted] = useState(false)
     const [originalUrl, setOriginalUrl] = useState('')
-    const [clickedCopy, setClickedCopy] = useState(null)
+    const originalUrlRef = useRef(null)
+    const {
+        closeUpdateModal,
+        refreshDashboard,
+        scheduleRefresh,
+        selectedItem,
+    } = useDashboard()
 
     useEffect(() => {
-        if (item) {
-            setOriginalUrl(item.originalUrl || '')
+        if (selectedItem) {
+            setOriginalUrl(selectedItem.originalUrl || '')
+            setError(null)
+            setSuccess(false)
+            setDeleted(false)
         }
-    }, [item])
+    }, [selectedItem])
 
-    useEffect(() => {
-        const M = require('@materializecss/materialize') // eslint-disable-line @typescript-eslint/no-require-imports
-        const elem = document.getElementById('update')
-        const instance = M.Modal.init(elem, {
-            dismissible: true,
-            onOpenStart: () => {
-                elem?.querySelector('input:not([disabled])')?.focus()
-            },
-            onCloseEnd: () => {
-                if (onClose) onClose()
-                setSuccess(false) // Reset the state when the Modal closes
-                setDeleted(false) // Reset the state when the Modal closes
-            },
-        })
-
-        const trapFocus = (event) => {
-            if (event.key !== 'Tab') return
-            const focusable = Array.from(
-                elem.querySelectorAll(
-                    'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-                )
-            ).filter(
-                (el) =>
-                    !el.hasAttribute('disabled') &&
-                    el.getAttribute('tabindex') !== '-1' &&
-                    el.offsetParent !== null
-            )
-            if (!focusable.length) return
-            const first = focusable[0]
-            const last = focusable[focusable.length - 1]
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault()
-                last.focus()
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault()
-                first.focus()
-            }
-        }
-
-        elem?.addEventListener('keydown', trapFocus)
-        instance.open()
-
-        return () => {
-            elem?.removeEventListener('keydown', trapFocus)
-            instance.destroy()
-        }
-    }, [onClose])
+    if (!selectedItem) {
+        return null
+    }
 
     const UpdateYo = async (event) => {
         event.preventDefault() // Prevent page reload
 
-        // Show a confirmation dialog before updating
-        const confirmed = window.confirm(
-            'Are you sure you want to update this link?'
-        )
-        if (!confirmed) return // Exit if user cancels
-
         const data = {
-            linkName: item.linkName,
+            linkName: selectedItem.linkName,
             originalUrl,
         }
 
@@ -91,21 +53,16 @@ const UpdateModal = ({ item, onClose }) => {
                 throw new Error(errorData.error || 'Unknown error occurred')
             }
 
-            // const result = await response.json()
+            await response.json()
             setSuccess(true)
+            refreshDashboard()
         } catch (error) {
             setError(error.message)
-            console.error('Error submitting form:', error)
         }
     }
 
     const DeleteYo = async () => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete this link?'
-        )
-        if (!confirmed) return
-
-        const data = { linkName: item.linkName }
+        const data = { linkName: selectedItem.linkName }
 
         try {
             const response = await fetch(`/api/delete`, {
@@ -116,35 +73,40 @@ const UpdateModal = ({ item, onClose }) => {
 
             if (!response.ok) throw new Error('Failed to delete item')
             setDeleted(true)
-        } catch (error) {
+            refreshDashboard()
+        } catch {
             setError('Error deleting item')
-            console.error('Error deleting item:', error)
         }
-    }
-
-    const handleButtonClick = () => {
-        setClickedCopy(true)
-        setTimeout(() => setClickedCopy(false), 2500) // Reset `clickedCopy` after N seconds
     }
 
     return (
         <form className="row" onSubmit={UpdateYo}>
-            <div
-                id="update"
-                className="modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="update-modal-title"
+            <ModalShell
+                ariaLabelledBy="update-modal-title"
+                initialFocusRef={originalUrlRef}
+                onClose={closeUpdateModal}
+                footer={
+                    !success && !deleted ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={DeleteYo}
+                                className="delete-modal-btn waves-effect btn-flat red white-text"
+                                aria-label={`Delete ${selectedItem.linkName}`}
+                            >
+                                Delete
+                            </button>
+                            <button
+                                type="submit"
+                                className="update-modal-btn waves-effect btn-flat teal white-text"
+                                aria-label={`Update ${selectedItem.linkName}`}
+                            >
+                                Update
+                            </button>
+                        </>
+                    ) : null
+                }
             >
-                <div className="modal-content">
-                    <a
-                        href="#!"
-                        className="modal-close grey-text text-darken-1"
-                        aria-label="Close update modal"
-                        style={{ float: 'right' }}
-                    >
-                        <i className="material-icons">close</i>
-                    </a>
                     {success ? (
                         <div>
                             <h1
@@ -162,60 +124,17 @@ const UpdateModal = ({ item, onClose }) => {
                                         marginRight: '5px',
                                     }}
                                 >
-                                    {item.linkName}
+                                    {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been updated</span>
                             </p>
-                            <pre style={{ float: 'left' }}>
-                                {window.location.host + '/' + item.linkName}
-                            </pre>
-                            <i
-                                style={{ float: 'left' }}
-                                className="material-icons grey-text"
-                            >
-                                arrow_right_alt
-                            </i>
                             <pre>{originalUrl}</pre>
                             <br />
-                            <a
-                                href={`/api/redirect/${item.linkName}`}
-                                className="success-link-btn btn teal white-text icon-left"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <i className="material-icons">redo</i> Go to
-                                Link
-                            </a>
-                            {clickedCopy ? (
-                                <a
-                                    href="#"
-                                    className="btn grey grey-text text-darken-3 icon-left"
-                                >
-                                    <i className="material-icons teal-text text-darken-1">
-                                        done
-                                    </i>{' '}
-                                    Copied
-                                </a>
-                            ) : (
-                                <CopyToClipboard
-                                    text={
-                                        window.location.host +
-                                        '/' +
-                                        item.linkName
-                                    }
-                                >
-                                    <a
-                                        href="#"
-                                        onClick={handleButtonClick}
-                                        className="btn grey grey-text text-darken-3 icon-left"
-                                    >
-                                        <i className="material-icons">
-                                            content_copy
-                                        </i>{' '}
-                                        Copy Link
-                                    </a>
-                                </CopyToClipboard>
-                            )}
+                            <LinkActions
+                                linkName={selectedItem.linkName}
+                                originalUrl={originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </div>
                     ) : deleted ? (
                         <div>
@@ -229,7 +148,7 @@ const UpdateModal = ({ item, onClose }) => {
                                         marginRight: '5px',
                                     }}
                                 >
-                                    {item.linkName}
+                                    {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been deleted!</span>
                             </p>
@@ -241,7 +160,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 <input
                                     id="linkName"
                                     type="text"
-                                    value={item.linkName}
+                                    value={selectedItem.linkName}
                                     placeholder="rick"
                                     maxLength="120"
                                     disabled
@@ -258,6 +177,7 @@ const UpdateModal = ({ item, onClose }) => {
                                 <input
                                     id="originalUrl"
                                     type="url"
+                                    ref={originalUrlRef}
                                     value={originalUrl}
                                     onChange={(e) =>
                                         setOriginalUrl(e.target.value)
@@ -276,28 +196,7 @@ const UpdateModal = ({ item, onClose }) => {
                         </div>
                     )}
                     {error && <p className="red-text text-darken-1">{error}</p>}
-                </div>
-
-                {!success && !deleted && (
-                    <div className="modal-footer">
-                        <button
-                            type="button"
-                            onClick={DeleteYo}
-                            className="delete-modal-btn waves-effect btn-flat red white-text"
-                            aria-label={`Delete ${item.linkName}`}
-                        >
-                            Delete
-                        </button>
-                        <button
-                            type="submit"
-                            className="update-modal-btn waves-effect btn-flat teal white-text"
-                            aria-label={`Update ${item.linkName}`}
-                        >
-                            Update
-                        </button>
-                    </div>
-                )}
-            </div>
+            </ModalShell>
         </form>
     )
 }

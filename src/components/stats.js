@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+
+import { useDashboard } from '../context/dashboard-context'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
 
 dayjs.extend(relativeTime)
 
@@ -26,26 +29,14 @@ const formatMoment = (value) => {
 }
 
 const Stats = () => {
-    const [data, setData] = useState(null)
-    const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/api/stats')
-                if (!response.ok) throw new Error(response.statusText)
-                const json = await response.json()
-                setData(json)
-            } catch (err) {
-                setError(`Failed to load data: ${err.message}`)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [])
+    const { applyTableFilter } = useDashboard()
+    const queryUrl = useMemo(() => '/api/stats', [])
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load data.',
+        url: queryUrl,
+        initialData: null,
+        parse: (json) => json,
+    })
 
     if (loading) return <p>Loading...</p>
     if (error) return <p>{error}</p>
@@ -61,6 +52,12 @@ const Stats = () => {
         {
             detail: 'All short links currently stored',
             label: 'Total Links',
+            onClick: () =>
+                applyTableFilter({
+                    id: 'all',
+                    label: 'All links',
+                    params: {},
+                }),
             value: formatNumber(totalYos),
         },
         {
@@ -70,27 +67,57 @@ const Stats = () => {
         },
         {
             detail: 'Average traffic density per short link',
-            label: 'Avg Redirects / Link',
+            label: 'Avg Redirects',
             value: formatNumber(averageHitsPerYo, averageHitOptions),
         },
         {
             detail: formatShare(data?.activeYos ?? 0, totalYos),
             label: 'Active Links',
+            onClick: () =>
+                applyTableFilter({
+                    id: 'active',
+                    label: 'Active links',
+                    params: { usage: 'active' },
+                }),
             value: formatNumber(data?.activeYos),
         },
         {
             detail: 'Links that have not been used yet',
             label: 'Unused Links',
+            onClick: () =>
+                applyTableFilter({
+                    id: 'unused',
+                    label: 'Unused links',
+                    params: { usage: 'unused' },
+                }),
             value: formatNumber(data?.unusedYos),
         },
         {
             detail: `Redirected at least once in the last ${recentWindowDays} days`,
             label: `Used in ${recentWindowDays} Days`,
+            onClick: () =>
+                applyTableFilter({
+                    id: 'recently-accessed',
+                    label: `Used in ${recentWindowDays} days`,
+                    params: {
+                        recent: 'accessed',
+                        sinceDays: String(recentWindowDays),
+                    },
+                }),
             value: formatNumber(data?.recentlyAccessedYos),
         },
         {
             detail: `Links added in the last ${recentWindowDays} days`,
             label: `New in ${recentWindowDays} Days`,
+            onClick: () =>
+                applyTableFilter({
+                    id: 'new',
+                    label: `New in ${recentWindowDays} days`,
+                    params: {
+                        recent: 'created',
+                        sinceDays: String(recentWindowDays),
+                    },
+                }),
             value: formatNumber(data?.recentlyCreatedYos),
         },
     ]
@@ -121,11 +148,16 @@ const Stats = () => {
         <section className="stats-section" aria-label="Link statistics">
             <div className="stats-grid">
                 {statTiles.map((tile) => (
-                    <article className="stats-card" key={tile.label}>
+                    <button
+                        type="button"
+                        className="stats-card"
+                        key={tile.label}
+                        onClick={tile.onClick}
+                    >
                         <p className="stats-card-label">{tile.label}</p>
                         <p className="stats-card-value">{tile.value}</p>
                         <p className="stats-card-detail">{tile.detail}</p>
-                    </article>
+                    </button>
                 ))}
             </div>
 

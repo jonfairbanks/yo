@@ -1,21 +1,26 @@
 import Head from 'next/head'
 import Script from 'next/script'
 
-import '../public/vendor/materialize/materialize.min.css'
+import { DashboardProvider } from '../context/dashboard-context'
+import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }) {
     return (
         <>
             <Head>
                 <title>Yo URL Shortener</title>
+                <meta
+                    name="description"
+                    content="Create, manage, and resolve short links with Yo URL Shortener."
+                />
                 <link
                     rel="icon"
                     type="image/png"
-                    href="/api/public/favicon.ico"
+                    href="/favicon.ico"
                 />
             </Head>
             <Script
-                src="/api/public/vendor/materialize/materialize.min.js"
+                src="/vendor/materialize/materialize.min.js"
                 strategy="afterInteractive"
                 onLoad={() => {
                     if (typeof window !== 'undefined' && window.M) {
@@ -23,7 +28,9 @@ function MyApp({ Component, pageProps }) {
                     }
                 }}
             />
-            <Component {...pageProps} />
+            <DashboardProvider>
+                <Component {...pageProps} />
+            </DashboardProvider>
         </>
     )
 }

@@ -11,6 +11,7 @@ const customJestConfig = {
     collectCoverage: true,
     coverageDirectory: 'coverage',
     coverageProvider: 'v8',
+    modulePathIgnorePatterns: ['<rootDir>/.next/'],
     testEnvironment: 'jest-environment-jsdom',
 }
 

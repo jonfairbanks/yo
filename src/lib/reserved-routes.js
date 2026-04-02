@@ -1,19 +1,17 @@
+import { normalizeLinkName } from './link-name'
+
 const RESERVED_EXACT_PATHS = new Set([
     'api',
     'auth',
     '_next',
+    'browserconfig.xml',
     'favicon.ico',
     'manifest.json',
     'robots.txt',
     'sitemap.xml',
 ])
 
-const RESERVED_PREFIX_PATHS = ['api/', 'auth/', '_next/']
-
-const normalizeLinkName = (linkName) => {
-    if (typeof linkName !== 'string') return ''
-    return linkName.trim().replace(/^\/+|\/+$/g, '').toLowerCase()
-}
+const RESERVED_PREFIX_PATHS = ['api/', 'auth/', '_next/', 'images/', 'vendor/']
 
 export const getReservedPathMatch = (linkName) => {
     const normalized = normalizeLinkName(linkName)
@@ -28,4 +26,5 @@ export const getReservedPathMatch = (linkName) => {
     )
 }
 
-export const isReservedPath = (linkName) => getReservedPathMatch(linkName) !== null
+export const isReservedPath = (linkName) =>
+    getReservedPathMatch(linkName) != null

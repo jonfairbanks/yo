@@ -1,5 +1,6 @@
 import { connectToDatabase } from './mongoose'
 import Yo from '../models/yo'
+import { normalizeLinkName } from './link-name'
 import logger from './logger'
 import { withSpan } from './tracing'
 
@@ -69,33 +70,44 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
     withSpan(
         'resolve alias',
         {
-            'yo.alias': redirectParam,
+            'yo.alias': normalizeLinkName(redirectParam) || 'unknown',
         },
         async (span) => {
+            const normalizedLinkName = normalizeLinkName(redirectParam)
+
+            if (!normalizedLinkName) {
+                logger.warn({
+                    event: 'redirect_missing',
+                    alias: String(redirectParam || ''),
+                    status: 404,
+                })
+                span.setAttribute('yo.result', 'missing')
+                return {
+                    status: 404,
+                    error: `Unable to find any entries for: ${redirectParam}`,
+                }
+            }
+
             await connectToDatabase()
 
             const item = await withSpan(
-                'mongo resolve alias',
+                'mongo find alias',
                 {
                     'db.system': 'mongodb',
-                    'db.operation': 'findOneAndUpdate',
+                    'db.operation': 'findOne',
                     'db.collection': 'yo',
-                    'db.query.summary':
-                        'find alias by linkName, increment urlHits, set lastAccess',
-                    'yo.alias': redirectParam,
+                    'db.query.summary': 'find alias by linkName',
+                    'yo.alias': normalizedLinkName,
                 },
-                () =>
-                    Yo.findOneAndUpdate(
-                        { linkName: redirectParam },
-                        {
-                            $inc: { urlHits: 1 },
-                            $set: { lastAccess: Date.now() },
-                        },
-                        { new: true }
-                    )
+                () => Yo.findOne({ linkName: normalizedLinkName }, { originalUrl: 1 })
             )
 
             if (!item) {
+                logger.warn({
+                    event: 'redirect_missing',
+                    alias: normalizedLinkName,
+                    status: 404,
+                })
                 span.setAttribute('yo.result', 'missing')
                 return {
                     status: 404,
@@ -104,15 +116,52 @@ export const resolveRedirect = async ({ redirectParam, req }) =>
             }
 
             const targetUrl = buildTargetUrl(item.originalUrl, req)
-            const loop = detectRedirectLoop({ targetUrl, redirectParam, req })
+            const loop = detectRedirectLoop({
+                targetUrl,
+                redirectParam: normalizedLinkName,
+                req,
+            })
             if (loop) {
+                logger.warn({
+                    event: 'redirect_blocked',
+                    alias: normalizedLinkName,
+                    reason: loop.error,
+                    status: loop.status,
+                    targetUrl,
+                })
                 span.setAttribute('yo.result', 'blocked_loop')
                 span.setAttribute('http.response.status_code', loop.status)
                 return loop
             }
 
+            await withSpan(
+                'mongo record redirect hit',
+                {
+                    'db.system': 'mongodb',
+                    'db.operation': 'updateOne',
+                    'db.collection': 'yo',
+                    'db.query.summary':
+                        'increment urlHits and set lastAccess for resolved alias',
+                    'yo.alias': normalizedLinkName,
+                },
+                () =>
+                    Yo.updateOne(
+                        { _id: item._id },
+                        {
+                            $inc: { urlHits: 1 },
+                            $set: { lastAccess: Date.now() },
+                        }
+                    )
+            )
+
             span.setAttribute('yo.result', 'redirect')
             span.setAttribute('http.response.status_code', 302)
+            logger.info({
+                event: 'redirect_success',
+                alias: normalizedLinkName,
+                status: 302,
+                targetUrl,
+            })
             return { status: 302, targetUrl }
         }
     )

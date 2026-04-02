@@ -9,7 +9,8 @@ jest.mock('./mongoose', () => ({
 jest.mock('../models/yo', () => ({
     __esModule: true,
     default: {
-        findOneAndUpdate: jest.fn(),
+        findOne: jest.fn(),
+        updateOne: jest.fn(),
     },
 }))
 
@@ -47,10 +48,11 @@ describe('resolveRedirect', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         connectToDatabase.mockResolvedValue({})
+        Yo.updateOne.mockResolvedValue({ acknowledged: true, matchedCount: 1 })
     })
 
     it('returns 404 when the alias does not exist', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue(null)
+        Yo.findOne.mockResolvedValue(null)
 
         await expect(
             resolveRedirect({
@@ -64,7 +66,8 @@ describe('resolveRedirect', () => {
     })
 
     it('returns an absolute external target URL', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue({
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
             originalUrl: 'https://example.com/docs',
         })
 
@@ -79,18 +82,44 @@ describe('resolveRedirect', () => {
         })
 
         expect(connectToDatabase).toHaveBeenCalledTimes(1)
-        expect(Yo.findOneAndUpdate).toHaveBeenCalledWith(
+        expect(Yo.findOne).toHaveBeenCalledWith(
             { linkName: 'docs' },
+            { originalUrl: 1 }
+        )
+        expect(Yo.updateOne).toHaveBeenCalledWith(
+            { _id: 'alias-id' },
             {
                 $inc: { urlHits: 1 },
                 $set: { lastAccess: expect.any(Number) },
-            },
-            { new: true }
+            }
+        )
+    })
+
+    it('normalizes the incoming alias before lookup', async () => {
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
+            originalUrl: 'https://example.com/docs',
+        })
+
+        await expect(
+            resolveRedirect({
+                redirectParam: ' /Docs/ ',
+                req: buildReq(),
+            })
+        ).resolves.toEqual({
+            status: 302,
+            targetUrl: 'https://example.com/docs',
+        })
+
+        expect(Yo.findOne).toHaveBeenCalledWith(
+            { linkName: 'docs' },
+            { originalUrl: 1 }
         )
     })
 
     it('builds an absolute URL for relative destinations', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue({
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
             originalUrl: '/team/docs',
         })
 
@@ -106,7 +135,8 @@ describe('resolveRedirect', () => {
     })
 
     it('blocks self-referential short links', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue({
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
             originalUrl: '/hello',
         })
 
@@ -120,10 +150,13 @@ describe('resolveRedirect', () => {
             log: 'Prevented self-referential redirect for alias hello -> https://yo.test/hello',
             status: 400,
         })
+
+        expect(Yo.updateOne).not.toHaveBeenCalled()
     })
 
     it('blocks redirects back to the redirect handler', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue({
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
             originalUrl: 'https://example.com/api/redirect/hello',
         })
 
@@ -137,5 +170,7 @@ describe('resolveRedirect', () => {
             log: 'Prevented redirect loop for alias hello -> https://example.com/api/redirect/hello',
             status: 400,
         })
+
+        expect(Yo.updateOne).not.toHaveBeenCalled()
     })
 })

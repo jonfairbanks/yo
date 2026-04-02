@@ -3,9 +3,6 @@ import { auth0 } from '../lib/auth0'
 import Tabs from '../components/tabs'
 import Header from '../components/header'
 import Footer from '../components/footer'
-import CreateModal from '../components/create'
-
-import '../app/globals.css'
 
 export async function getServerSideProps(context) {
     const session = await auth0.getSession(context.req)
@@ -30,7 +27,6 @@ function HomePage({ user }) {
             <div className="page-content">
                 <Header user={user} />
                 <Tabs />
-                <CreateModal />
             </div>
             <Footer />
         </div>

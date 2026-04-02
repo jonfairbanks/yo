@@ -1,11 +1,11 @@
-FROM node:22 AS deps
+FROM node:24 AS deps
 
 ENV TERM=xterm
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-FROM node:22 AS build
+FROM node:24 AS build
 
 ENV TERM=xterm
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:22 AS production
+FROM node:24 AS production
 
 ENV NODE_ENV=production
 ENV TERM=xterm

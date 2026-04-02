@@ -1,9 +1,8 @@
 import { createMocks } from 'node-mocks-http'
 
 import { auth0 } from '../../../lib/auth0'
-import { connectToDatabase } from '../../../lib/mongoose'
-import Yo from '../../../models/yo'
 import handler from '../../../pages/api/update'
+import { updateAlias } from '../../../services/yo-service'
 
 jest.mock('../../../lib/auth0', () => ({
     auth0: {
@@ -11,15 +10,8 @@ jest.mock('../../../lib/auth0', () => ({
     },
 }))
 
-jest.mock('../../../lib/mongoose', () => ({
-    connectToDatabase: jest.fn(),
-}))
-
-jest.mock('../../../models/yo', () => ({
-    __esModule: true,
-    default: {
-        findOneAndUpdate: jest.fn(),
-    },
+jest.mock('../../../services/yo-service', () => ({
+    updateAlias: jest.fn(),
 }))
 
 jest.mock('../../../lib/logger', () => ({
@@ -51,9 +43,8 @@ describe('update API handler', () => {
         auth0.getSession.mockResolvedValue({
             user: { sub: 'user-1' },
         })
-        connectToDatabase.mockResolvedValue({})
-        Yo.findOneAndUpdate.mockResolvedValue({
-            linkName: 'docs',
+        updateAlias.mockResolvedValue({
+            message: 'docs updated successfully.',
         })
     })
 
@@ -83,10 +74,15 @@ describe('update API handler', () => {
 
         expect(res._getStatusCode()).toBe(401)
         expect(res._getJSONData()).toEqual({ error: 'Unauthorized' })
-        expect(connectToDatabase).not.toHaveBeenCalled()
+        expect(updateAlias).not.toHaveBeenCalled()
     })
 
     it('blocks reserved aliases', async () => {
+        updateAlias.mockRejectedValue({
+            code: 'reserved_alias',
+            message: 'This link name is reserved by the application.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -101,10 +97,15 @@ describe('update API handler', () => {
         expect(res._getJSONData()).toEqual({
             error: 'This link name is reserved by the application.',
         })
-        expect(Yo.findOneAndUpdate).not.toHaveBeenCalled()
+        expect(updateAlias).toHaveBeenCalledTimes(1)
     })
 
     it('rejects invalid destination URLs', async () => {
+        updateAlias.mockRejectedValue({
+            code: 'invalid_url',
+            message: 'The provided URL is improperly formatted.',
+            statusCode: 400,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -116,40 +117,40 @@ describe('update API handler', () => {
         await handler(req, res)
 
         expect(res._getStatusCode()).toBe(400)
-        expect(res._getJSONData()).toBe(
-            'The provided URL is improperly formatted.'
-        )
-        expect(Yo.findOneAndUpdate).not.toHaveBeenCalled()
+        expect(res._getJSONData()).toEqual({
+            error: 'The provided URL is improperly formatted.',
+        })
+        expect(updateAlias).toHaveBeenCalledTimes(1)
     })
 
-    it('updates an existing alias', async () => {
+    it('updates an existing alias with a canonical link name', async () => {
         const { req, res } = createMocks({
             method: 'POST',
             body: {
-                linkName: 'docs',
+                linkName: ' /Docs/ ',
                 originalUrl: 'https://example.com/updated',
             },
         })
 
         await handler(req, res)
 
-        expect(connectToDatabase).toHaveBeenCalledTimes(1)
-        expect(Yo.findOneAndUpdate).toHaveBeenCalledWith(
-            { linkName: 'docs' },
-            {
-                $set: {
-                    originalUrl: 'https://example.com/updated',
-                    updatedAt: expect.any(Date),
-                },
-            },
-            { new: true }
-        )
+        expect(updateAlias).toHaveBeenCalledWith({
+            linkName: ' /Docs/ ',
+            originalUrl: 'https://example.com/updated',
+            span: expect.any(Object),
+        })
         expect(res._getStatusCode()).toBe(200)
-        expect(res._getJSONData()).toBe('docs updated successfully.')
+        expect(res._getJSONData()).toEqual({
+            message: 'docs updated successfully.',
+        })
     })
 
-    it('returns a server error when the alias does not exist', async () => {
-        Yo.findOneAndUpdate.mockResolvedValue(null)
+    it('returns not found when the alias does not exist', async () => {
+        updateAlias.mockRejectedValue({
+            code: 'missing',
+            message: 'Alias missing not found.',
+            statusCode: 404,
+        })
         const { req, res } = createMocks({
             method: 'POST',
             body: {
@@ -160,9 +161,9 @@ describe('update API handler', () => {
 
         await handler(req, res)
 
-        expect(res._getStatusCode()).toBe(500)
-        expect(res._getJSONData()).toBe(
-            'There was an error while trying to update that Yo'
-        )
+        expect(res._getStatusCode()).toBe(404)
+        expect(res._getJSONData()).toEqual({
+            error: 'Alias missing not found.',
+        })
     })
 })

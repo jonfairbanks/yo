@@ -7,17 +7,18 @@
 - [ ] robots.txt solution
 - [x] Setup Auth0 integration
 - [ ] Setup Auth0 production keys
-- [ ] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
-- [ ] Improve terraform pre-release workflow
+- [x] [Upgrade for Auth0 + Next.js fix](https://github.com/auth0/nextjs-auth0/issues/1779)
 - [x] Prettier integration
 - [x] Request IP addr logging
-- [ ] Migrate to Typescript
+- [ ] Migrate to Typescript?
+- [ ] Update to Next.js v16
 - [x] UI for "Redirecting..."
 - [x] Remove references to `shortLink` value
 - [ ] Mobile UX Improvements
 - [ ] Event Tracking
+- [ ] Clean up container image publishing. Remove stale ECR pushes after deleting `yo-api`, decide on one image registry strategy across ECR/GitHub/Docker, and update build/deploy config to stop failures like `The repository with name '***/yo-api' does not exist`.
 - [x] Sticky Footer
-- [ ] Tests
-- [ ] Dependabot
+- [x] Tests
+- [x] Dependabot
 - [x] Otel
 - [x] Fix console.logs

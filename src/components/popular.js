@@ -1,27 +1,24 @@
-import { useState, useEffect } from 'react'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { useMemo } from 'react'
+import { useDashboard } from '../context/dashboard-context'
+import { useDashboardQuery } from '../hooks/use-dashboard-query'
+import { getShortPath } from '../lib/browser-short-url'
+import LinkActions from './link-actions'
 
 const PopularYos = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-
-    // Fetch data from API on component mount
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/api/popular')
-                const json = await response.json()
-                setData(json)
-                setLoading(false)
-            } catch (error) {
-                setError('Failed to load popular data:', error)
-                setLoading(false)
+    const { scheduleRefresh } = useDashboard()
+    const queryUrl = useMemo(() => '/api/popular', [])
+    const { data, error, loading } = useDashboardQuery({
+        fallbackMessage: 'Failed to load popular data.',
+        url: queryUrl,
+        initialData: [],
+        parse: (json) => {
+            if (!Array.isArray(json)) {
+                throw new Error('Failed to load popular data.')
             }
-        }
 
-        fetchData()
-    }, []) // Empty dependency array means this effect runs once on mount
+            return json
+        },
+    })
 
     if (loading) {
         return <p>Loading...</p>
@@ -32,40 +29,55 @@ const PopularYos = () => {
     }
 
     return (
-        <table className="yo-table">
+        <table className="yo-table yo-table-cards yo-table-popular">
             <thead>
                 <tr>
                     <th>Link</th>
                     <th>Site URL</th>
                     <th>URL Hits</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {data.map((item, index) => (
                     <tr key={index}>
-                        <td width="15%">
-                            <CopyToClipboard
-                                text={
-                                    window.location.host + '/' + item.linkName
-                                }
+                        <td width="15%" data-label="Link">
+                            <pre
+                                className="row-link-name"
+                                title={item.linkName}
                             >
-                                <pre style={{ cursor: 'pointer' }}>
-                                    {item.linkName}
-                                </pre>
-                            </CopyToClipboard>
+                                {item.linkName}
+                            </pre>
                         </td>
-                        <td className="site-url" width="75%">
+                        <td
+                            className="site-url"
+                            width="75%"
+                            data-label="Site URL"
+                        >
                             <a
                                 className="grey-text text-darken-1"
-                                href={'/api/redirect/' + item.linkName}
+                                href={getShortPath(item.linkName)}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => scheduleRefresh()}
                             >
                                 {item.originalUrl}
                             </a>
                         </td>
-                        <td className="url-hits" width="10%">
+                        <td
+                            className="url-hits grey-text text-darken-1"
+                            width="10%"
+                            data-label="URL Hits"
+                        >
                             {(item.urlHits ?? 0).toLocaleString()}
+                        </td>
+                        <td width="20%" data-label="Actions">
+                            <LinkActions
+                                compact
+                                linkName={item.linkName}
+                                originalUrl={item.originalUrl}
+                                onVisit={() => scheduleRefresh()}
+                            />
                         </td>
                     </tr>
                 ))}
