@@ -16,6 +16,7 @@
 - [x] Remove references to `shortLink` value
 - [ ] Mobile UX Improvements
 - [ ] Event Tracking
+- [ ] Clean up container image publishing. Remove stale ECR pushes after deleting `yo-api`, decide on one image registry strategy across ECR/GitHub/Docker, and update build/deploy config to stop failures like `The repository with name '***/yo-api' does not exist`.
 - [x] Sticky Footer
 - [x] Tests
 - [x] Dependabot
