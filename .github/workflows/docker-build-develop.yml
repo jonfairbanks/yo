@@ -96,6 +96,16 @@ jobs:
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
+      - name: Compute safe Docker tag
+        id: image-tag
+        run: |
+          RAW_REF="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          SAFE_REF="$(echo "${RAW_REF}" | tr '/:@' '-' | tr -cd '[:alnum:]._-')"
+          if [ -z "${SAFE_REF}" ]; then
+            SAFE_REF="${GITHUB_SHA::12}"
+          fi
+          echo "value=${SAFE_REF}" >> "${GITHUB_OUTPUT}"
+
       - name: Set up QEMU
         id: setup-qemu
         uses: docker/setup-qemu-action@v4
@@ -123,7 +133,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           provenance: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/yo-url:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/yo-url:${{ steps.image-tag.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
