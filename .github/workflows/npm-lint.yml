@@ -33,6 +33,12 @@ jobs:
         with:
           node-version: "22.x"
 
+      - name: Upgrade npm to v11
+        if: steps.changes.outputs.run == 'true'
+        run: cd "$RUNNER_TEMP" && npm install -g npm@11
+        env:
+          NPM_CONFIG_USERCONFIG: /dev/null
+
       - name: Install dependencies
         if: steps.changes.outputs.run == 'true'
         run: npm install
