@@ -16,7 +16,7 @@ docker compose up
 
 Notes:
 
-- the compose file currently uses the published image `jonfairbanks/yo-api`
+- the compose file currently uses the published image `ghcr.io/jonfairbanks/yo-url:main`
 - the local `build:` block is commented out
 - if you want to build from this checkout instead of pulling the published image, uncomment the `build` section and remove or override `image`
 
