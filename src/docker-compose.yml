@@ -5,7 +5,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: src/Dockerfile
-    image: jonfairbanks/yo-api
+    image: ghcr.io/jonfairbanks/yo-url:main
     ports:
       - "3000:3000"
     env_file:

@@ -106,6 +106,19 @@ jobs:
           fi
           echo "value=${SAFE_REF}" >> "${GITHUB_OUTPUT}"
 
+      - name: Compute Docker image tags
+        id: image-tags
+        run: |
+          TAGS="ghcr.io/${GITHUB_REPOSITORY_OWNER}/yo-url:${{ steps.image-tag.outputs.value }}"
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF_NAME}" = "main" ]; then
+            TAGS="${TAGS}"$'\n'"ghcr.io/${GITHUB_REPOSITORY_OWNER}/yo-url:latest"
+          fi
+          {
+            echo "value<<EOF"
+            echo "${TAGS}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: Set up QEMU
         id: setup-qemu
         uses: docker/setup-qemu-action@v4
@@ -132,8 +145,7 @@ jobs:
           file: ./src/Dockerfile
           push: ${{ github.event_name == 'push' }}
           provenance: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/yo-url:${{ steps.image-tag.outputs.value }}
+          tags: ${{ steps.image-tags.outputs.value }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
