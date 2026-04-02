@@ -82,7 +82,6 @@ jobs:
 
   docker-build:
     name: Docker Build
-    environment: development
     needs: [node-lint, node-audit]
     runs-on: ubuntu-latest
     permissions:
