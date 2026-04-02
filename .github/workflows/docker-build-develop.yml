@@ -5,6 +5,10 @@ on:
     branches:
       - "develop"
       - "main"
+  pull_request:
+    branches:
+      - "develop"
+      - "main"
 env:
   TERM: "xterm"
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -39,10 +43,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24.x"
 
@@ -53,6 +57,7 @@ jobs:
       - name: Lint Code
         run: npm run lint
         working-directory: src
+
   node-audit:
     name: Critical Vulnerability Check
     runs-on: ubuntu-latest
@@ -60,10 +65,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24.x"
 
@@ -85,7 +90,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Define sha_short
         id: vars
@@ -93,22 +98,15 @@ jobs:
 
       - name: Set up QEMU
         id: setup-qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
-
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: /tmp/.buildx-cache/${{ runner.os }}-${{ steps.setup-buildx.outputs.name }}-${{ hashFiles('**/Dockerfile') }}
-      #     key: ${{ runner.os }}-buildx-${{ steps.vars.outputs.sha_short }}-{{ hashFiles('**/Dockerfile') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -116,13 +114,13 @@ jobs:
 
       - name: Build & Push Docker image(s)
         id: docker-build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./src
           platforms: linux/amd64 # TODO: Re-add `linux/arm64`
           file: ./src/Dockerfile
-          push: true
+          push: ${{ github.event_name == 'push' }}
           provenance: false
           tags: |
             ghcr.io/${{ github.repository_owner }}/yo-url:${{ github.ref_name }}
@@ -134,4 +132,4 @@ jobs:
         with:
           status: ${{ job.status }}
           steps: ${{ toJson(steps) }}
-        if: always()
+        if: always() && github.event_name == 'push'
