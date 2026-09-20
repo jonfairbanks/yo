@@ -64,6 +64,6 @@ If you deploy into an environment with OTLP collection, set the exporter-related
 
 OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs, and error telemetry uses fixed messages rather than raw exception text or stacks.
 
-## Legacy Terraform
+## Retired Infrastructure
 
-The `.tf/` directory references the removed `server/` Lambda artifacts and is not the current Docker deployment path. Source hardening removes unnecessary runtime Secrets Manager and account-wide log permissions and enables state-bucket versioning. These edits do not change deployed roles or buckets until an authorized infrastructure workflow applies them. Do not reuse this legacy deployment without reviewing its backend and missing artifacts.
+The legacy Lambda/API Gateway Terraform deployment and its scripts have been removed. Docker is the supported deployment path. Removing the source does not delete existing AWS resources or Terraform state.
