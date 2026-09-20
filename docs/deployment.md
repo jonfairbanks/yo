@@ -11,14 +11,10 @@ The Docker assets live under [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/sr
 From `src/`:
 
 ```sh
-docker compose up
+docker compose up --build
 ```
 
-Notes:
-
-- the compose file currently uses the published image `ghcr.io/jonfairbanks/yo-url:main`
-- the local `build:` block is commented out
-- if you want to build from this checkout instead of pulling the published image, uncomment the `build` section and remove or override `image`
+Compose builds the checked-out source instead of trusting a mutable registry tag. For a registry-based deployment, select a reviewed CI image by digest.
 
 ### Dockerfile
 
@@ -32,11 +28,9 @@ Expose port `3000` and provide the same environment variables described in [Conf
 
 ## Reverse Proxies and TLS
 
-Redirect URL construction uses request headers to determine protocol for relative destinations. In production, your proxy or ingress should forward the correct scheme, especially:
+Relative legacy destinations resolve against `SHORT_BASE_URL` (or `APP_BASE_URL`) using its HTTP(S) origin. Request `Host` and forwarding headers do not select the destination origin. Missing or invalid configuration returns HTTP 400 for a relative destination; absolute destinations keep working.
 
-- `X-Forwarded-Proto: https`
-
-If this header is missing in a TLS-terminated deployment, relative redirect targets may be reconstructed with `http` instead of `https`.
+Both redirect routes share a process-wide budget of 10 requests/second, a burst of 20, and at most 10 concurrent resolutions. Excess requests return HTTP 429 with `Retry-After: 1` before database work. This bounds per-process work; configure an ingress rate limit across replicas for deployment-wide protection. One client can consume the shared budget, so the ingress should also apply per-client fairness using a trusted client address.
 
 ## MongoDB Indexes
 
@@ -67,3 +61,9 @@ The app emits:
 - JSON logs through Winston
 
 If you deploy into an environment with OTLP collection, set the exporter-related environment variables described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md).
+
+OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs, and error telemetry uses fixed messages rather than raw exception text or stacks.
+
+## Legacy Terraform
+
+The `.tf/` directory references the removed `server/` Lambda artifacts and is not the current Docker deployment path. Source hardening removes unnecessary runtime Secrets Manager and account-wide log permissions and enables state-bucket versioning. These edits do not change deployed roles or buckets until an authorized infrastructure workflow applies them. Do not reuse this legacy deployment without reviewing its backend and missing artifacts.

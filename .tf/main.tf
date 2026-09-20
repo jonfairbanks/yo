@@ -61,11 +61,6 @@ resource "aws_iam_role" "yo_api_lambda_role" {
 }
 
 
-resource "aws_iam_role_policy_attachment" "lambda_secrets_access" {
-  role       = aws_iam_role.yo_api_lambda_role.name
-  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
-}
-
 /* ------------------------- */
 /* Lambda Function           */
 /* ------------------------- */
@@ -295,22 +290,6 @@ resource "aws_cloudwatch_log_group" "yo_api_gw_logs" {
 resource "aws_cloudwatch_log_group" "yo_api_gw_loggroup" {
   name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.yo_api.id}/${aws_api_gateway_stage.yo_api_stage.stage_name}"
   retention_in_days = 3
-}
-
-data "aws_iam_policy_document" "yo_api_gw_logging_policy" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["arn:aws:logs:*:*:*"]
-  }
-}
-
-resource "aws_iam_role_policy" "yo_api_gw_logging_role_policy" {
-  role   = aws_iam_role.yo_api_lambda_role.id
-  policy = data.aws_iam_policy_document.yo_api_gw_logging_policy.json
 }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
