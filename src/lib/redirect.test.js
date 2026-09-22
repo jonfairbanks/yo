@@ -45,14 +45,12 @@ describe('resolveRedirect', () => {
             ...(overrides.headers || {}),
         },
         socket: overrides.socket || { remoteAddress: '192.0.2.1' },
-        rawHeaders: Object.entries(overrides.headers || {}).flat(),
     })
 
     beforeEach(() => {
         jest.clearAllMocks()
         delete global.__yoIpRedirectBudget
         process.env.SHORT_BASE_URL = 'https://yo.test'
-        delete process.env.YO_CLIENT_IP_SOURCE
         connectToDatabase.mockResolvedValue({})
         Yo.updateOne.mockResolvedValue({ acknowledged: true, matchedCount: 1 })
     })
@@ -108,7 +106,6 @@ describe('resolveRedirect', () => {
     })
 
     it('separates App Runner clients sharing the same socket peer', async () => {
-        process.env.YO_CLIENT_IP_SOURCE = 'apprunner'
         const { createRedirectBudget } = await import('./request-budget')
         global.__yoIpRedirectBudget = createRedirectBudget({ now: () => 0 })
         Yo.findOne.mockResolvedValue({
@@ -149,16 +146,50 @@ describe('resolveRedirect', () => {
         expect(Yo.updateOne).toHaveBeenCalledTimes(21)
     })
 
-    it('does not fall back to a shared peer when App Runner identity is missing', async () => {
-        process.env.YO_CLIENT_IP_SOURCE = 'apprunner'
-        const result = await resolveRedirect({
-            redirectParam: 'docs',
-            req: buildReq(),
-        })
-        expect(result.status).toBe(400)
-        expect(connectToDatabase).not.toHaveBeenCalled()
-        expect(Yo.updateOne).not.toHaveBeenCalled()
-    })
+    it.each(['', 'invalid', ['192.0.2.1'], '192.0.2.1,', 'x'.repeat(4097)])(
+        'rejects a malformed forwarded client address: %p',
+        async (forwarded) => {
+            const result = await resolveRedirect({
+                redirectParam: 'docs',
+                req: buildReq({ headers: { 'x-forwarded-for': forwarded } }),
+            })
+            expect(result.status).toBe(400)
+            expect(connectToDatabase).not.toHaveBeenCalled()
+            expect(Yo.updateOne).not.toHaveBeenCalled()
+        }
+    )
+
+    it.each([
+        ['2001:0DB8:0:0:0:0:0:1', '2001:db8::1'],
+        ['::ffff:192.0.2.1', '192.0.2.1'],
+        ['::ffff:c000:201', '192.0.2.1'],
+    ])(
+        'shares a budget across equivalent IP forms: %s',
+        async (forwarded, socketIp) => {
+            const { createRedirectBudget } = await import('./request-budget')
+            global.__yoIpRedirectBudget = createRedirectBudget({
+                now: () => 0,
+            })
+            Yo.findOne.mockResolvedValue({
+                _id: 'alias-id',
+                originalUrl: 'https://example.com/docs',
+            })
+            for (let i = 0; i < 19; i += 1) {
+                global.__yoIpRedirectBudget.acquire(socketIp)()
+            }
+            const first = await resolveRedirect({
+                redirectParam: 'docs',
+                req: buildReq({ headers: { 'x-forwarded-for': forwarded } }),
+            })
+            const second = await resolveRedirect({
+                redirectParam: 'docs',
+                req: buildReq({ socket: { remoteAddress: socketIp } }),
+            })
+            expect(first.status).toBe(302)
+            expect(second.status).toBe(429)
+            expect(Yo.updateOne).toHaveBeenCalledTimes(1)
+        }
+    )
 
     it('returns 404 when the alias does not exist', async () => {
         Yo.findOne.mockResolvedValue(null)

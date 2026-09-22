@@ -20,7 +20,6 @@ The app reads environment variables from standard Next.js env files such as `.en
 
 | Variable | Purpose |
 | --- | --- |
-| `YO_CLIENT_IP_SOURCE` | `socket` by default; `apprunner` uses the managed public ingress header. `npm start` selects App Runner mode; `npm run start:direct` selects socket mode. |
 | `NEXT_TELEMETRY_DISABLED` | Disable Next.js telemetry |
 | `OTEL_SERVICE_NAME` | Override the OpenTelemetry service name |
 | `OTEL_RESOURCE_ATTRIBUTES` | Additional OpenTelemetry resource attributes |
