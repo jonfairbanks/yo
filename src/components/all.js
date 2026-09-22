@@ -2,10 +2,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import {
-    useReactTable,
+    columnVisibilityFeature,
     createColumnHelper,
     flexRender,
-    getCoreRowModel,
+    rowPaginationFeature,
+    rowSortingFeature,
+    tableFeatures,
+    useTable,
 } from '@tanstack/react-table'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 
@@ -13,6 +16,12 @@ import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
 import { getShortPath, getShortUrl } from '../lib/browser-short-url'
 dayjs.extend(relativeTime)
+
+const TABLE_FEATURES = tableFeatures({
+    columnVisibilityFeature,
+    rowSortingFeature,
+    rowPaginationFeature,
+})
 
 const QUICK_FILTERS = [
     {
@@ -264,13 +273,13 @@ const AllYos = () => {
         [columnHelper, handleVisitClick, openUpdateModal]
     )
 
-    const table = useReactTable({
+    const table = useTable({
         data: data.items,
         columns,
+        features: TABLE_FEATURES,
         state: { sorting, pagination },
         onSortingChange: setSorting,
         onPaginationChange: setPagination,
-        getCoreRowModel: getCoreRowModel(),
         manualSorting: true,
         manualPagination: true,
         pageCount: data.pagination.totalPages,

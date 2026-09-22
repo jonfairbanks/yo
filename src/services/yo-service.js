@@ -63,7 +63,6 @@ export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span })
         logger.info({
             event: 'alias_created',
             alias: normalizedLinkName,
-            originalUrl,
         })
 
         return {
@@ -90,8 +89,6 @@ export const createAlias = async ({ linkName, originalUrl, shortBaseUrl, span })
         logger.error({
             event: 'alias_create_failed',
             alias: normalizedLinkName,
-            originalUrl,
-            error: error instanceof Error ? error.message : String(error),
         })
         throw error
     }
@@ -123,7 +120,6 @@ export const updateAlias = async ({ linkName, originalUrl, span }) => {
     logger.info({
         event: 'alias_updated',
         alias: normalizedLinkName,
-        originalUrl,
     })
 
     return {
@@ -156,7 +152,6 @@ export const deleteAlias = async ({ linkName, actorNickname, span }) => {
         event: 'alias_deleted',
         actorNickname: actorNickname || 'unknown',
         alias: normalizedLinkName,
-        originalUrl: item.originalUrl,
     })
 
     return {

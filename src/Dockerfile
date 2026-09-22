@@ -2,8 +2,8 @@ FROM node:24 AS deps
 
 ENV TERM=xterm
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci
 
 FROM node:24 AS build
 

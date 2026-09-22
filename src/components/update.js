@@ -62,6 +62,9 @@ const UpdateModal = () => {
     }
 
     const DeleteYo = async () => {
+        if (!window.confirm(`Delete ${selectedItem.linkName}? This cannot be undone.`)) {
+            return
+        }
         const data = { linkName: selectedItem.linkName }
 
         try {
