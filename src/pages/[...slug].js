@@ -33,7 +33,7 @@ const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
                     try again.
                 </p>
                 <button
-                    className="btn"
+                    className="btn filled teal white-text darken-2"
                     disabled={!canRetry}
                     onClick={() => window.location.reload()}
                 >
