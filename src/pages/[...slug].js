@@ -27,11 +27,10 @@ const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
                     height={64}
                     priority
                 />
-                <h1 className="redirect-text">Too Many Requests</h1>
-                <p>
-                    Too many requests from your IP address. Wait a moment, then
-                    try again.
-                </p>
+                <h1 className="redirect-text">
+                    Yo Dawg, That&apos;s a Lot of Requests
+                </h1>
+                <p>Wait a moment, then try again.</p>
                 <button
                     className="btn filled teal white-text darken-2"
                     disabled={!canRetry}

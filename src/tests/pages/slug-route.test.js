@@ -62,7 +62,7 @@ it('shows a rate-limit message and enables retry after the wait', () => {
     jest.useFakeTimers()
     render(<CatchAllRoute rateLimited retryAfter={1} />)
     expect(
-        screen.getByRole('heading', { name: 'Too Many Requests' })
+        screen.getByRole('heading', { name: "Yo Dawg, That's a Lot of Requests" })
     ).toBeInTheDocument()
     expect(screen.queryByText(/link doesn't exist/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try Again' })).toBeDisabled()
