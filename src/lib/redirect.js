@@ -4,6 +4,28 @@ import { normalizeLinkName } from './link-name'
 import logger from './logger'
 import { withSpan } from './tracing'
 import { acquireRedirectBudget } from './request-budget'
+import { isIP } from 'node:net'
+
+const getClientIp = (req) => {
+    let address = req?.socket?.remoteAddress
+    const forwarded = req?.headers?.['x-forwarded-for']
+    if (forwarded !== undefined) {
+        if (typeof forwarded !== 'string' || forwarded.length > 4096)
+            return null
+        // Public App Runner supplies the source IP through its managed ingress.
+        address = forwarded.split(',').at(-1).trim()
+    }
+    if (typeof address !== 'string') return null
+    const version = isIP(address)
+    if (version === 4) return address
+    if (version !== 6 || address.includes('%')) return null
+    const canonical = new URL(`http://[${address}]`).hostname.slice(1, -1)
+    const mapped = canonical.match(/^::ffff:([a-f0-9]+):([a-f0-9]+)$/)
+    if (!mapped) return canonical
+    const high = parseInt(mapped[1], 16)
+    const low = parseInt(mapped[2], 16)
+    return [high >> 8, high & 255, low >> 8, low & 255].join('.')
+}
 
 const normalizePath = (value) => value.replace(/\/+/g, '/')
 
@@ -44,6 +66,8 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
             // Absolute destinations still work without a configured origin.
         }
         const targetHost = parsedTarget.host.toLowerCase()
+        // External paths belong to the destination site, not Yo's router.
+        if (!currentHosts.has(targetHost)) return null
         const normalizedTargetPath = normalizePath(
             decodeURIComponent(parsedTarget.pathname)
         )
@@ -58,16 +82,18 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
         ).replace(/\/+$/, '')
 
         if (
-            currentHosts.has(targetHost) &&
-            (normalizedTargetPath === normalizedSlugPath ||
-                normalizedTargetPath === normalizedApiPath)
+            normalizedTargetPath === normalizedSlugPath ||
+            normalizedTargetPath === normalizedApiPath
         ) {
             return {
                 status: 400,
                 error: 'Destination points back to this short link.',
             }
         }
-        if (normalizedTargetPath.includes('/api/redirect/')) {
+        if (
+            normalizedTargetPath === '/api/redirect' ||
+            normalizedTargetPath.startsWith('/api/redirect/')
+        ) {
             return {
                 status: 400,
                 error: 'Destination points back to the redirect handler.',
@@ -75,13 +101,6 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
         }
     } catch {
         return { status: 400, error: 'Invalid redirect destination.' }
-    }
-
-    if (targetUrl.includes('/api/redirect/')) {
-        return {
-            status: 400,
-            error: 'Destination points back to the redirect handler.',
-        }
     }
 
     return null
@@ -186,7 +205,10 @@ export const resolveRedirect = async ({ redirectParam, req }) => {
     if (typeof redirectParam !== 'string' || redirectParam.length > 2048) {
         return { status: 400, error: 'Invalid link name.' }
     }
-    const release = acquireRedirectBudget()
+    const clientIp = getClientIp(req)
+    if (!clientIp)
+        return { status: 400, error: 'Unable to determine client address.' }
+    const release = acquireRedirectBudget(clientIp)
     if (!release) {
         return {
             status: 429,

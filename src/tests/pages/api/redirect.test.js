@@ -99,11 +99,18 @@ describe('/api/redirect/[...redirect]', () => {
         })
     })
     it('returns the overload status and retry header', async () => {
-        resolveAlias.mockResolvedValue({ status: 429, error: 'Too many requests. Try again shortly.', retryAfter: 1 })
-        const { req, res } = createMocks({ method: 'GET', query: { redirect: ['docs'] } })
+        resolveAlias.mockResolvedValue({
+            status: 429,
+            error: 'Too many requests. Try again shortly.',
+            retryAfter: 1,
+        })
+        const { req, res } = createMocks({
+            method: 'GET',
+            query: { redirect: ['docs'] },
+        })
         await handler(req, res)
         expect(res._getStatusCode()).toBe(429)
         expect(res.getHeader('Retry-After')).toBe('1')
+        expect(res.getHeader('Cache-Control')).toBe('private, no-store')
     })
-
 })

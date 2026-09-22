@@ -1,4 +1,4 @@
-// A process-wide backstop. The ingress must enforce limits across replicas.
+// Budgets are per IP within this process. Replicas do not share state.
 export const createTokenBucket = ({
     rate,
     capacity,
@@ -20,23 +20,57 @@ export const createTokenBucket = ({
     }
 }
 
-export const createRedirectBudget = () => {
-    const take = createTokenBucket({ rate: 10, capacity: 20 })
-    let active = 0
+export const createRedirectBudget = ({
+    now = () => performance.now(),
+    maxIdleClients = 10000,
+    idleTtlMs = 60000,
+} = {}) => {
+    const activeClients = new Map()
+    const idleClients = new Map()
+
+    const rememberIdle = (ip, entry) => {
+        entry.lastUsed = now()
+        idleClients.delete(ip)
+        idleClients.set(ip, entry)
+        while (idleClients.size > maxIdleClients) {
+            idleClients.delete(idleClients.keys().next().value)
+        }
+    }
+
     return {
-        acquire() {
-            if (active >= 10 || !take()) return null
-            active += 1
+        acquire(ip) {
+            const time = now()
+            for (const [key, entry] of idleClients) {
+                if (time - entry.lastUsed < idleTtlMs) break
+                idleClients.delete(key)
+            }
+            const entry = activeClients.get(ip) ||
+                idleClients.get(ip) || {
+                    take: createTokenBucket({ rate: 10, capacity: 20, now }),
+                    active: 0,
+                }
+            if (entry.active >= 10 || !entry.take()) {
+                if (entry.active === 0) rememberIdle(ip, entry)
+                return null
+            }
+            idleClients.delete(ip)
+            activeClients.set(ip, entry)
+            entry.active += 1
             let released = false
             return () => {
-                if (!released) active -= 1
+                if (released) return
                 released = true
+                entry.active -= 1
+                if (entry.active === 0) {
+                    activeClients.delete(ip)
+                    rememberIdle(ip, entry)
+                }
             }
         },
     }
 }
 
-export const acquireRedirectBudget = () => {
-    globalThis.__yoRedirectBudget ||= createRedirectBudget()
-    return globalThis.__yoRedirectBudget.acquire()
+export const acquireRedirectBudget = (ip) => {
+    globalThis.__yoIpRedirectBudget ||= createRedirectBudget()
+    return globalThis.__yoIpRedirectBudget.acquire(ip)
 }

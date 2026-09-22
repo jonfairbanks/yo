@@ -36,7 +36,7 @@ Redirect resolution:
 - normalizes the incoming slug
 - loads the alias from MongoDB
 - blocks self-referential redirect loops
-- applies a shared process-wide request and concurrency budget
+- applies a separate request and concurrency budget for each client IP
 - increments `urlHits` and updates `lastAccess` only after the redirect target is validated
 
 ## Search Semantics
@@ -48,7 +48,7 @@ The dashboard list API currently uses:
 
 ## Hit Counts
 
-`urlHits` counts every admitted successful redirect, including repeated requests and automated clients. It is not a unique-visitor or fraud-resistant metric. Rate limiting bounds work per process but intentionally does not deduplicate hits.
+`urlHits` counts every admitted successful redirect, including repeated requests and automated clients. It is not a unique-visitor or fraud-resistant metric. Rate limiting bounds each IP within a process but intentionally does not deduplicate hits. Different IPs have independent budgets.
 
 ## Dashboard Framing
 
