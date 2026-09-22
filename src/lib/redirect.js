@@ -4,6 +4,7 @@ import { normalizeLinkName } from './link-name'
 import logger from './logger'
 import { withSpan } from './tracing'
 import { acquireRedirectBudget } from './request-budget'
+import { getClientIp } from './client-ip'
 
 const normalizePath = (value) => value.replace(/\/+/g, '/')
 
@@ -44,6 +45,8 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
             // Absolute destinations still work without a configured origin.
         }
         const targetHost = parsedTarget.host.toLowerCase()
+        // External paths belong to the destination site, not Yo's router.
+        if (!currentHosts.has(targetHost)) return null
         const normalizedTargetPath = normalizePath(
             decodeURIComponent(parsedTarget.pathname)
         )
@@ -58,16 +61,18 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
         ).replace(/\/+$/, '')
 
         if (
-            currentHosts.has(targetHost) &&
-            (normalizedTargetPath === normalizedSlugPath ||
-                normalizedTargetPath === normalizedApiPath)
+            normalizedTargetPath === normalizedSlugPath ||
+            normalizedTargetPath === normalizedApiPath
         ) {
             return {
                 status: 400,
                 error: 'Destination points back to this short link.',
             }
         }
-        if (normalizedTargetPath.includes('/api/redirect/')) {
+        if (
+            normalizedTargetPath === '/api/redirect' ||
+            normalizedTargetPath.startsWith('/api/redirect/')
+        ) {
             return {
                 status: 400,
                 error: 'Destination points back to the redirect handler.',
@@ -75,13 +80,6 @@ const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
         }
     } catch {
         return { status: 400, error: 'Invalid redirect destination.' }
-    }
-
-    if (targetUrl.includes('/api/redirect/')) {
-        return {
-            status: 400,
-            error: 'Destination points back to the redirect handler.',
-        }
     }
 
     return null
@@ -186,7 +184,10 @@ export const resolveRedirect = async ({ redirectParam, req }) => {
     if (typeof redirectParam !== 'string' || redirectParam.length > 2048) {
         return { status: 400, error: 'Invalid link name.' }
     }
-    const release = acquireRedirectBudget()
+    const clientIp = getClientIp(req)
+    if (!clientIp)
+        return { status: 400, error: 'Unable to determine client address.' }
+    const release = acquireRedirectBudget(clientIp)
     if (!release) {
         return {
             status: 429,

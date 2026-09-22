@@ -44,15 +44,66 @@ describe('resolveRedirect', () => {
             'x-forwarded-proto': 'https',
             ...(overrides.headers || {}),
         },
-        socket: overrides.socket || {},
+        socket: overrides.socket || { remoteAddress: '192.0.2.1' },
     })
 
     beforeEach(() => {
         jest.clearAllMocks()
-        delete global.__yoRedirectBudget
+        delete global.__yoIpRedirectBudget
         process.env.SHORT_BASE_URL = 'https://yo.test'
+        delete process.env.TRUSTED_PROXY_CIDRS
         connectToDatabase.mockResolvedValue({})
         Yo.updateOne.mockResolvedValue({ acknowledged: true, matchedCount: 1 })
+    })
+
+    it.each([
+        'https://example.com/API/REDIRECT/guide',
+        'https://example.com/api/redirect/guide',
+        'https://example.com/files/%FF',
+        'https://example.com/docs?next=/api/redirect/guide',
+    ])(
+        'preserves external destinations and hit counts: %s',
+        async (originalUrl) => {
+            Yo.findOne.mockResolvedValue({ _id: 'alias-id', originalUrl })
+            const result = await resolveRedirect({
+                redirectParam: 'docs',
+                req: buildReq(),
+            })
+            expect(result).toEqual({ status: 302, targetUrl: originalUrl })
+            expect(Yo.updateOne).toHaveBeenCalledTimes(1)
+        }
+    )
+
+    it('keeps another IP working after one IP exhausts its rate', async () => {
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
+            originalUrl: 'https://example.com/docs',
+        })
+        const { createRedirectBudget } = await import('./request-budget')
+        global.__yoIpRedirectBudget = createRedirectBudget({ now: () => 0 })
+        for (let i = 0; i < 20; i += 1) {
+            expect(
+                (
+                    await resolveRedirect({
+                        redirectParam: 'docs',
+                        req: buildReq(),
+                    })
+                ).status
+            ).toBe(302)
+        }
+        expect(
+            (await resolveRedirect({ redirectParam: 'docs', req: buildReq() }))
+                .status
+        ).toBe(429)
+        expect(
+            (
+                await resolveRedirect({
+                    redirectParam: 'docs',
+                    req: buildReq({ socket: { remoteAddress: '192.0.2.2' } }),
+                })
+            ).status
+        ).toBe(302)
+        expect(Yo.updateOne).toHaveBeenCalledTimes(21)
     })
 
     it('returns 404 when the alias does not exist', async () => {
@@ -160,7 +211,7 @@ describe('resolveRedirect', () => {
     it('blocks redirects back to the redirect handler', async () => {
         Yo.findOne.mockResolvedValue({
             _id: 'alias-id',
-            originalUrl: 'https://example.com/api/redirect/hello',
+            originalUrl: 'https://yo.test/api/redirect/other',
         })
 
         await expect(
@@ -248,7 +299,7 @@ describe('resolveRedirect', () => {
     })
 
     it('returns 429 before database or span work when its budget is exhausted', async () => {
-        global.__yoRedirectBudget = { acquire: () => null }
+        global.__yoIpRedirectBudget = { acquire: () => null }
         const result = await resolveRedirect({
             redirectParam: 'docs',
             req: buildReq(),
@@ -264,7 +315,7 @@ describe('resolveRedirect', () => {
 
     it('releases capacity after database failures', async () => {
         const release = jest.fn()
-        global.__yoRedirectBudget = { acquire: () => release }
+        global.__yoIpRedirectBudget = { acquire: () => release }
         connectToDatabase.mockRejectedValue(
             new Error('Database connection failed')
         )

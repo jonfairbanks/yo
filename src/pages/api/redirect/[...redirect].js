@@ -16,6 +16,7 @@ export default createApiHandler(
             const result = await resolveAlias({ redirectParam, req })
 
             if (result.status === 429) {
+                res.setHeader('Cache-Control', 'private, no-store')
                 res.setHeader('Retry-After', String(result.retryAfter))
                 span.setAttribute('http.response.status_code', 429)
                 return jsonError(res, 429, result.error)

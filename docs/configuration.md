@@ -20,6 +20,7 @@ The app reads environment variables from standard Next.js env files such as `.en
 
 | Variable | Purpose |
 | --- | --- |
+| `TRUSTED_PROXY_CIDRS` | Comma-separated proxy IPs/CIDRs allowed to supply forwarded client IPs. Empty trusts only the socket address. Required behind a reverse proxy for visitor-based rate limits. |
 | `NEXT_TELEMETRY_DISABLED` | Disable Next.js telemetry |
 | `OTEL_SERVICE_NAME` | Override the OpenTelemetry service name |
 | `OTEL_RESOURCE_ATTRIBUTES` | Additional OpenTelemetry resource attributes |
