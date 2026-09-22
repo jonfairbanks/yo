@@ -1,58 +1,85 @@
 /** @jest-environment node */
-import { createClientIpResolver } from './client-ip'
+import { createClientIpResolver, getClientIp } from './client-ip'
 
 const request = (ip, forwarded) => ({
     socket: { remoteAddress: ip },
     headers: forwarded === undefined ? {} : { 'x-forwarded-for': forwarded },
+    rawHeaders: forwarded === undefined ? [] : ['X-Forwarded-For', forwarded],
 })
 
-it('uses the direct peer unless its proxy address is explicitly trusted', () => {
+it('ignores forwarding headers in direct-hosting mode', () => {
     expect(createClientIpResolver()(request('192.0.2.1', '198.51.100.1'))).toBe(
         '192.0.2.1'
     )
-    expect(
-        createClientIpResolver('10.0.0.0/24')(
-            request('192.0.2.1', '198.51.100.1')
-        )
-    ).toBe('192.0.2.1')
+    expect(createClientIpResolver('socket')({})).toBeNull()
 })
 
-it('walks only trusted proxy hops, from the socket toward the client', () => {
-    const resolve = createClientIpResolver('10.0.0.0/24,2001:db8:1::/48')
+it('uses the final forwarded address in App Runner mode, independent of the internal peer', () => {
+    const resolve = createClientIpResolver('apprunner')
     expect(resolve(request('10.0.0.1', '192.0.2.1'))).toBe('192.0.2.1')
-    expect(resolve(request('10.0.0.1', '192.0.2.1, 2001:db8:1::1'))).toBe(
+    expect(resolve(request('10.0.0.2', '198.51.100.1, 192.0.2.1'))).toBe(
         '192.0.2.1'
     )
-    expect(resolve(request('10.0.0.1', '198.51.100.1, 192.0.2.1'))).toBe(
+    expect(resolve(request('10.0.0.1', '198.51.100.2, 192.0.2.1'))).toBe(
         '192.0.2.1'
     )
+    expect(resolve(request('10.0.0.1', '192.0.2.2'))).toBe('192.0.2.2')
 })
 
-it('canonicalizes equivalent IPv6 and IPv4-mapped addresses', () => {
-    const resolve = createClientIpResolver()
-    expect(resolve(request('2001:0DB8:0:0:0:0:0:1'))).toBe('2001:db8::1')
-    expect(resolve(request('::ffff:192.0.2.1'))).toBe('192.0.2.1')
-    expect(resolve(request('::ffff:c000:201'))).toBe('192.0.2.1')
-    expect(
-        createClientIpResolver('10.0.0.0/24')(
-            request('::ffff:10.0.0.1', '192.0.2.1')
-        )
-    ).toBe('192.0.2.1')
-})
-
-it('handles missing identity and malformed trusted forwarding explicitly', () => {
-    const resolve = createClientIpResolver('10.0.0.0/24')
-    expect(resolve({})).toBeNull()
-    expect(resolve(request('10.0.0.1'))).toBe('10.0.0.1')
-    expect(resolve(request('10.0.0.1', 'invalid'))).toBeNull()
-    expect(resolve(request('10.0.0.1', ['192.0.2.1']))).toBeNull()
-})
-
-it.each(['bad', '10.0.0.0/33', '10.0.0.0/no', '10.0.0.0/24/1'])(
-    'rejects invalid proxy configuration: %s',
-    (config) => {
-        expect(() => createClientIpResolver(config)).toThrow(
-            'Invalid TRUSTED_PROXY_CIDRS configuration'
-        )
+it.each(['socket', 'apprunner'])(
+    'canonicalizes IPv6 and mapped IPv4 in %s mode',
+    (mode) => {
+        const resolve = createClientIpResolver(mode)
+        const input = (ip) =>
+            mode === 'socket' ? request(ip) : request('10.0.0.1', ip)
+        expect(resolve(input('2001:0DB8:0:0:0:0:0:1'))).toBe('2001:db8::1')
+        expect(resolve(input('::ffff:192.0.2.1'))).toBe('192.0.2.1')
+        expect(resolve(input('::ffff:c000:201'))).toBe('192.0.2.1')
     }
 )
+
+it.each([
+    undefined,
+    '',
+    'invalid',
+    ['192.0.2.1'],
+    '192.0.2.1,',
+    ',192.0.2.1',
+    'unknown, 192.0.2.1',
+    '192.0.2.1, invalid',
+    'x'.repeat(4097),
+    Array(33).fill('192.0.2.1').join(','),
+])('rejects unavailable or malformed App Runner identity: %p', (header) => {
+    expect(
+        createClientIpResolver('apprunner')(request('10.0.0.1', header))
+    ).toBeNull()
+})
+
+it('rejects an unsupported mode', () => {
+    expect(() => createClientIpResolver('unknown')).toThrow(
+        'Invalid YO_CLIENT_IP_SOURCE configuration'
+    )
+})
+
+it('rejects a framework-synthesized header and duplicate original headers', () => {
+    const resolve = createClientIpResolver('apprunner')
+    const synthetic = request('10.0.0.1')
+    synthetic.headers['x-forwarded-for'] = '10.0.0.1'
+    expect(resolve(synthetic)).toBeNull()
+    const duplicate = request('10.0.0.1', '192.0.2.1')
+    duplicate.rawHeaders.push('x-forwarded-for', '192.0.2.2')
+    expect(resolve(duplicate)).toBeNull()
+})
+
+it('reads the startup mode without carrying over the previous resolver', () => {
+    const original = process.env.YO_CLIENT_IP_SOURCE
+    try {
+        process.env.YO_CLIENT_IP_SOURCE = 'apprunner'
+        expect(getClientIp(request('10.0.0.1', '192.0.2.1'))).toBe('192.0.2.1')
+        process.env.YO_CLIENT_IP_SOURCE = 'socket'
+        expect(getClientIp(request('10.0.0.1', '192.0.2.1'))).toBe('10.0.0.1')
+    } finally {
+        if (original === undefined) delete process.env.YO_CLIENT_IP_SOURCE
+        else process.env.YO_CLIENT_IP_SOURCE = original
+    }
+})

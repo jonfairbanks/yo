@@ -1,4 +1,4 @@
-import { BlockList, isIP } from 'node:net'
+import { isIP } from 'node:net'
 
 const normalizeIp = (value) => {
     if (typeof value !== 'string') return null
@@ -14,44 +14,34 @@ const normalizeIp = (value) => {
     return [high >> 8, high & 255, low >> 8, low & 255].join('.')
 }
 
-export const createClientIpResolver = (trustedProxyCidrs = '') => {
-    const proxies = new BlockList()
-    for (const entry of trustedProxyCidrs.split(',').filter((v) => v.trim())) {
-        const [address, prefix, extra] = entry.trim().split('/')
-        const version = isIP(address)
-        if (
-            !version ||
-            extra !== undefined ||
-            (prefix !== undefined && !/^\d+$/.test(prefix))
-        ) {
-            throw new Error('Invalid TRUSTED_PROXY_CIDRS configuration')
-        }
-        const type = version === 4 ? 'ipv4' : 'ipv6'
-        try {
-            if (prefix === undefined) proxies.addAddress(address, type)
-            else proxies.addSubnet(address, Number(prefix), type)
-        } catch {
-            throw new Error('Invalid TRUSTED_PROXY_CIDRS configuration')
-        }
+export const createClientIpResolver = (source = 'socket') => {
+    if (!['socket', 'apprunner'].includes(source)) {
+        throw new Error('Invalid YO_CLIENT_IP_SOURCE configuration')
     }
-    const trusted = (address) =>
-        proxies.check(address, isIP(address) === 4 ? 'ipv4' : 'ipv6')
 
     return (req) => {
-        let address = normalizeIp(req?.socket?.remoteAddress)
-        if (!address || !trusted(address)) return address
-        const forwarded = req.headers?.['x-forwarded-for']
-        if (forwarded === undefined) return address
+        if (source === 'socket') return normalizeIp(req?.socket?.remoteAddress)
+
+        // Only for a public App Runner endpoint with no upstream CDN/proxy.
+        // Use the final source address supplied by the managed ingress.
+        // Next.js synthesizes req.headers XFF from the socket when absent.
+        // Require exactly one original ingress header instead of that fallback.
+        if (!Array.isArray(req?.rawHeaders)) return null
+        const originalHeaders = []
+        for (let i = 0; i < req.rawHeaders.length; i += 2) {
+            if (req.rawHeaders[i]?.toLowerCase() === 'x-forwarded-for') {
+                originalHeaders.push(req.rawHeaders[i + 1])
+            }
+        }
+        if (originalHeaders.length !== 1) return null
+        const forwarded = originalHeaders[0]
         if (typeof forwarded !== 'string' || forwarded.length > 4096)
             return null
         const chain = forwarded.split(',')
         if (chain.length > 32) return null
-        // Stop at the first untrusted hop, even if more values precede it.
-        for (let i = chain.length - 1; i >= 0 && trusted(address); i -= 1) {
-            address = normalizeIp(chain[i])
-            if (!address) return null
-        }
-        return address
+        const addresses = chain.map(normalizeIp)
+        if (addresses.some((address) => !address)) return null
+        return addresses.at(-1)
     }
 }
 
@@ -59,7 +49,7 @@ let cachedConfig
 let resolver
 
 export const getClientIp = (req) => {
-    const config = process.env.TRUSTED_PROXY_CIDRS || ''
+    const config = process.env.YO_CLIENT_IP_SOURCE || 'socket'
     if (!resolver || config !== cachedConfig) {
         resolver = createClientIpResolver(config)
         cachedConfig = config

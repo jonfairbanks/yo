@@ -8,7 +8,9 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
-    "start": "next start -H 0.0.0.0",
+    "start": "npm run start:apprunner",
+    "start:apprunner": "YO_CLIENT_IP_SOURCE=apprunner next start -H 0.0.0.0",
+    "start:direct": "YO_CLIENT_IP_SOURCE=socket next start -H 0.0.0.0",
     "fmt": "npx prettier . --check",
     "fmt-fix": "npx prettier . --write",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

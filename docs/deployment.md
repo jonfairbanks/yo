@@ -4,7 +4,11 @@
 
 As verified on September 21, 2026, `fbnks.dev` points to the public AWS App Runner service `Yo-URL` in `us-east-1`. It builds `src/` from `develop` and deploys automatically after changes to that branch. Its build/start commands and environment are configured through the App Runner API, so repository configuration files do not update those settings automatically.
 
-Before deploying per-IP limits, verify the immediate proxy address and forwarded-address chain, then configure `TRUSTED_PROXY_CIDRS` for only those proxy addresses. Without this setting, the socket peer is the identity, which groups visitors behind a proxy. App Runner documents source IPs in `X-Forwarded-For` for public endpoints; its private endpoints do not preserve the original address in that header. The exact running proxy chain remains to be verified.
+The service already runs `npm start`. That command now selects `start:apprunner`, which sets `YO_CLIENT_IP_SOURCE=apprunner` before starting Next.js. The next deployment of this source therefore enables App Runner identity without changing AWS environment variables or configuring internal proxy CIDRs.
+
+App Runner mode is for this public endpoint with DNS pointing directly to App Runner. It uses the rightmost `X-Forwarded-For` address and never falls back to a shared internal socket address. Missing or malformed identity returns HTTP 400 before database work. AWS documents source-IP preservation in this header, but does not specify its treatment of pre-existing header values. The adapter assumes the managed ingress replaces the header with the source address or appends that address. Unit tests verify the adapter's policy; the live forwarding behavior must still be checked after deployment. Reassess the policy before introducing CloudFront, another proxy, or a private App Runner endpoint.
+
+For direct Node hosting, use `npm run start:direct`. Local development and the standalone Docker entrypoint default to socket identity. Do not use `npm start` or `start:apprunner` on a directly exposed server, where forwarding headers are client-controlled.
 
 ## Docker
 
@@ -38,7 +42,7 @@ Relative legacy destinations resolve against `SHORT_BASE_URL` (or `APP_BASE_URL`
 
 Both redirect routes share a separate budget for each client IP: 10 requests/second, a burst of 20, and at most 10 concurrent resolutions per IP. One IP reaching its limit does not deny another IP. Requests over that IP's budget return HTTP 429 with `Retry-After: 1` before database work. The browser displays a rate-limit page with a retry button; the API retains its JSON error response. Neither 429 response may be cached.
 
-By default, the client IP comes from the socket. `TRUSTED_PROXY_CIDRS` accepts comma-separated proxy IPs or CIDRs, for example `10.0.1.4/32`. Only an allowlisted socket peer can supply `X-Forwarded-For`. The app walks that chain from right to left through trusted proxies and stops at the first untrusted address. Forwarding headers from direct clients are ignored. Configure only actual proxy ranges, ensure those proxies append or replace the client address, and prevent direct access that bypasses the intended ingress. Invalid proxy configuration fails requests rather than silently trusting arbitrary headers.
+`YO_CLIENT_IP_SOURCE` accepts `socket` (default) or `apprunner`. Socket mode ignores forwarding headers. App Runner mode validates the forwarded IP list, normalizes IPv4/IPv6, and uses its final address. The source mode is chosen by server startup configuration, never a request header. An invalid mode fails requests rather than silently changing the trust policy. `TRUSTED_PROXY_CIDRS` is not used.
 
 IP budgets are local to each process. Visitors sharing a public IP share a budget; separate replicas do not share budgets. Up to 10,000 idle IP entries are retained, expiring after a minute or evicted oldest first. Active entries remain until their requests complete. Eviction and process restarts reset rate history. Use a trusted ingress or shared store if strict per-IP enforcement across replicas is required. This is not a platform-wide database-work cap.
 

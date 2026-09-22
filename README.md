@@ -46,6 +46,8 @@ npm run dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000).
 
+Production `npm start` is configured for the public App Runner service. Use `npm run start:direct` for direct Node hosting; the standalone Docker image uses socket-based client identity by default.
+
 ## Docs
 
 - [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md)

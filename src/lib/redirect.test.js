@@ -45,13 +45,14 @@ describe('resolveRedirect', () => {
             ...(overrides.headers || {}),
         },
         socket: overrides.socket || { remoteAddress: '192.0.2.1' },
+        rawHeaders: Object.entries(overrides.headers || {}).flat(),
     })
 
     beforeEach(() => {
         jest.clearAllMocks()
         delete global.__yoIpRedirectBudget
         process.env.SHORT_BASE_URL = 'https://yo.test'
-        delete process.env.TRUSTED_PROXY_CIDRS
+        delete process.env.YO_CLIENT_IP_SOURCE
         connectToDatabase.mockResolvedValue({})
         Yo.updateOne.mockResolvedValue({ acknowledged: true, matchedCount: 1 })
     })
@@ -104,6 +105,59 @@ describe('resolveRedirect', () => {
             ).status
         ).toBe(302)
         expect(Yo.updateOne).toHaveBeenCalledTimes(21)
+    })
+
+    it('separates App Runner clients sharing the same socket peer', async () => {
+        process.env.YO_CLIENT_IP_SOURCE = 'apprunner'
+        const { createRedirectBudget } = await import('./request-budget')
+        global.__yoIpRedirectBudget = createRedirectBudget({ now: () => 0 })
+        Yo.findOne.mockResolvedValue({
+            _id: 'alias-id',
+            originalUrl: 'https://example.com/docs',
+        })
+        const req = (header) =>
+            buildReq({
+                socket: { remoteAddress: '10.0.0.1' },
+                headers: { 'x-forwarded-for': header },
+            })
+        for (let i = 0; i < 20; i += 1) {
+            expect(
+                (
+                    await resolveRedirect({
+                        redirectParam: 'docs',
+                        req: req('192.0.2.1'),
+                    })
+                ).status
+            ).toBe(302)
+        }
+        expect(
+            (
+                await resolveRedirect({
+                    redirectParam: 'docs',
+                    req: req('198.51.100.1, 192.0.2.1'),
+                })
+            ).status
+        ).toBe(429)
+        expect(
+            (
+                await resolveRedirect({
+                    redirectParam: 'docs',
+                    req: req('192.0.2.2'),
+                })
+            ).status
+        ).toBe(302)
+        expect(Yo.updateOne).toHaveBeenCalledTimes(21)
+    })
+
+    it('does not fall back to a shared peer when App Runner identity is missing', async () => {
+        process.env.YO_CLIENT_IP_SOURCE = 'apprunner'
+        const result = await resolveRedirect({
+            redirectParam: 'docs',
+            req: buildReq(),
+        })
+        expect(result.status).toBe(400)
+        expect(connectToDatabase).not.toHaveBeenCalled()
+        expect(Yo.updateOne).not.toHaveBeenCalled()
     })
 
     it('returns 404 when the alias does not exist', async () => {
