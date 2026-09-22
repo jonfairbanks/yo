@@ -23,8 +23,8 @@ const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
                 <Image
                     src="/images/apple-touch-icon.png"
                     alt="Yo URL"
-                    width={100}
-                    height={100}
+                    width={64}
+                    height={64}
                     priority
                 />
                 <h1 className="redirect-text">Too Many Requests</h1>
