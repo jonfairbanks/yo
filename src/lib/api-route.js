@@ -92,10 +92,6 @@ export const createApiHandler =
                         safeLog('error', {
                             event: 'request_failed',
                             route,
-                            error:
-                                error instanceof Error
-                                    ? error.message
-                                    : String(error),
                             status: 500,
                         })
                     }
