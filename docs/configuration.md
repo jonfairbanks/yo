@@ -9,7 +9,7 @@ The app reads environment variables from standard Next.js env files such as `.en
 | Variable | Purpose |
 | --- | --- |
 | `MONGO_URI` | MongoDB connection string |
-| `SHORT_BASE_URL` | Base URL stored in generated short-link records, for example `https://go.example.com` |
+| `SHORT_BASE_URL` | Canonical HTTP(S) origin for relative redirects and base URL stored in generated short-link records, for example `https://go.example.com` |
 | `AUTH0_DOMAIN` | Auth0 tenant domain |
 | `AUTH0_CLIENT_ID` | Auth0 application client ID |
 | `AUTH0_CLIENT_SECRET` | Auth0 application client secret |

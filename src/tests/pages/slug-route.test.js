@@ -34,4 +34,12 @@ describe('/[...slug]', () => {
         expect(redirectService.resolveRedirect).not.toHaveBeenCalled()
     })
 
+    it('returns the overload status and retry header', async () => {
+        redirectService.resolveRedirect.mockResolvedValue({ status: 429, retryAfter: 1 })
+        const context = { params: { slug: ['docs'] }, req: {}, res: { setHeader: jest.fn() } }
+        await expect(getServerSideProps(context)).resolves.toEqual({ props: {} })
+        expect(context.res.statusCode).toBe(429)
+        expect(context.res.setHeader).toHaveBeenCalledWith('Retry-After', '1')
+    })
+
 })

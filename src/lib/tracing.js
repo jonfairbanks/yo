@@ -24,16 +24,14 @@ const setAttributes = (span, attributes = {}) => {
 
 export const recordSpanError = (spanOrError, maybeError) => {
     const span = maybeError ? spanOrError : trace.getActiveSpan()
-    const error = maybeError || spanOrError
 
     if (!span) {
         return
     }
 
-    span.recordException(error)
     span.setStatus({
         code: SpanStatusCode.ERROR,
-        message: error instanceof Error ? error.message : String(error),
+        message: 'Operation failed',
     })
 }
 

@@ -1,4 +1,5 @@
 import { ApiError } from '../lib/api-error'
+import logger from '../lib/logger'
 import {
     createAlias,
     deleteAlias,
@@ -268,4 +269,17 @@ describe('yo-service', () => {
 
         Date.now.mockRestore()
     })
+    it('keeps destinations out of create, update, and delete logs', async () => {
+        const item = { linkName: 'docs', originalUrl: 'https://example.com/?token=test-marker', shortUrl: 'https://yo.test/docs' }
+        repository.insertAlias.mockResolvedValue(item)
+        repository.updateAliasByLinkName.mockResolvedValue(item)
+        repository.deleteAliasByLinkName.mockResolvedValue(item)
+        await createAlias({ ...item, shortBaseUrl: 'https://yo.test', span })
+        await updateAlias({ ...item, span })
+        await deleteAlias({ linkName: 'docs', actorNickname: 'admin', span })
+        expect(logger.info).toHaveBeenCalledTimes(3)
+        expect(JSON.stringify(logger.info.mock.calls)).not.toContain('test-marker')
+        expect(logger.info.mock.calls.every(([record]) => !Object.hasOwn(record, 'originalUrl'))).toBe(true)
+    })
+
 })

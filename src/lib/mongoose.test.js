@@ -44,4 +44,12 @@ describe('connectToDatabase', () => {
         expect(mongoose.connect).not.toHaveBeenCalled()
         expect(logger.info).not.toHaveBeenCalled()
     })
+    it('replaces database error details before logging or rethrowing', async () => {
+        mongoose.connect.mockRejectedValue(new Error('test-private-connection-marker'))
+        await expect(connectToDatabase()).rejects.toThrow('Database connection failed')
+        expect(logger.error).toHaveBeenCalledWith({ event: 'database_connection_failed' })
+        expect(JSON.stringify(logger.error.mock.calls)).not.toContain('test-private-connection-marker')
+        expect(global.__mongooseCache.promise).toBeNull()
+    })
+
 })
