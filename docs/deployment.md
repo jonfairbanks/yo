@@ -67,7 +67,3 @@ The app emits:
 If you deploy into an environment with OTLP collection, set the exporter-related environment variables described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md).
 
 OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs, and error telemetry uses fixed messages rather than raw exception text or stacks.
-
-## Retired Infrastructure
-
-The legacy Lambda/API Gateway Terraform deployment and its scripts have been removed. Docker is available for self-hosting. Removing the source does not delete existing AWS resources or Terraform state.
