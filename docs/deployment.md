@@ -1,13 +1,5 @@
 # Deployment
 
-## Current Hosted Service
-
-As verified on September 21, 2026, `fbnks.dev` points to the public AWS App Runner service `Yo-URL` in `us-east-1`. It builds `src/` from `develop` and deploys automatically after changes to that branch. Its build/start commands and environment are configured through the App Runner API, so repository configuration files do not update those settings automatically.
-
-The service runs the standard `npm start` command. Redirects use the final `X-Forwarded-For` address when present, otherwise the socket address. No IP environment variables or proxy CIDRs are required. IPv4 and IPv6 addresses are normalized so equivalent forms share a rate limit; malformed client addresses return HTTP 400 before database work.
-
-AWS documents source-IP preservation in this header, but does not specify how pre-existing values are handled. Selecting the final address assumes the ingress replaces the header or appends the source IP. Live forwarding still needs verification after rollout. Other hosting must use an ingress that sets this header reliably.
-
 ## Docker
 
 The Docker assets live under [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/src).
@@ -35,6 +27,8 @@ node server.js
 Expose port `3000` and provide the same environment variables described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md).
 
 ## Reverse Proxies and TLS
+
+Redirects use the final `X-Forwarded-For` address when present, otherwise the socket address. The ingress must replace this header or append the source IP as its final value. IPv4 and IPv6 addresses are normalized so equivalent forms share a rate limit; malformed client addresses return HTTP 400 before database work.
 
 Relative legacy destinations resolve against `SHORT_BASE_URL` (or `APP_BASE_URL`) using its HTTP(S) origin. Request `Host` and forwarding headers do not select the destination origin. Missing or invalid configuration returns HTTP 400 for a relative destination; absolute destinations keep working.
 
@@ -76,6 +70,4 @@ OpenTelemetry admits at most five new traces per second per process, with a burs
 
 ## Retired Infrastructure
 
-The legacy Lambda/API Gateway Terraform deployment and its scripts have been removed. The hosted app uses App Runner; Docker remains available for self-hosting. Removing the source does not delete existing AWS resources or Terraform state.
-
-App Runner IP forwarding reference: [AWS incoming networking documentation](https://docs.aws.amazon.com/apprunner/latest/dg/network-incoming.html#network-incoming.headers).
+The legacy Lambda/API Gateway Terraform deployment and its scripts have been removed. Docker is available for self-hosting. Removing the source does not delete existing AWS resources or Terraform state.
