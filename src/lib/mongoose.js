@@ -46,14 +46,14 @@ export const connectToDatabase = async () =>
                 })
                 logger.info('New database connection established')
                 return mongooseCache.conn
-            } catch (error) {
+            } catch {
                 mongooseCache.promise = null
                 mongooseCache.conn = null
                 setSpanAttributes({
                     'db.connection.state': 'error',
                 })
-                logger.error('Error connecting to the database:', error)
-                throw error
+                logger.error({ event: 'database_connection_failed' })
+                throw new Error('Database connection failed')
             }
         }
     )

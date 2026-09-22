@@ -1,11 +1,8 @@
-version: '3.8'
-
 services:
   yo-api:
-    # build:
-    #   context: .
-    #   dockerfile: src/Dockerfile
-    image: ghcr.io/jonfairbanks/yo-url:main
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     env_file:

@@ -52,6 +52,9 @@ export const getServerSideProps = async (context) => {
             }
         }
 
+        if (result.status === 429) {
+            context.res.setHeader('Retry-After', String(result.retryAfter))
+        }
         context.res.statusCode = result.status || 500
         return { props: {} }
     } catch {
