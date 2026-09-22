@@ -35,7 +35,7 @@ The application supports:
 ```sh
 git clone https://github.com/jonfairbanks/yo.git
 cd yo/src
-npm install
+npm ci
 ```
 
 Create `src/.env.local`, then start the development server:

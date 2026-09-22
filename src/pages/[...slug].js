@@ -1,9 +1,46 @@
 import Image from 'next/image'
+import Head from 'next/head'
+import { useEffect, useState } from 'react'
 
 import { isReservedPath } from '../lib/reserved-routes'
 import { resolveRedirect } from '../lib/redirect'
 
-const CatchAllRoute = () => {
+const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
+    const [canRetry, setCanRetry] = useState(false)
+    useEffect(() => {
+        if (!rateLimited) return
+        setCanRetry(false)
+        const timer = setTimeout(() => setCanRetry(true), retryAfter * 1000)
+        return () => clearTimeout(timer)
+    }, [rateLimited, retryAfter])
+
+    if (rateLimited) {
+        return (
+            <main className="centered rate-limit-page">
+                <Head>
+                    <title>Too Many Requests | Yo</title>
+                </Head>
+                <Image
+                    src="/images/apple-touch-icon.png"
+                    alt="Yo URL"
+                    width={64}
+                    height={64}
+                    priority
+                />
+                <h1 className="redirect-text">
+                    Yo Dawg, That&apos;s a Lot of Requests
+                </h1>
+                <p>Wait a moment, then try again.</p>
+                <button
+                    className="btn filled teal white-text darken-2"
+                    disabled={!canRetry}
+                    onClick={() => window.location.reload()}
+                >
+                    Try Again
+                </button>
+            </main>
+        )
+    }
     return (
         <div className="centered">
             <Image
@@ -52,6 +89,14 @@ export const getServerSideProps = async (context) => {
             }
         }
 
+        if (result.status === 429) {
+            context.res.setHeader('Retry-After', String(result.retryAfter))
+            context.res.setHeader('Cache-Control', 'private, no-store')
+            context.res.statusCode = 429
+            return {
+                props: { rateLimited: true, retryAfter: result.retryAfter },
+            }
+        }
         context.res.statusCode = result.status || 500
         return { props: {} }
     } catch {

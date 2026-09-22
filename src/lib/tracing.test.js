@@ -82,10 +82,10 @@ describe('tracing helpers', () => {
 
         recordSpanError(error)
 
-        expect(__mock.recordException).toHaveBeenCalledWith(error)
+        expect(__mock.recordException).not.toHaveBeenCalled()
         expect(__mock.setStatus).toHaveBeenCalledWith({
             code: 'ERROR',
-            message: 'boom',
+            message: 'Operation failed',
         })
     })
 

@@ -36,6 +36,7 @@ Redirect resolution:
 - normalizes the incoming slug
 - loads the alias from MongoDB
 - blocks self-referential redirect loops
+- applies a separate request and concurrency budget for each client IP
 - increments `urlHits` and updates `lastAccess` only after the redirect target is validated
 
 ## Search Semantics
@@ -44,3 +45,11 @@ The dashboard list API currently uses:
 
 - case-insensitive substring search
 - regex matching across `linkName` and `originalUrl`
+
+## Hit Counts
+
+`urlHits` counts every admitted successful redirect, including repeated requests and automated clients. It is not a unique-visitor or fraud-resistant metric. Rate limiting bounds each IP within a process but intentionally does not deduplicate hits. Different IPs have independent budgets.
+
+## Dashboard Framing
+
+All routes return `Content-Security-Policy: frame-ancestors 'none'` and `X-Frame-Options: DENY`. Deleting an alias requires a confirmation in the browser.

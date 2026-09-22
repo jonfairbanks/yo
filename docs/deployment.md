@@ -11,14 +11,10 @@ The Docker assets live under [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/sr
 From `src/`:
 
 ```sh
-docker compose up
+docker compose up --build
 ```
 
-Notes:
-
-- the compose file currently uses the published image `ghcr.io/jonfairbanks/yo-url:main`
-- the local `build:` block is commented out
-- if you want to build from this checkout instead of pulling the published image, uncomment the `build` section and remove or override `image`
+Compose builds the checked-out source instead of trusting a mutable registry tag. For a registry-based deployment, select a reviewed CI image by digest.
 
 ### Dockerfile
 
@@ -32,11 +28,13 @@ Expose port `3000` and provide the same environment variables described in [Conf
 
 ## Reverse Proxies and TLS
 
-Redirect URL construction uses request headers to determine protocol for relative destinations. In production, your proxy or ingress should forward the correct scheme, especially:
+Redirects use the final `X-Forwarded-For` address when present, otherwise the socket address. The ingress must replace this header or append the source IP as its final value. IPv4 and IPv6 addresses are normalized so equivalent forms share a rate limit; malformed client addresses return HTTP 400 before database work.
 
-- `X-Forwarded-Proto: https`
+Relative legacy destinations resolve against `SHORT_BASE_URL` (or `APP_BASE_URL`) using its HTTP(S) origin. Request `Host` and forwarding headers do not select the destination origin. Missing or invalid configuration returns HTTP 400 for a relative destination; absolute destinations keep working.
 
-If this header is missing in a TLS-terminated deployment, relative redirect targets may be reconstructed with `http` instead of `https`.
+Both redirect routes share a separate budget for each client IP: 10 requests/second, a burst of 20, and at most 10 concurrent resolutions per IP. One IP reaching its limit does not deny another IP. Requests over that IP's budget return HTTP 429 with `Retry-After: 1` before database work. The browser displays a rate-limit page with a retry button; the API retains its JSON error response. Neither 429 response may be cached.
+
+IP budgets are local to each process. Visitors sharing a public IP share a budget; separate replicas do not share budgets. Up to 10,000 idle IP entries are retained, expiring after a minute or evicted oldest first. Active entries remain until their requests complete. Eviction and process restarts reset rate history. Use a trusted ingress or shared store if strict per-IP enforcement across replicas is required. This is not a platform-wide database-work cap.
 
 ## MongoDB Indexes
 
@@ -67,3 +65,5 @@ The app emits:
 - JSON logs through Winston
 
 If you deploy into an environment with OTLP collection, set the exporter-related environment variables described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md).
+
+OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs, and error telemetry uses fixed messages rather than raw exception text or stacks.

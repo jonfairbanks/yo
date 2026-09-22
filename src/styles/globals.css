@@ -524,6 +524,29 @@ th.site-url {
     font-size: 2.25em;
 }
 
+.rate-limit-page {
+    color: #ffffff;
+    min-height: 100svh;
+    height: auto;
+    padding: 32px 24px;
+    gap: 24px;
+}
+
+.rate-limit-page h1 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.rate-limit-page p {
+    max-width: 32rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.rate-limit-page button {
+    margin-top: 8px;
+}
+
 .page-footer .container {
     display: flex;
     justify-content: space-between;

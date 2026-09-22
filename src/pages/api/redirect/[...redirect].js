@@ -1,5 +1,4 @@
 import { createApiHandler, jsonError } from '../../../lib/api-route'
-import logger from '../../../lib/logger'
 import { resolveAlias } from '../../../services/yo-service'
 export default createApiHandler(
     {
@@ -14,12 +13,13 @@ export default createApiHandler(
                 ? redirect.join('/')
                 : redirect
 
-            span.setAttribute('yo.alias', redirectParam)
-
             const result = await resolveAlias({ redirectParam, req })
 
-            if (result.log) {
-                logger.warn(result.log)
+            if (result.status === 429) {
+                res.setHeader('Cache-Control', 'private, no-store')
+                res.setHeader('Retry-After', String(result.retryAfter))
+                span.setAttribute('http.response.status_code', 429)
+                return jsonError(res, 429, result.error)
             }
 
             if (result.status === 302) {

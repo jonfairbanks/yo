@@ -1,7 +1,7 @@
 import React from 'react'
 import { act } from 'react'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import AllYos from '../../components/all'
 import { DashboardProvider } from '../../context/dashboard-context'
@@ -23,6 +23,8 @@ describe('AllYos', () => {
         global.fetch = jest.fn((url) => {
             const requestUrl = new URL(url, 'http://localhost')
             const query = requestUrl.searchParams.get('q')
+            const page = requestUrl.searchParams.get('page')
+            const sortDir = requestUrl.searchParams.get('sortDir')
             if (query === 'thislin') {
                 return new Promise((resolve) => {
                     resolvePendingSearch = () =>
@@ -38,6 +40,48 @@ describe('AllYos', () => {
                                 },
                             }),
                         })
+                })
+            }
+
+            if (page === '2') {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({
+                        items: [
+                            {
+                                linkName: 'guides',
+                                originalUrl: 'https://example.com/guides',
+                                urlHits: 4,
+                            },
+                        ],
+                        pagination: {
+                            page: 2,
+                            pageSize: 10,
+                            totalItems: 11,
+                            totalPages: 2,
+                        },
+                    }),
+                })
+            }
+
+            if (sortDir === 'desc') {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({
+                        items: [
+                            {
+                                linkName: 'zebra',
+                                originalUrl: 'https://example.com/zebra',
+                                urlHits: 1,
+                            },
+                        ],
+                        pagination: {
+                            page: 1,
+                            pageSize: 10,
+                            totalItems: 11,
+                            totalPages: 2,
+                        },
+                    }),
                 })
             }
 
@@ -63,8 +107,8 @@ describe('AllYos', () => {
                           pagination: {
                               page: 1,
                               pageSize: 10,
-                              totalItems: 1,
-                              totalPages: 1,
+                              totalItems: 11,
+                              totalPages: 2,
                           },
                       }
 
@@ -76,7 +120,9 @@ describe('AllYos', () => {
     })
 
     afterEach(() => {
-        jest.runOnlyPendingTimers()
+        act(() => {
+            jest.runOnlyPendingTimers()
+        })
         jest.useRealTimers()
         delete global.fetch
     })
@@ -123,5 +169,52 @@ describe('AllYos', () => {
         })
 
         expect(screen.getByLabelText('Filter links')).toHaveFocus()
+    })
+
+    it('requests a server-sorted page when a sortable header is selected', async () => {
+        renderWithProvider(<AllYos />)
+
+        await screen.findByText('docs')
+        const initialRequestCount = global.fetch.mock.calls.length
+
+        fireEvent.click(screen.getByRole('columnheader', { name: 'Link' }))
+
+        expect(
+            screen.getByRole('columnheader', { name: /Link/ })
+        ).toHaveTextContent('⬆')
+
+        fireEvent.click(screen.getByRole('columnheader', { name: /Link/ }))
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledTimes(initialRequestCount + 1)
+        })
+
+        const requestUrl = new URL(
+            global.fetch.mock.calls.at(-1)[0],
+            'http://localhost'
+        )
+        expect(requestUrl.searchParams.get('sortBy')).toBe('linkName')
+        expect(requestUrl.searchParams.get('sortDir')).toBe('desc')
+        expect(await screen.findByText('zebra')).toBeInTheDocument()
+        expect(
+            screen.getByRole('columnheader', { name: /Link/ })
+        ).toHaveTextContent('⬇')
+    })
+
+    it('requests the next server page and updates pagination controls', async () => {
+        renderWithProvider(<AllYos />)
+
+        await screen.findByText('docs')
+
+        fireEvent.click(screen.getByRole('button', { name: 'Go to next page' }))
+
+        expect(await screen.findByText('guides')).toBeInTheDocument()
+        expect(screen.getByText('Page 2 of 2 (11 links)')).toBeInTheDocument()
+        expect(
+            screen.getByRole('button', { name: 'Go to previous page' })
+        ).toBeEnabled()
+        expect(
+            screen.getByRole('button', { name: 'Go to next page' })
+        ).toBeDisabled()
     })
 })
