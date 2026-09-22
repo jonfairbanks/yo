@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
+    transpilePackages: [
+        '@tanstack/react-store',
+        '@tanstack/react-table',
+        '@tanstack/store',
+        '@tanstack/table-core',
+    ],
     async headers() {
         return [
             {
