@@ -10,166 +10,343 @@ dayjs.extend(relativeTime)
 const formatNumber = (value, options = {}) =>
     new Intl.NumberFormat(undefined, options).format(value ?? 0)
 
-const formatShare = (value, total) => {
-    if (!total) {
-        return 'No links yet'
-    }
-
-    return `${Math.round((value / total) * 100)}% of all links`
-}
-
 const formatMoment = (value) => {
-    if (!value) {
-        return 'No activity yet'
-    }
+    if (!value) return 'No activity yet'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'No activity yet'
 
-    return `${dayjs(value).fromNow()} | ${dayjs(value).format(
-        'MMM D, YYYY h:mm A'
-    )}`
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Los_Angeles',
+        timeZoneName: 'short',
+    }).format(date)
 }
+
+const Arrow = () => (
+    <svg
+        className="stats-arrow"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        aria-hidden="true"
+    >
+        <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+)
 
 const Stats = () => {
-    const { applyTableFilter } = useDashboard()
+    const { applyTableFilter, openCreateModal, refreshDashboard } =
+        useDashboard()
     const queryUrl = useMemo(() => '/api/stats', [])
     const { data, error, loading } = useDashboardQuery({
-        fallbackMessage: 'Failed to load data.',
+        fallbackMessage: 'Could not load statistics.',
         url: queryUrl,
         initialData: null,
         parse: (json) => json,
     })
 
-    if (loading) return <p>Loading...</p>
-    if (error) return <p>{error}</p>
-
     const totalYos = data?.totalYos ?? 0
+    const activeYos = data?.activeYos ?? 0
+    const activeShare = totalYos
+        ? Math.min(100, Math.max(0, (activeYos / totalYos) * 100))
+        : 0
     const recentWindowDays = data?.recentWindowDays ?? 30
     const averageHitsPerYo = data?.averageHitsPerYo ?? 0
     const averageHitOptions = Number.isInteger(averageHitsPerYo)
         ? { maximumFractionDigits: 0 }
         : { maximumFractionDigits: 1, minimumFractionDigits: 1 }
+    const filterLinks = (id, label, params) =>
+        applyTableFilter({ id, label, params })
 
-    const statTiles = [
+    const recentMetrics = [
         {
-            detail: 'All short links currently stored',
-            label: 'Total Links',
-            onClick: () =>
-                applyTableFilter({
-                    id: 'all',
-                    label: 'All links',
-                    params: {},
-                }),
-            value: formatNumber(totalYos),
+            id: 'recently-accessed',
+            label: 'Links Used',
+            detail: 'Redirected at least once',
+            value: data?.recentlyAccessedYos ?? 0,
+            filterLabel: `Used in ${recentWindowDays} Days`,
+            recent: 'accessed',
         },
         {
-            detail: 'All-time redirects across every link',
-            label: 'Total Redirects',
-            value: formatNumber(data?.totalHits),
-        },
-        {
-            detail: 'Average traffic density per short link',
-            label: 'Avg Redirects',
-            value: formatNumber(averageHitsPerYo, averageHitOptions),
-        },
-        {
-            detail: formatShare(data?.activeYos ?? 0, totalYos),
-            label: 'Active Links',
-            onClick: () =>
-                applyTableFilter({
-                    id: 'active',
-                    label: 'Active links',
-                    params: { usage: 'active' },
-                }),
-            value: formatNumber(data?.activeYos),
-        },
-        {
-            detail: 'Links that have not been used yet',
-            label: 'Unused Links',
-            onClick: () =>
-                applyTableFilter({
-                    id: 'unused',
-                    label: 'Unused links',
-                    params: { usage: 'unused' },
-                }),
-            value: formatNumber(data?.unusedYos),
-        },
-        {
-            detail: `Redirected at least once in the last ${recentWindowDays} days`,
-            label: `Used in ${recentWindowDays} Days`,
-            onClick: () =>
-                applyTableFilter({
-                    id: 'recently-accessed',
-                    label: `Used in ${recentWindowDays} days`,
-                    params: {
-                        recent: 'accessed',
-                        sinceDays: String(recentWindowDays),
-                    },
-                }),
-            value: formatNumber(data?.recentlyAccessedYos),
-        },
-        {
-            detail: `Links added in the last ${recentWindowDays} days`,
-            label: `New in ${recentWindowDays} Days`,
-            onClick: () =>
-                applyTableFilter({
-                    id: 'new',
-                    label: `New in ${recentWindowDays} days`,
-                    params: {
-                        recent: 'created',
-                        sinceDays: String(recentWindowDays),
-                    },
-                }),
-            value: formatNumber(data?.recentlyCreatedYos),
+            id: 'new',
+            label: 'Links Created',
+            detail: 'Added to your collection',
+            value: data?.recentlyCreatedYos ?? 0,
+            filterLabel: `New in ${recentWindowDays} Days`,
+            recent: 'created',
         },
     ]
-
-    const spotlightCards = [
+    const spotlights = [
         {
+            label: 'Most Redirected',
+            link: data?.popularYo,
             detail: data?.popularYo
                 ? `${formatNumber(data.popularYo.urlHits)} redirects`
                 : 'No redirect history yet',
-            label: 'Most Redirected',
-            value: data?.popularYo ? `/${data.popularYo.linkName}` : '—',
         },
         {
-            detail: formatMoment(data?.newestYo?.createdAt),
             label: 'Newest Link',
-            value: data?.newestYo ? `/${data.newestYo.linkName}` : '—',
+            link: data?.newestYo,
+            timestamp: data?.newestYo?.createdAt,
         },
         {
-            detail: formatMoment(data?.latestAccessedYo?.lastAccess),
             label: 'Latest Redirect',
-            value: data?.latestAccessedYo
-                ? `/${data.latestAccessedYo.linkName}`
-                : '—',
+            link: data?.latestAccessedYo,
+            timestamp: data?.latestAccessedYo?.lastAccess,
         },
     ]
 
     return (
-        <section className="stats-section" aria-label="Link statistics">
-            <div className="stats-grid">
-                {statTiles.map((tile) => (
+        <section
+            className="stats-section"
+            aria-labelledby="stats-heading"
+            aria-busy={loading}
+        >
+            <header className="stats-header">
+                <h1 id="stats-heading">Link Statistics</h1>
+                <span className="stats-scope">All Time</span>
+            </header>
+            {loading ? (
+                <div className="stats-loading" role="status">
+                    <p>Loading statistics...</p>
+                    <div className="stats-skeleton" aria-hidden="true" />
+                    <div
+                        className="stats-skeleton stats-skeleton-short"
+                        aria-hidden="true"
+                    />
+                </div>
+            ) : error ? (
+                <div className="stats-state">
+                    <h2>Statistics Unavailable</h2>
+                    <p role="alert">{error}</p>
                     <button
+                        className="stats-text-action"
                         type="button"
-                        className="stats-card"
-                        key={tile.label}
-                        onClick={tile.onClick}
+                        onClick={refreshDashboard}
                     >
-                        <p className="stats-card-label">{tile.label}</p>
-                        <p className="stats-card-value">{tile.value}</p>
-                        <p className="stats-card-detail">{tile.detail}</p>
+                        Try Again <Arrow />
                     </button>
-                ))}
-            </div>
-
-            <div className="stats-spotlight-grid">
-                {spotlightCards.map((card) => (
-                    <article className="stats-spotlight-card" key={card.label}>
-                        <p className="stats-card-label">{card.label}</p>
-                        <p className="stats-spotlight-value">{card.value}</p>
-                        <p className="stats-card-detail">{card.detail}</p>
-                    </article>
-                ))}
-            </div>
+                </div>
+            ) : (
+                <div className="stats-content">
+                    <div className="stats-overview">
+                        <div className="stats-primary-metric">
+                            <p className="stats-label">Total Redirects</p>
+                            <p className="stats-primary-value">
+                                {formatNumber(data?.totalHits)}
+                            </p>
+                            <p className="stats-detail">
+                                Across all short links
+                            </p>
+                        </div>
+                        <div className="stats-summary">
+                            <button
+                                className="stats-summary-link stats-interactive"
+                                type="button"
+                                aria-label="View All Links"
+                                onClick={() =>
+                                    filterLinks('all', 'All Links', {})
+                                }
+                            >
+                                <span className="stats-label">
+                                    Total Links <Arrow />
+                                </span>
+                                <span className="stats-summary-value">
+                                    {formatNumber(totalYos)}
+                                </span>
+                                <span className="stats-detail">
+                                    In your collection
+                                </span>
+                            </button>
+                            <div className="stats-average">
+                                <p className="stats-label">
+                                    Redirects per Link
+                                </p>
+                                <p className="stats-summary-value">
+                                    {formatNumber(
+                                        averageHitsPerYo,
+                                        averageHitOptions
+                                    )}
+                                </p>
+                                <p className="stats-detail">All-time average</p>
+                            </div>
+                        </div>
+                    </div>
+                    {totalYos === 0 ? (
+                        <div className="stats-empty">
+                            <div>
+                                <h2>No Links Yet</h2>
+                                <p className="stats-detail">
+                                    Create a short link to start tracking
+                                    redirects.
+                                </p>
+                            </div>
+                            <button
+                                className="stats-text-action"
+                                type="button"
+                                onClick={openCreateModal}
+                            >
+                                Create a Link <Arrow />
+                            </button>
+                        </div>
+                    ) : null}
+                    <div className="stats-breakdown">
+                        <section
+                            className="stats-usage"
+                            aria-labelledby="stats-usage-heading"
+                        >
+                            <div className="stats-section-heading">
+                                <h2 id="stats-usage-heading">Link Usage</h2>
+                                <span className="stats-detail">
+                                    {Math.round(activeShare)}% active
+                                </span>
+                            </div>
+                            <div
+                                className="stats-usage-track"
+                                aria-hidden="true"
+                            >
+                                <div
+                                    className="stats-usage-fill"
+                                    style={{ width: `${activeShare}%` }}
+                                />
+                            </div>
+                            <div className="stats-usage-metrics">
+                                <button
+                                    className="stats-usage-link stats-interactive"
+                                    type="button"
+                                    aria-label="View Active Links"
+                                    onClick={() =>
+                                        filterLinks('active', 'Active Links', {
+                                            usage: 'active',
+                                        })
+                                    }
+                                >
+                                    <span className="stats-label">
+                                        <span className="stats-dot" />
+                                        Active Links <Arrow />
+                                    </span>
+                                    <span className="stats-summary-value">
+                                        {formatNumber(activeYos)}
+                                    </span>
+                                    <span className="stats-detail">
+                                        Used at least once
+                                    </span>
+                                </button>
+                                <button
+                                    className="stats-usage-link stats-interactive"
+                                    type="button"
+                                    aria-label="View Unused Links"
+                                    onClick={() =>
+                                        filterLinks('unused', 'Unused Links', {
+                                            usage: 'unused',
+                                        })
+                                    }
+                                >
+                                    <span className="stats-label">
+                                        <span className="stats-dot stats-dot-unused" />
+                                        Unused Links <Arrow />
+                                    </span>
+                                    <span className="stats-summary-value">
+                                        {formatNumber(data?.unusedYos)}
+                                    </span>
+                                    <span className="stats-detail">
+                                        No redirects yet
+                                    </span>
+                                </button>
+                            </div>
+                        </section>
+                        <section
+                            className="stats-recent"
+                            aria-labelledby="stats-recent-heading"
+                        >
+                            <div className="stats-section-heading">
+                                <h2 id="stats-recent-heading">
+                                    Recent Activity
+                                </h2>
+                                <span className="stats-detail">
+                                    Last {recentWindowDays} days
+                                </span>
+                            </div>
+                            {recentMetrics.map((metric) => (
+                                <button
+                                    className="stats-recent-link stats-interactive"
+                                    type="button"
+                                    key={metric.id}
+                                    aria-label={`View ${metric.filterLabel}`}
+                                    onClick={() =>
+                                        filterLinks(
+                                            metric.id,
+                                            metric.filterLabel,
+                                            {
+                                                recent: metric.recent,
+                                                sinceDays:
+                                                    String(recentWindowDays),
+                                            }
+                                        )
+                                    }
+                                >
+                                    <span>
+                                        <span className="stats-label">
+                                            {metric.label}
+                                        </span>
+                                        <span className="stats-detail">
+                                            {metric.detail}
+                                        </span>
+                                    </span>
+                                    <span className="stats-recent-value">
+                                        {formatNumber(metric.value)}
+                                    </span>
+                                    <Arrow />
+                                </button>
+                            ))}
+                        </section>
+                    </div>
+                    <section
+                        className="stats-spotlights"
+                        aria-labelledby="stats-spotlights-heading"
+                    >
+                        <h2 id="stats-spotlights-heading">Link Highlights</h2>
+                        <div className="stats-spotlight-list">
+                            {spotlights.map((item) => (
+                                <article
+                                    className="stats-spotlight"
+                                    key={item.label}
+                                >
+                                    <h3 className="stats-label">
+                                        {item.label}
+                                    </h3>
+                                    <p className="stats-link-name">
+                                        {item.link
+                                            ? `/${item.link.linkName}`
+                                            : 'None Yet'}
+                                    </p>
+                                    <p className="stats-detail">
+                                        {item.detail ||
+                                            (item.timestamp
+                                                ? dayjs(
+                                                      item.timestamp
+                                                  ).fromNow()
+                                                : 'No activity yet')}
+                                    </p>
+                                    {item.timestamp ? (
+                                        <p className="stats-timestamp">
+                                            {formatMoment(item.timestamp)}
+                                        </p>
+                                    ) : null}
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            )}
         </section>
     )
 }
