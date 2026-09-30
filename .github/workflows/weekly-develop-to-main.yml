@@ -1,0 +1,140 @@
+name: Weekly Develop to Main
+
+on:
+  schedule:
+    # Match F5's Monday schedule, away from the start-of-hour queue.
+    - cron: "17 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: weekly-develop-to-main
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Promote Develop to Main
+    # Run the privileged control steps only from the trusted integration branch.
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Detect Unreleased Develop Changes
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ahead_by="$(gh api "repos/$GH_REPO/compare/main...develop" --jq '.ahead_by')"
+          echo "has_changes=$([ "$ahead_by" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Create or Find Release PR
+        if: steps.changes.outputs.has_changes == 'true'
+        id: release
+        env:
+          # Use the existing repository token so PR creation triggers normal checks.
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PERSONAL_TOKEN is required to open a release PR." >&2
+            exit 1
+          fi
+
+          pr_url="$(gh pr list --base main --head develop --state open \
+            --json url,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository == false)][0].url // empty')"
+          if [ -z "$pr_url" ]; then
+            pr_url="$(gh pr create \
+              --base main \
+              --head develop \
+              --title "Promote Develop to Main" \
+              --body $'## Summary\n\n- Promote develop to main in the weekly release.\n- Merge only after the required checks pass.')"
+          fi
+          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Required Checks
+        if: steps.changes.outputs.has_changes == 'true'
+        id: checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_URL: ${{ steps.release.outputs.pr_url }}
+        run: |
+          # Yo's pull_request checks run on GitHub's merge candidate. Query the
+          # PR rollup rather than F5's pull_request_target head-commit checks.
+          # These names match main's effective required checks.
+          required_checks='["npm-audit","npm-lint","npm-test","Docker Build","check-branch"]'
+          ready=false
+
+          for attempt in {1..90}; do
+            release_head_sha="$(gh pr view "$PR_URL" --json headRefOid --jq '.headRefOid')"
+            checks_status=0
+            check_runs="$(gh pr checks "$PR_URL" --json name,bucket)" || checks_status=$?
+            # gh returns 8 while checks are pending and 1 when checks fail.
+            if [ "$checks_status" -ne 0 ] && [ "$checks_status" -ne 1 ] && [ "$checks_status" -ne 8 ]; then
+              exit "$checks_status"
+            fi
+
+            if jq -e --argjson required "$required_checks" '
+              any(.[]; .name as $name | ($required | index($name)) != null
+                and (.bucket == "fail" or .bucket == "cancel"))
+            ' <<< "$check_runs" > /dev/null; then
+              echo "A required release check failed or was cancelled." >&2
+              exit 1
+            fi
+
+            missing_checks="$(jq -r --argjson required "$required_checks" '
+              [$required[] as $name
+                | select((any(.[]; .name == $name)
+                    and all(.[] | select(.name == $name); .bucket == "pass")) | not)
+                | $name] | .[]?
+            ' <<< "$check_runs")"
+            current_head_sha="$(gh pr view "$PR_URL" --json headRefOid --jq '.headRefOid')"
+            if [ -z "$missing_checks" ] && [ "$release_head_sha" = "$current_head_sha" ]; then
+              ready=true
+              break
+            fi
+
+            echo "Waiting for checks on $current_head_sha: $missing_checks"
+            sleep 10
+          done
+
+          if [ "$ready" != true ]; then
+            echo "Timed out waiting for required release checks." >&2
+            exit 1
+          fi
+          echo "head_sha=$release_head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Merge the Release Through Branch Protection
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          # A repository token also lets the merge emit the normal main push
+          # event for Yo's CI and image publication. No F5 Deploy dispatch is needed.
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_URL: ${{ steps.release.outputs.pr_url }}
+          HEAD_SHA: ${{ steps.checks.outputs.head_sha }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PERSONAL_TOKEN is required to trigger the main push workflow." >&2
+            exit 1
+          fi
+
+          # Never bypass protection or merge a different commit than the one checked.
+          gh pr merge "$PR_URL" --merge --auto --match-head-commit "$HEAD_SHA"
+
+          for attempt in {1..60}; do
+            if [ "$(gh pr view "$PR_URL" --json state --jq '.state')" = "MERGED" ]; then
+              echo "Released $HEAD_SHA through $PR_URL" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "Timed out waiting for GitHub to merge $PR_URL." >&2
+          exit 1
