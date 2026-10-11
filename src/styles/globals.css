@@ -694,6 +694,11 @@ th.site-url {
     padding: 0;
 }
 
+.modal-react-open pre {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
 .modal-react-open .modal-footer {
     align-items: center;
     display: flex;
