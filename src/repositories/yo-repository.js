@@ -82,6 +82,11 @@ export const findAliases = async ({
             'db.query.summary': 'find aliases with pagination, filter, and sorting',
         },
         async () => {
+            const sort = { [sortBy]: sortDir }
+            if (sortBy !== 'linkName') {
+                sort.linkName = 1
+            }
+
             const [items, totalItems] = await Promise.all([
                 Yo.find(searchQuery, {
                     createdAt: 1,
@@ -91,7 +96,7 @@ export const findAliases = async ({
                     urlHits: 1,
                     _id: 0,
                 })
-                    .sort({ [sortBy]: sortDir, linkName: 1 })
+                    .sort(sort)
                     .skip((page - 1) * pageSize)
                     .limit(pageSize)
                     .lean(),

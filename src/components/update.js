@@ -135,7 +135,6 @@ const UpdateModal = () => {
                             <br />
                             <LinkActions
                                 linkName={selectedItem.linkName}
-                                originalUrl={originalUrl}
                                 onVisit={() => scheduleRefresh()}
                             />
                         </div>

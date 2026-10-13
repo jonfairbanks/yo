@@ -26,6 +26,7 @@ const getErrorMessage = (body, response, fallbackMessage) => {
 }
 
 export const useDashboardQuery = ({
+    enabled = true,
     fallbackMessage,
     initialData,
     parse = (json) => json,
@@ -34,7 +35,7 @@ export const useDashboardQuery = ({
     const { refreshVersion } = useDashboard()
     const [data, setData] = useState(initialData)
     const [error, setError] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(enabled)
     const parseRef = useRef(parse)
     const fallbackMessageRef = useRef(fallbackMessage)
 
@@ -44,6 +45,11 @@ export const useDashboardQuery = ({
     }, [fallbackMessage, parse])
 
     useEffect(() => {
+        if (!enabled) {
+            setLoading(false)
+            return
+        }
+
         let isActive = true
         const controller = new AbortController()
 
@@ -91,7 +97,7 @@ export const useDashboardQuery = ({
             isActive = false
             controller.abort()
         }
-    }, [refreshVersion, url])
+    }, [enabled, refreshVersion, url])
 
     return { data, error, loading }
 }
