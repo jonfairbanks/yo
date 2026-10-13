@@ -123,6 +123,8 @@ jobs:
           context: ./src
           platforms: linux/amd64 # TODO: Re-add `linux/arm64`
           file: ./src/Dockerfile
+          build-args: |
+            YO_BUILD_REVISION=${{ github.sha }}
           push: ${{ github.event_name == 'push' }}
           provenance: false
           tags: ${{ steps.image-tags.outputs.value }}

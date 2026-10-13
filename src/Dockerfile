@@ -11,6 +11,8 @@ ENV TERM=xterm
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG YO_BUILD_REVISION
+ENV YO_BUILD_REVISION=$YO_BUILD_REVISION
 RUN npm run build
 
 FROM node:24 AS production

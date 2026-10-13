@@ -1,4 +1,5 @@
 import { SpanStatusCode, trace } from '@opentelemetry/api'
+import { classifyTelemetryError } from './telemetry-error'
 
 const tracer = trace.getTracer('yo-api')
 
@@ -23,12 +24,15 @@ const setAttributes = (span, attributes = {}) => {
 }
 
 export const recordSpanError = (spanOrError, maybeError) => {
-    const span = maybeError ? spanOrError : trace.getActiveSpan()
+    const explicitSpan = maybeError !== undefined
+    const span = explicitSpan ? spanOrError : trace.getActiveSpan()
+    const error = explicitSpan ? maybeError : spanOrError
 
     if (!span) {
         return
     }
 
+    span.setAttribute('error.category', classifyTelemetryError(error))
     span.setStatus({
         code: SpanStatusCode.ERROR,
         message: 'Operation failed',

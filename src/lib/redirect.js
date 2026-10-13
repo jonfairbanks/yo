@@ -192,12 +192,6 @@ const resolveAdmittedRedirect = async ({ redirectParam, req }) =>
         )
 
         span.setAttribute('yo.result', 'redirect')
-        span.setAttribute('http.response.status_code', 302)
-        logger.info({
-            event: 'redirect_success',
-            alias: normalizedLinkName,
-            status: 302,
-        })
         return { status: 302, targetUrl }
     })
 
