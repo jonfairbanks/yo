@@ -31,9 +31,9 @@ jest.mock('./tracing', () => ({
                 ? attributesOrCallback
                 : maybeCallback
 
-        return callback({
-            setAttribute: jest.fn(),
-        })
+        const span = { setAttribute: jest.fn() }
+        withSpan.spans.push(span)
+        return callback(span)
     }),
 }))
 
@@ -49,6 +49,7 @@ describe('resolveRedirect', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
+        withSpan.spans = []
         delete global.__yoIpRedirectBudget
         process.env.SHORT_BASE_URL = 'https://yo.test'
         connectToDatabase.mockResolvedValue({})
@@ -329,11 +330,15 @@ describe('resolveRedirect', () => {
         expect(JSON.stringify(logger.warn.mock.calls)).not.toContain(
             'test-marker'
         )
-        expect(logger.info).toHaveBeenCalledWith({
-            event: 'redirect_success',
-            alias: 'docs',
-            status: 302,
-        })
+        expect(logger.info).not.toHaveBeenCalled()
+        expect(withSpan.spans[0].setAttribute).toHaveBeenCalledWith(
+            'yo.result',
+            'redirect'
+        )
+        expect(withSpan.spans[0].setAttribute).not.toHaveBeenCalledWith(
+            'http.response.status_code',
+            expect.any(Number)
+        )
         expect(
             withSpan.mock.calls.every(
                 ([, attributes]) => !Object.hasOwn(attributes, 'yo.alias')

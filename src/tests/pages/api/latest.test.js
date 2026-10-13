@@ -22,6 +22,7 @@ jest.mock('../../../lib/logger', () => ({
 }))
 
 jest.mock('../../../lib/tracing', () => ({
+    recordSpanError: jest.fn(),
     withSpan: jest.fn(async (_name, attributesOrCallback, maybeCallback) => {
         const callback =
             typeof attributesOrCallback === 'function'

@@ -66,4 +66,8 @@ The app emits:
 
 If you deploy into an environment with OTLP collection, set the exporter-related environment variables described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md).
 
-OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs, and error telemetry uses fixed messages rather than raw exception text or stacks.
+OpenTelemetry admits at most five new traces per second per process, with a burst of ten. Child spans retain their local sampling decision; remote sampling flags cannot force recording. Each exporter queue holds at most 256 spans, with batches of 64 and a five-second export timeout. Public redirect spans omit aliases. Logs omit destination URLs. Error spans and failure logs classify known dependency failures as `db_timeout`, `db_auth`, `dns`, `tls`, or `unknown`, without raw exception text or stacks. Handled 500 responses mark their route span as an error.
+
+Cached Mongo connections return without a connection span; new and pending attempts remain traced. Redirect completion logs record 302 for API redirects, 307 for document redirects, and 200 for Next data responses carrying redirect metadata.
+
+Configure the hosting identity as described in [Configuration](/Users/jonfairbanks/Documents/GitHub/yo/docs/configuration.md). After rollout, verify an exported trace's provider and artifact version, error categories, and response status. Check dashboards and forecasts for fixed version selectors before comparing the new series. Source checks alone do not establish production export or ingestion behavior.
