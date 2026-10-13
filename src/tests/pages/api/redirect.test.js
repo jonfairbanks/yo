@@ -73,13 +73,18 @@ describe('/api/redirect/[...redirect]', () => {
             },
         })
 
+        const redirect = jest.spyOn(res, 'redirect')
         await handler(req, res)
 
+        expect(redirect).toHaveBeenCalledWith(
+            307,
+            'https://example.com/docs?token=private-marker#secret'
+        )
         expect(resolveAlias).toHaveBeenCalledWith({
             redirectParam: ' /Docs/ ',
             req,
         })
-        expect(res._getStatusCode()).toBe(302)
+        expect(res._getStatusCode()).toBe(307)
         expect(res._getRedirectUrl()).toBe(
             'https://example.com/docs?token=private-marker#secret'
         )
@@ -87,11 +92,11 @@ describe('/api/redirect/[...redirect]', () => {
         expect(logger.info).toHaveBeenCalledWith({
             event: 'redirect_success',
             alias: 'docs',
-            status: 302,
+            status: 307,
         })
         expect(withSpan.spans[0].setAttribute).toHaveBeenCalledWith(
             'http.response.status_code',
-            302
+            307
         )
         expect(JSON.stringify(logger.info.mock.calls)).not.toContain(
             'private-marker'
@@ -136,7 +141,7 @@ describe('/api/redirect/[...redirect]', () => {
         })
         const json = jest.spyOn(res, 'json')
         await handler(req, res)
-        expect(res._getStatusCode()).toBe(302)
+        expect(res._getStatusCode()).toBe(307)
         expect(res._getRedirectUrl()).toBe(destination)
         expect(json).not.toHaveBeenCalled()
         expect(recordSpanError).not.toHaveBeenCalled()

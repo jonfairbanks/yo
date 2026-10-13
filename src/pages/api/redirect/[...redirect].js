@@ -25,8 +25,8 @@ export default createApiHandler(
         }
 
         if (result.status === 302) {
-            const response = res.redirect(result.targetUrl)
-            recordRedirectCompletion(span, redirectParam, 302)
+            const response = res.redirect(307, result.targetUrl)
+            recordRedirectCompletion(span, redirectParam, 307)
             return response
         }
 
