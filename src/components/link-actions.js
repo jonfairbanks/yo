@@ -6,22 +6,20 @@ import { getShortPath, getShortUrl } from '../lib/browser-short-url'
 const LinkActions = ({
     compact = false,
     className = '',
-    includeCopyDestination = true,
     includeTest = true,
     linkName,
     onVisit,
-    originalUrl,
 }) => {
-    const [copiedState, setCopiedState] = useState(null)
+    const [copied, setCopied] = useState(false)
 
     const shortPath = getShortPath(linkName)
     const shortUrl = getShortUrl(linkName)
     const buttonClass = compact ? 'btn-small' : 'btn'
 
-    const handleCopied = (value) => {
-        setCopiedState(value)
+    const handleCopied = () => {
+        setCopied(true)
         window.setTimeout(() => {
-            setCopiedState((current) => (current === value ? null : current))
+            setCopied(false)
         }, 1500)
     }
 
@@ -46,19 +44,16 @@ const LinkActions = ({
                     {compact ? 'Visit' : 'Visit Page'}
                 </a>
             ) : null}
-            <CopyToClipboard
-                text={shortUrl}
-                onCopy={() => handleCopied('short')}
-            >
+            <CopyToClipboard text={shortUrl} onCopy={handleCopied}>
                 <button
                     type="button"
                     className={`${buttonClass} grey grey-text text-darken-3 row-action-button`}
                     aria-label={`Copy ${linkName} short link`}
                 >
                     <i className="material-icons row-action-icon">
-                        {copiedState === 'short' ? 'done' : 'content_copy'}
+                        {copied ? 'done' : 'content_copy'}
                     </i>
-                    {copiedState === 'short'
+                    {copied
                         ? compact
                             ? 'Copied'
                             : 'Copied Link'
@@ -67,26 +62,6 @@ const LinkActions = ({
                           : 'Copy Link'}
                 </button>
             </CopyToClipboard>
-            {/* Temporarily hide Copy URL until we revisit that action. */}
-            {false && includeCopyDestination && originalUrl ? (
-                <CopyToClipboard
-                    text={originalUrl}
-                    onCopy={() => handleCopied('destination')}
-                >
-                    <button
-                        type="button"
-                        className={`${buttonClass} grey grey-text text-darken-3 row-action-button`}
-                        aria-label={`Copy ${linkName} destination URL`}
-                    >
-                        <i className="material-icons row-action-icon">
-                            {copiedState === 'destination' ? 'done' : 'link'}
-                        </i>
-                        {copiedState === 'destination'
-                            ? 'Copied URL'
-                            : 'Copy URL'}
-                    </button>
-                </CopyToClipboard>
-            ) : null}
         </div>
     )
 }

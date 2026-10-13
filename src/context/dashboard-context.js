@@ -21,11 +21,13 @@ export const DashboardProvider = ({ children }) => {
     const [selectedItem, setSelectedItem] = useState(null)
     const [tableFilter, setTableFilter] = useState(DEFAULT_TABLE_FILTER)
     const [activeTab, setActiveTabState] = useState('all')
+    const [tabReady, setTabReady] = useState(false)
 
     useEffect(() => {
         const syncTab = () => {
             const tab = window.location.hash.slice(1)
             setActiveTabState(TAB_IDS.includes(tab) ? tab : 'all')
+            setTabReady(true)
         }
 
         syncTab()
@@ -99,6 +101,7 @@ export const DashboardProvider = ({ children }) => {
             setActiveTab,
             selectedItem,
             tableFilter,
+            tabReady,
         }),
         [
             applyTableFilter,
@@ -115,6 +118,7 @@ export const DashboardProvider = ({ children }) => {
             setActiveTab,
             selectedItem,
             tableFilter,
+            tabReady,
         ]
     )
 

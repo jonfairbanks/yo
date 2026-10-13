@@ -43,10 +43,16 @@ const Arrow = () => (
 )
 
 const Stats = () => {
-    const { applyTableFilter, openCreateModal, refreshDashboard } =
-        useDashboard()
+    const {
+        activeTab,
+        applyTableFilter,
+        openCreateModal,
+        refreshDashboard,
+        tabReady,
+    } = useDashboard()
     const queryUrl = useMemo(() => '/api/stats', [])
     const { data, error, loading } = useDashboardQuery({
+        enabled: tabReady && activeTab === 'stats',
         fallbackMessage: 'Could not load statistics.',
         url: queryUrl,
         initialData: null,

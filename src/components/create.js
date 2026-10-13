@@ -138,7 +138,6 @@ const CreateModal = ({ onClose }) => {
                         <br />
                         <LinkActions
                             linkName={newLink}
-                            originalUrl={newUrl}
                             onVisit={() => scheduleRefresh()}
                         />
                     </div>
