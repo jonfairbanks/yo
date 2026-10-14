@@ -57,6 +57,46 @@ describe('resolveRedirect', () => {
     })
 
     it.each([
+        'javascript:alert(1)',
+        'JaVaScRiPt:alert(1)',
+        'java\nscript:alert(1)',
+        'data:text/html,hello',
+        'mailto:user@example.com',
+        'ftp://example.com/file',
+        'file:///tmp/docs',
+        ['https://example.com/docs'],
+        null,
+    ])(
+        'blocks unsupported stored destinations before recording a hit: %p',
+        async (originalUrl) => {
+            Yo.findOne.mockResolvedValue({ _id: 'alias-id', originalUrl })
+            await expect(
+                resolveRedirect({ redirectParam: 'docs', req: buildReq() })
+            ).resolves.toEqual({
+                status: 400,
+                error: 'Invalid redirect destination.',
+            })
+            expect(Yo.updateOne).not.toHaveBeenCalled()
+        }
+    )
+
+    it.each([
+        ['http://example.com/docs', 'http://example.com/docs'],
+        ['HTTPS://example.com/docs', 'https://example.com/docs'],
+        ['/team/docs', 'https://yo.test/team/docs'],
+        ['team/docs', 'https://yo.test/team/docs'],
+    ])(
+        'preserves supported stored destinations and hit counts: %s',
+        async (originalUrl, targetUrl) => {
+            Yo.findOne.mockResolvedValue({ _id: 'alias-id', originalUrl })
+            await expect(
+                resolveRedirect({ redirectParam: 'docs', req: buildReq() })
+            ).resolves.toEqual({ status: 302, targetUrl })
+            expect(Yo.updateOne).toHaveBeenCalledTimes(1)
+        }
+    )
+
+    it.each([
         'https://example.com/API/REDIRECT/guide',
         'https://example.com/api/redirect/guide',
         'https://example.com/files/%FF',

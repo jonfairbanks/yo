@@ -21,6 +21,7 @@ The app reads environment variables from standard Next.js env files such as `.en
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_TELEMETRY_DISABLED` | Disable Next.js telemetry |
+| `NEXT_PUBLIC_DASHBOARD_TIME_ZONE` | Time zone for statistics highlight dates, for example `America/New_York`. Defaults to `America/Los_Angeles`; invalid values use the default. |
 | `OTEL_SERVICE_NAME` | Override the OpenTelemetry service name |
 | `OTEL_RESOURCE_ATTRIBUTES` | Hosting and deployment attributes; `service.version` is read from the build artifact |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP exporter endpoint |
@@ -28,6 +29,10 @@ The app reads environment variables from standard Next.js env files such as `.en
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP exporter protocol |
 | `OTEL_LOG_LEVEL` | OpenTelemetry log verbosity |
 | `YO_BUILD_REVISION` | Optional full Git commit SHA supplied during the build, including Docker builds |
+
+### Dashboard Time Zone
+
+Statistics highlight dates use `en-US`, 12-hour time, and a short time zone label such as `PDT`. Set `NEXT_PUBLIC_DASHBOARD_TIME_ZONE` to a time zone supported by `Intl.DateTimeFormat` to change the zone. Next.js embeds this public variable in the browser bundle at build time, so changing it requires rebuilding and deploying the app. For Docker builds, pass `--build-arg NEXT_PUBLIC_DASHBOARD_TIME_ZONE=America/New_York`; a runtime-only environment value does not change the built dates.
 
 ### Telemetry Identity
 

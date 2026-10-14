@@ -18,7 +18,7 @@ The application supports:
 
 ## Stack
 
-- Next.js 15 Pages Router
+- Next.js 16 Pages Router
 - React 19
 - MongoDB with Mongoose
 - Auth0 via `@auth0/nextjs-auth0`

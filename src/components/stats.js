@@ -15,16 +15,29 @@ const formatMoment = (value) => {
     const date = new Date(value)
     if (Number.isNaN(date.getTime())) return 'No activity yet'
 
-    return new Intl.DateTimeFormat('en-US', {
+    const options = {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
-        timeZone: 'America/Los_Angeles',
+        timeZone:
+            process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE ||
+            'America/Los_Angeles',
         timeZoneName: 'short',
-    }).format(date)
+    }
+    let formatter
+    try {
+        formatter = new Intl.DateTimeFormat('en-US', options)
+    } catch (error) {
+        if (!(error instanceof RangeError)) throw error
+        formatter = new Intl.DateTimeFormat('en-US', {
+            ...options,
+            timeZone: 'America/Los_Angeles',
+        })
+    }
+    return formatter.format(date)
 }
 
 const Arrow = () => (
