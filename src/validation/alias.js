@@ -1,5 +1,3 @@
-import validUrl from 'valid-url'
-
 import { ApiError } from '../lib/api-error'
 import { normalizeLinkName } from '../lib/link-name'
 import { getReservedPathMatch } from '../lib/reserved-routes'
@@ -55,11 +53,17 @@ export const assertAliasIsNotReserved = (linkName) => {
 }
 
 export const assertValidOriginalUrl = (originalUrl) => {
-    if (!validUrl.isUri(originalUrl)) {
-        throw new ApiError(400, 'The provided URL is improperly formatted.', {
-            code: 'invalid_url',
-        })
+    if (typeof originalUrl === 'string' && originalUrl.trim()) {
+        try {
+            const target = new URL(originalUrl)
+            if (['http:', 'https:'].includes(target.protocol)) return
+        } catch {
+            // Keep malformed URLs on the same validation error path.
+        }
     }
+    throw new ApiError(400, 'The provided URL is improperly formatted.', {
+        code: 'invalid_url',
+    })
 }
 
 export const parseListAliasesQuery = (query) => {

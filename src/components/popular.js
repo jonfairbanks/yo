@@ -40,8 +40,8 @@ const PopularYos = () => {
                 </tr>
             </thead>
             <tbody>
-                {data.map((item, index) => (
-                    <tr key={index}>
+                {data.map((item) => (
+                    <tr key={item.linkName}>
                         <td width="15%" data-label="Link">
                             <pre
                                 className="row-link-name"
