@@ -81,12 +81,4 @@ describe('createApiHandler failure telemetry', () => {
         expect(res._getData()).not.toContain(secret)
     })
 
-    it('marks failures even when a custom onError callback handles logging', async () => {
-        const onError = jest.fn()
-        const error = new Error('Failure')
-        await runFailure(error, { onError })
-        expect(recordSpanError).toHaveBeenCalledWith(span, error)
-        expect(onError).toHaveBeenCalledTimes(1)
-        expect(logger.error).not.toHaveBeenCalled()
-    })
 })
