@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useDashboard } from '../context/dashboard-context'
 import { useDashboardQuery } from '../hooks/use-dashboard-query'
 import { getShortPath } from '../lib/browser-short-url'
@@ -6,11 +5,10 @@ import LinkActions from './link-actions'
 
 const PopularYos = () => {
     const { activeTab, scheduleRefresh, tabReady } = useDashboard()
-    const queryUrl = useMemo(() => '/api/popular', [])
     const { data, error, loading } = useDashboardQuery({
         enabled: tabReady && activeTab === 'popular',
         fallbackMessage: 'Failed to load popular data.',
-        url: queryUrl,
+        url: '/api/popular',
         initialData: [],
         parse: (json) => {
             if (!Array.isArray(json)) {

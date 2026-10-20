@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
@@ -63,13 +62,11 @@ const Stats = () => {
         refreshDashboard,
         tabReady,
     } = useDashboard()
-    const queryUrl = useMemo(() => '/api/stats', [])
     const { data, error, loading } = useDashboardQuery({
         enabled: tabReady && activeTab === 'stats',
         fallbackMessage: 'Could not load statistics.',
-        url: queryUrl,
+        url: '/api/stats',
         initialData: null,
-        parse: (json) => json,
     })
 
     const totalYos = data?.totalYos ?? 0
