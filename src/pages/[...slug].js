@@ -1,9 +1,12 @@
 import Image from 'next/image'
 import Head from 'next/head'
+import { getRequestMeta } from 'next/dist/server/request-meta'
 import { useEffect, useState } from 'react'
 
 import { isReservedPath } from '../lib/reserved-routes'
 import { resolveRedirect } from '../lib/redirect'
+import { recordRedirectCompletion } from '../lib/redirect-completion'
+import { recordSpanError, withSpan } from '../lib/tracing'
 
 const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
     const [canRetry, setCanRetry] = useState(false)
@@ -56,53 +59,84 @@ const CatchAllRoute = ({ rateLimited = false, retryAfter = 1 }) => {
     )
 }
 
-export const getServerSideProps = async (context) => {
-    const { slug } = context.params || {}
-    const slugValue = Array.isArray(slug) ? slug.join('/') : slug
+export const getServerSideProps = async (context) =>
+    withSpan(
+        'GET /[...slug]',
+        {
+            'http.route': '/[...slug]',
+            'http.request.method': context.req.method || 'GET',
+        },
+        async (span) => {
+            const { slug } = context.params || {}
+            const slugValue = Array.isArray(slug) ? slug.join('/') : slug
 
-    if (!slugValue) {
-        context.res.statusCode = 404
-        return { props: {} }
-    }
+            if (!slugValue) {
+                span.setAttribute('http.response.status_code', 404)
+                context.res.statusCode = 404
+                return { props: {} }
+            }
 
-    const normalizedSlug = slugValue.toString().toLowerCase()
-    if (
-        normalizedSlug.startsWith('api/redirect') ||
-        isReservedPath(normalizedSlug)
-    ) {
-        context.res.statusCode = 404
-        return { props: {} }
-    }
+            const normalizedSlug = slugValue.toString().toLowerCase()
+            if (
+                normalizedSlug.startsWith('api/redirect') ||
+                isReservedPath(normalizedSlug)
+            ) {
+                span.setAttribute('http.response.status_code', 404)
+                context.res.statusCode = 404
+                return { props: {} }
+            }
 
-    try {
-        const result = await resolveRedirect({
-            redirectParam: slugValue,
-            req: context.req,
-        })
+            try {
+                const result = await resolveRedirect({
+                    redirectParam: slugValue,
+                    req: context.req,
+                })
 
-        if (result.status === 302) {
-            return {
-                redirect: {
-                    destination: result.targetUrl,
-                    permanent: false,
-                },
+                if (result.status === 302) {
+                    // Next marks validated data requests before passing the original request here.
+                    const status = getRequestMeta(context.req, 'isNextDataReq')
+                        ? context.res.statusCode || 200
+                        : 307
+                    recordRedirectCompletion(span, slugValue, status)
+                    return {
+                        redirect: {
+                            destination: result.targetUrl,
+                            permanent: false,
+                        },
+                    }
+                }
+
+                if (result.status === 429) {
+                    context.res.setHeader(
+                        'Retry-After',
+                        String(result.retryAfter)
+                    )
+                    context.res.setHeader('Cache-Control', 'private, no-store')
+                    span.setAttribute('http.response.status_code', 429)
+                    context.res.statusCode = 429
+                    return {
+                        props: {
+                            rateLimited: true,
+                            retryAfter: result.retryAfter,
+                        },
+                    }
+                }
+                const status = result.status || 500
+                span.setAttribute('http.response.status_code', status)
+                if (status >= 500)
+                    recordSpanError(
+                        span,
+                        new Error('Redirect resolution failed')
+                    )
+                context.res.statusCode = status
+                return { props: {} }
+            } catch (error) {
+                recordSpanError(span, error)
+                span.setAttribute('http.response.status_code', 500)
+                context.res.statusCode = 500
+                return { props: {} }
             }
         }
-
-        if (result.status === 429) {
-            context.res.setHeader('Retry-After', String(result.retryAfter))
-            context.res.setHeader('Cache-Control', 'private, no-store')
-            context.res.statusCode = 429
-            return {
-                props: { rateLimited: true, retryAfter: result.retryAfter },
-            }
-        }
-        context.res.statusCode = result.status || 500
-        return { props: {} }
-    } catch {
-        context.res.statusCode = 500
-        return { props: {} }
-    }
-}
+    )
 
 export default CatchAllRoute

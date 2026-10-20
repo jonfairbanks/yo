@@ -15,6 +15,7 @@ jest.mock('../../../services/yo-service', () => ({
 }))
 
 jest.mock('../../../lib/tracing', () => ({
+    recordSpanError: jest.fn(),
     withSpan: jest.fn(async (_name, attributesOrCallback, maybeCallback) => {
         const callback =
             typeof attributesOrCallback === 'function'

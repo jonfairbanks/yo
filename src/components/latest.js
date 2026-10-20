@@ -9,9 +9,10 @@ import LinkActions from './link-actions'
 dayjs.extend(relativeTime)
 
 const LatestYos = () => {
-    const { scheduleRefresh } = useDashboard()
+    const { activeTab, scheduleRefresh, tabReady } = useDashboard()
     const queryUrl = useMemo(() => '/api/latest', [])
     const { data, error, loading } = useDashboardQuery({
+        enabled: tabReady && activeTab === 'latest',
         fallbackMessage: 'Failed to load latest data.',
         url: queryUrl,
         initialData: [],
@@ -43,8 +44,8 @@ const LatestYos = () => {
                 </tr>
             </thead>
             <tbody>
-                {data.map((item, index) => (
-                    <tr key={index}>
+                {data.map((item) => (
+                    <tr key={item.linkName}>
                         <td width="15%" data-label="Link">
                             <pre
                                 className="row-link-name"
@@ -79,7 +80,6 @@ const LatestYos = () => {
                             <LinkActions
                                 compact
                                 linkName={item.linkName}
-                                originalUrl={item.originalUrl}
                                 onVisit={() => scheduleRefresh()}
                             />
                         </td>

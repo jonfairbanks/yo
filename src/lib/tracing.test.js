@@ -83,6 +83,10 @@ describe('tracing helpers', () => {
         recordSpanError(error)
 
         expect(__mock.recordException).not.toHaveBeenCalled()
+        expect(__mock.setAttribute).toHaveBeenCalledWith(
+            'error.category',
+            'unknown'
+        )
         expect(__mock.setStatus).toHaveBeenCalledWith({
             code: 'ERROR',
             message: 'Operation failed',
@@ -98,5 +102,33 @@ describe('tracing helpers', () => {
             traceFlags: 1,
             traceId: 'trace-id',
         })
+    })
+
+    it('records a bounded category without exception details', async () => {
+        const error = Object.assign(
+            new Error('mongodb://user:secret@private'),
+            {
+                cause: Object.assign(new Error('private-dns-name'), {
+                    code: 'ENOTFOUND',
+                }),
+            }
+        )
+        await expect(
+            withSpan('mongo connect', async () => {
+                throw error
+            })
+        ).rejects.toBe(error)
+        expect(__mock.setAttribute).toHaveBeenCalledWith(
+            'error.category',
+            'dns'
+        )
+        expect(__mock.recordException).not.toHaveBeenCalled()
+        expect(JSON.stringify(__mock.setAttribute.mock.calls)).not.toContain(
+            'secret'
+        )
+        expect(JSON.stringify(__mock.setStatus.mock.calls)).not.toContain(
+            'private'
+        )
+        expect(__mock.end).toHaveBeenCalledTimes(1)
     })
 })

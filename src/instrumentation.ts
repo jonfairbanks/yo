@@ -1,10 +1,15 @@
 import { registerOTel } from '@vercel/otel'
 import { createTraceSampler } from './lib/trace-sampler'
+import { createTelemetryResourceDetector } from './lib/telemetry-resource'
 
-export function register() {
+export async function register() {
     process.env.OTEL_BSP_MAX_QUEUE_SIZE = '256'
     process.env.OTEL_BSP_MAX_EXPORT_BATCH_SIZE = '64'
     process.env.OTEL_BSP_EXPORT_TIMEOUT = '5000'
+    const version =
+        process.env.NEXT_RUNTIME === 'nodejs'
+            ? (await import('./lib/build-version')).readBuildVersion()
+            : 'unknown'
     registerOTel({
         traceSampler: createTraceSampler(),
         spanLimits: {
@@ -13,12 +18,6 @@ export function register() {
             eventCountLimit: 8,
         },
         serviceName: process.env.OTEL_SERVICE_NAME || 'yo-url',
-        attributes: {
-            'deployment.environment':
-                process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
-            'service.version':
-                process.env.VERCEL_GIT_COMMIT_SHA ||
-                process.env.npm_package_version,
-        },
+        resourceDetectors: [createTelemetryResourceDetector(version)],
     })
 }

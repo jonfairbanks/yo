@@ -5,9 +5,10 @@ import { getShortPath } from '../lib/browser-short-url'
 import LinkActions from './link-actions'
 
 const PopularYos = () => {
-    const { scheduleRefresh } = useDashboard()
+    const { activeTab, scheduleRefresh, tabReady } = useDashboard()
     const queryUrl = useMemo(() => '/api/popular', [])
     const { data, error, loading } = useDashboardQuery({
+        enabled: tabReady && activeTab === 'popular',
         fallbackMessage: 'Failed to load popular data.',
         url: queryUrl,
         initialData: [],
@@ -39,8 +40,8 @@ const PopularYos = () => {
                 </tr>
             </thead>
             <tbody>
-                {data.map((item, index) => (
-                    <tr key={index}>
+                {data.map((item) => (
+                    <tr key={item.linkName}>
                         <td width="15%" data-label="Link">
                             <pre
                                 className="row-link-name"
@@ -75,7 +76,6 @@ const PopularYos = () => {
                             <LinkActions
                                 compact
                                 linkName={item.linkName}
-                                originalUrl={item.originalUrl}
                                 onVisit={() => scheduleRefresh()}
                             />
                         </td>

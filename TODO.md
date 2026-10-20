@@ -11,7 +11,7 @@
 - [x] Prettier integration
 - [x] Request IP addr logging
 - [ ] Migrate to Typescript?
-- [ ] Update to Next.js v16
+- [x] Update to Next.js v16
 - [x] UI for "Redirecting..."
 - [x] Remove references to `shortLink` value
 - [ ] Mobile UX Improvements

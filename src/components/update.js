@@ -118,7 +118,7 @@ const UpdateModal = () => {
                             >
                                 Updated!
                             </h1>
-                            <p className="success-subtext grey-text">
+                            <div className="success-subtext grey-text">
                                 <span style={{ float: 'left' }}>The</span>
                                 <pre
                                     style={{
@@ -130,19 +130,18 @@ const UpdateModal = () => {
                                     {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been updated</span>
-                            </p>
+                            </div>
                             <pre>{originalUrl}</pre>
                             <br />
                             <LinkActions
                                 linkName={selectedItem.linkName}
-                                originalUrl={originalUrl}
                                 onVisit={() => scheduleRefresh()}
                             />
                         </div>
                     ) : deleted ? (
                         <div>
                             <h1 className="success-text red-text">Deleted!</h1>
-                            <p className="success-subtext grey-text">
+                            <div className="success-subtext grey-text">
                                 <span style={{ float: 'left' }}>The</span>
                                 <pre
                                     style={{
@@ -154,7 +153,7 @@ const UpdateModal = () => {
                                     {selectedItem.linkName}
                                 </pre>
                                 <span>Yo link has been deleted!</span>
-                            </p>
+                            </div>
                         </div>
                     ) : (
                         <div>

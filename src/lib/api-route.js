@@ -1,7 +1,8 @@
 import { auth0 } from './auth0'
 import { isApiError } from './api-error'
 import logger from './logger'
-import { withSpan } from './tracing'
+import { recordSpanError, withSpan } from './tracing'
+import { classifyTelemetryError } from './telemetry-error'
 
 export const jsonError = (res, statusCode, error) =>
     res.status(statusCode).json({ error })
@@ -80,9 +81,19 @@ export const createApiHandler =
                             'http.response.status_code',
                             error.statusCode
                         )
+                        if (error.statusCode >= 500) {
+                            recordSpanError(span, error)
+                            safeLog('error', {
+                                event: 'request_failed',
+                                route,
+                                status: error.statusCode,
+                                category: classifyTelemetryError(error),
+                            })
+                        }
                         return jsonError(res, error.statusCode, error.message)
                     }
 
+                    recordSpanError(span, error)
                     span.setAttribute('yo.result', 'error')
                     span.setAttribute('http.response.status_code', 500)
 
@@ -93,6 +104,7 @@ export const createApiHandler =
                             event: 'request_failed',
                             route,
                             status: 500,
+                            category: classifyTelemetryError(error),
                         })
                     }
 

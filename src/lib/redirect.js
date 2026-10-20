@@ -42,18 +42,23 @@ const configuredOrigin = () => {
 }
 
 const buildTargetUrl = (destination) => {
+    if (typeof destination !== 'string')
+        throw new Error('Invalid redirect destination')
+    let target
     try {
-        return new URL(destination).toString()
+        target = new URL(destination)
     } catch {
         const origin = configuredOrigin()
         const path = destination.startsWith('/')
             ? destination
             : `/${destination}`
-        const target = new URL(path, origin)
+        target = new URL(path, origin)
         if (target.origin !== origin)
             throw new Error('Invalid relative destination')
-        return target.toString()
     }
+    if (!['http:', 'https:'].includes(target.protocol))
+        throw new Error('Invalid redirect destination')
+    return target.toString()
 }
 
 const detectRedirectLoop = ({ targetUrl, redirectParam, req }) => {
@@ -192,12 +197,6 @@ const resolveAdmittedRedirect = async ({ redirectParam, req }) =>
         )
 
         span.setAttribute('yo.result', 'redirect')
-        span.setAttribute('http.response.status_code', 302)
-        logger.info({
-            event: 'redirect_success',
-            alias: normalizedLinkName,
-            status: 302,
-        })
         return { status: 302, targetUrl }
     })
 

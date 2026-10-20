@@ -31,9 +31,9 @@ jest.mock('./tracing', () => ({
                 ? attributesOrCallback
                 : maybeCallback
 
-        return callback({
-            setAttribute: jest.fn(),
-        })
+        const span = { setAttribute: jest.fn() }
+        withSpan.spans.push(span)
+        return callback(span)
     }),
 }))
 
@@ -49,11 +49,52 @@ describe('resolveRedirect', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
+        withSpan.spans = []
         delete global.__yoIpRedirectBudget
         process.env.SHORT_BASE_URL = 'https://yo.test'
         connectToDatabase.mockResolvedValue({})
         Yo.updateOne.mockResolvedValue({ acknowledged: true, matchedCount: 1 })
     })
+
+    it.each([
+        'javascript:alert(1)',
+        'JaVaScRiPt:alert(1)',
+        'java\nscript:alert(1)',
+        'data:text/html,hello',
+        'mailto:user@example.com',
+        'ftp://example.com/file',
+        'file:///tmp/docs',
+        ['https://example.com/docs'],
+        null,
+    ])(
+        'blocks unsupported stored destinations before recording a hit: %p',
+        async (originalUrl) => {
+            Yo.findOne.mockResolvedValue({ _id: 'alias-id', originalUrl })
+            await expect(
+                resolveRedirect({ redirectParam: 'docs', req: buildReq() })
+            ).resolves.toEqual({
+                status: 400,
+                error: 'Invalid redirect destination.',
+            })
+            expect(Yo.updateOne).not.toHaveBeenCalled()
+        }
+    )
+
+    it.each([
+        ['http://example.com/docs', 'http://example.com/docs'],
+        ['HTTPS://example.com/docs', 'https://example.com/docs'],
+        ['/team/docs', 'https://yo.test/team/docs'],
+        ['team/docs', 'https://yo.test/team/docs'],
+    ])(
+        'preserves supported stored destinations and hit counts: %s',
+        async (originalUrl, targetUrl) => {
+            Yo.findOne.mockResolvedValue({ _id: 'alias-id', originalUrl })
+            await expect(
+                resolveRedirect({ redirectParam: 'docs', req: buildReq() })
+            ).resolves.toEqual({ status: 302, targetUrl })
+            expect(Yo.updateOne).toHaveBeenCalledTimes(1)
+        }
+    )
 
     it.each([
         'https://example.com/API/REDIRECT/guide',
@@ -329,11 +370,15 @@ describe('resolveRedirect', () => {
         expect(JSON.stringify(logger.warn.mock.calls)).not.toContain(
             'test-marker'
         )
-        expect(logger.info).toHaveBeenCalledWith({
-            event: 'redirect_success',
-            alias: 'docs',
-            status: 302,
-        })
+        expect(logger.info).not.toHaveBeenCalled()
+        expect(withSpan.spans[0].setAttribute).toHaveBeenCalledWith(
+            'yo.result',
+            'redirect'
+        )
+        expect(withSpan.spans[0].setAttribute).not.toHaveBeenCalledWith(
+            'http.response.status_code',
+            expect.any(Number)
+        )
         expect(
             withSpan.mock.calls.every(
                 ([, attributes]) => !Object.hasOwn(attributes, 'yo.alias')

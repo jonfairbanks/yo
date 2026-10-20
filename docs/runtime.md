@@ -26,6 +26,8 @@ Avoid importing or creating slugs that collide with those paths.
 
 ## Redirect Semantics
 
+New and updated destinations must be absolute HTTP(S) URLs. Redirect resolution also rejects other protocols in existing records before recording a hit. Legacy relative destinations still resolve against the configured application origin.
+
 The app supports both:
 
 - public redirects at `/{slug}`

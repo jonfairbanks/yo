@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import logger from './logger'
+import { classifyTelemetryError } from './telemetry-error'
 import { setSpanAttributes, withSpan } from './tracing'
 
 const globalForMongoose = globalThis
@@ -10,19 +11,18 @@ const mongooseCache = globalForMongoose.__mongooseCache || {
 
 globalForMongoose.__mongooseCache = mongooseCache
 
-export const connectToDatabase = async () =>
-    withSpan(
+export const connectToDatabase = async () => {
+    if (mongooseCache.conn) {
+        return mongooseCache.conn
+    }
+
+    return withSpan(
         'mongo connect',
         {
             'db.system': 'mongodb',
             'db.operation': 'connect',
         },
         async (span) => {
-            if (mongooseCache.conn) {
-                span.setAttribute('db.connection.state', 'cached')
-                return mongooseCache.conn
-            }
-
             try {
                 if (!mongooseCache.promise) {
                     span.setAttribute('db.connection.state', 'new')
@@ -46,14 +46,18 @@ export const connectToDatabase = async () =>
                 })
                 logger.info('New database connection established')
                 return mongooseCache.conn
-            } catch {
+            } catch (error) {
+                const category = classifyTelemetryError(error)
                 mongooseCache.promise = null
                 mongooseCache.conn = null
                 setSpanAttributes({
                     'db.connection.state': 'error',
                 })
-                logger.error({ event: 'database_connection_failed' })
-                throw new Error('Database connection failed')
+                logger.error({ event: 'database_connection_failed', category })
+                const sanitizedError = new Error('Database connection failed')
+                sanitizedError.telemetryCategory = category
+                throw sanitizedError
             }
         }
     )
+}

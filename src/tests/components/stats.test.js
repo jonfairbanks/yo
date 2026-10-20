@@ -42,13 +42,20 @@ const renderStats = () =>
         </DashboardProvider>
     )
 const response = (data, ok = true) => ({ ok, json: async () => data })
+const originalTimeZone = process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE
 
 beforeEach(() => {
+    delete process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE
     window.history.replaceState(null, '', '#stats')
     global.fetch = jest.fn().mockResolvedValue(response(fixture))
 })
 
 afterEach(() => {
+    if (originalTimeZone === undefined) {
+        delete process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE
+    } else {
+        process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE = originalTimeZone
+    }
     jest.restoreAllMocks()
     window.history.replaceState(null, '', '/')
 })
@@ -67,6 +74,20 @@ it('shows aggregate metrics and highlight dates in Pacific time', async () => {
         screen.getByRole('region', { name: 'Link Statistics' })
     ).toHaveAttribute('aria-busy', 'false')
     expect(screen.getAllByRole('button')).toHaveLength(5)
+})
+
+it('uses the configured dashboard time zone with 12-hour dates', async () => {
+    process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE = 'America/New_York'
+    renderStats()
+    expect(await screen.findByText('Sep 29, 2026, 8:00 AM EDT')).toBeVisible()
+    expect(screen.getByText('Sep 29, 2026, 10:00 AM EDT')).toBeVisible()
+})
+
+it('falls back to Pacific time when the configured time zone is invalid', async () => {
+    process.env.NEXT_PUBLIC_DASHBOARD_TIME_ZONE = 'Invalid/Time_Zone'
+    renderStats()
+    expect(await screen.findByText('Sep 29, 2026, 5:00 AM PDT')).toBeVisible()
+    expect(screen.getByText('Sep 29, 2026, 7:00 AM PDT')).toBeVisible()
 })
 
 it.each([

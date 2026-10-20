@@ -114,14 +114,15 @@ const RowActions = ({ item, onEdit, onVisit }) => {
 
 const AllYos = () => {
     const {
+        activeTab,
         applyTableFilter,
         clearTableFilter,
         openCreateModal,
         openUpdateModal,
         scheduleRefresh,
         tableFilter,
+        tabReady,
     } = useDashboard()
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
     const [sorting, setSorting] = useState([])
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
     const [filterQuery, setFilterQuery] = useState('')
@@ -174,15 +175,10 @@ const AllYos = () => {
     ])
 
     const { data, error, loading } = useDashboardQuery({
+        enabled: tabReady && activeTab === 'all',
         fallbackMessage: 'Failed to load data.',
         url: queryUrl,
-        initialData: {
-            items: [],
-            pagination: {
-                totalItems: 0,
-                totalPages: 1,
-            },
-        },
+        initialData: null,
         parse: (json) => {
             if (!json?.items || !json?.pagination) {
                 throw new Error('Failed to load data.')
@@ -193,8 +189,6 @@ const AllYos = () => {
 
     useEffect(() => {
         if (data?.pagination) {
-            setHasLoadedOnce(true)
-
             if (
                 data.pagination.totalPages > 0 &&
                 pagination.pageIndex + 1 > data.pagination.totalPages
@@ -274,7 +268,7 @@ const AllYos = () => {
     )
 
     const table = useTable({
-        data: data.items,
+        data: data?.items || [],
         columns,
         features: TABLE_FEATURES,
         state: { sorting, pagination },
@@ -282,17 +276,18 @@ const AllYos = () => {
         onPaginationChange: setPagination,
         manualSorting: true,
         manualPagination: true,
-        pageCount: data.pagination.totalPages,
+        pageCount: data?.pagination.totalPages || 1,
     })
 
     const rows = table.getRowModel().rows
-    const showInitialLoading = loading && !hasLoadedOnce
+    const hasLoadedOnce = data !== null
+    const showInitialLoading = !hasLoadedOnce && !error
     const hasSearchTerm = Boolean(debouncedFilterQuery.trim())
     const hasActiveQuickFilter = tableFilter?.id && tableFilter.id !== 'all'
     const showEmptyState = !rows.length
     const currentPage = pagination.pageIndex + 1
-    const totalPages = data.pagination.totalPages || 1
-    const totalItems = data.pagination.totalItems || 0
+    const totalPages = data?.pagination.totalPages || 1
+    const totalItems = data?.pagination.totalItems || 0
 
     const emptyStateTitle =
         hasSearchTerm || hasActiveQuickFilter
