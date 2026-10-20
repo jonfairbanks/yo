@@ -762,6 +762,7 @@ th.site-url {
 }
 
 .modal-react-open {
+    background-color: var(--md-sys-color-surface);
     display: block !important;
     margin: 0;
     max-height: calc(100vh - 40px);
@@ -786,6 +787,7 @@ th.site-url {
 }
 
 .modal-react-open .modal-footer {
+    background-color: var(--md-sys-color-surface);
     height: 56px;
     position: static;
     align-items: center;
