@@ -25,7 +25,7 @@ The application supports:
 
 ## Prerequisites
 
-- Node.js 24
+- Node.js 22.21.1 (see `.nvmrc`)
 - npm 10+
 - MongoDB
 - An Auth0 application for dashboard login
