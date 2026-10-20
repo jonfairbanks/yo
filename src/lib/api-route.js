@@ -27,7 +27,6 @@ export const createApiHandler =
             requireAuth = false,
             methodNotAllowedMessage = 'Method not allowed',
             internalErrorMessage,
-            onError = null,
         },
         callback
     ) =>
@@ -97,16 +96,12 @@ export const createApiHandler =
                     span.setAttribute('yo.result', 'error')
                     span.setAttribute('http.response.status_code', 500)
 
-                    if (typeof onError === 'function') {
-                        onError(error, { req, route, session, span })
-                    } else {
-                        safeLog('error', {
-                            event: 'request_failed',
-                            route,
-                            status: 500,
-                            category: classifyTelemetryError(error),
-                        })
-                    }
+                    safeLog('error', {
+                        event: 'request_failed',
+                        route,
+                        status: 500,
+                        category: classifyTelemetryError(error),
+                    })
 
                     return jsonError(
                         res,

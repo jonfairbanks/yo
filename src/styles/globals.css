@@ -81,19 +81,6 @@ body.modal-open {
     color: #f0f0f0;
 }
 
-.create-btn {
-    color: var(--text);
-    padding: 5px 5px;
-    border-radius: 2px;
-    text-decoration: none;
-    transition: var(--background) 0.3s ease;
-}
-
-.create-btn:hover {
-    background-color: #ffffff;
-    color: var(--foreground);
-}
-
 /* Override the tab background color */
 .tabs {
     background-color: var(--background);
@@ -601,19 +588,6 @@ body.modal-open {
     gap: 5px;
 }
 
-.table-actions.compact-actions {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-width: 360px;
-}
-
-.table-actions.compact-actions .btn-small {
-    display: inline-flex;
-    justify-content: center;
-    width: 100%;
-}
-
 .row-actions-grid {
     display: grid;
     gap: 4px;
@@ -658,10 +632,6 @@ th.site-url {
 
 .success-subtext {
     margin-bottom: 10px;
-}
-
-.success-link-btn {
-    margin-right: 10px;
 }
 
 .modal-backdrop {
@@ -720,56 +690,8 @@ th.site-url {
     font-style: italic;
 }
 
-.update-modal-btn {
-}
-
 .delete-modal-btn {
     margin-right: 10px !important;
-}
-
-.modal-backdrop {
-    align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex;
-    inset: 0;
-    justify-content: center;
-    padding: 20px;
-    position: fixed;
-    z-index: 1000;
-}
-
-.modal-react-open {
-    display: block !important;
-    margin: 0;
-    max-height: calc(100vh - 40px);
-    max-width: 720px;
-    overflow-y: auto;
-    position: relative;
-    top: 0 !important;
-    width: min(720px, 100%);
-}
-
-.modal-close-button {
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    float: right;
-    padding: 0;
-}
-
-.url-cell {
-    max-width: 800px; /* TBD */
-    white-space: normal;
-    word-wrap: break-word;
-}
-
-.url-cell a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.url-cell a:hover {
-    text-decoration: underline;
 }
 
 .search-input:focus {
@@ -1016,24 +938,20 @@ th.site-url {
     }
 
     .yo-table-cards .site-url,
-    .yo-table-cards .site-url a,
-    .yo-table-cards .url-cell,
-    .yo-table-cards .url-cell a {
+    .yo-table-cards .site-url a {
         max-width: none;
         overflow-wrap: break-word;
         word-break: break-word;
     }
 
-    .row-actions-grid,
-    .table-actions.compact-actions {
+    .row-actions-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         justify-content: stretch;
         min-width: 0;
         width: 100%;
     }
 
-    .row-actions-grid .btn-small,
-    .table-actions.compact-actions .btn-small {
+    .row-actions-grid .btn-small {
         min-width: 0;
         width: 100%;
     }
@@ -1070,8 +988,7 @@ th.site-url {
         flex: 1 1 0;
     }
 
-    .row-actions-grid,
-    .table-actions.compact-actions {
+    .row-actions-grid {
         grid-template-columns: 1fr;
     }
 

@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useDashboard } from '../context/dashboard-context'
@@ -10,11 +9,10 @@ dayjs.extend(relativeTime)
 
 const LatestYos = () => {
     const { activeTab, scheduleRefresh, tabReady } = useDashboard()
-    const queryUrl = useMemo(() => '/api/latest', [])
     const { data, error, loading } = useDashboardQuery({
         enabled: tabReady && activeTab === 'latest',
         fallbackMessage: 'Failed to load latest data.',
-        url: queryUrl,
+        url: '/api/latest',
         initialData: [],
         parse: (json) => {
             if (!Array.isArray(json)) {
