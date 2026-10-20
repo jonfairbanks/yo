@@ -1,6 +1,92 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import 'tailwindcss/utilities.css';
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+}
+
+/* Materialize 2.4 separates color helpers and removes these legacy defaults. */
+nav {
+    color: var(--md-sys-color-on-primary);
+    background-color: var(--md-sys-color-secondary-container);
+    width: 100%;
+    height: 56px;
+    line-height: 56px;
+    box-shadow:
+        0 2px 2px 0 rgb(0 0 0 / 14%),
+        0 3px 1px -2px rgb(0 0 0 / 12%),
+        0 1px 5px 0 rgb(0 0 0 / 20%);
+}
+
+@media only screen and (min-width: 601px) {
+    nav {
+        height: 64px;
+        line-height: 64px;
+    }
+}
+
+.btn,
+.btn-small,
+.btn-flat {
+    font-size: inherit;
+}
+
+.btn-small,
+.btn-flat {
+    height: var(--btn-height);
+    border: none;
+    border-radius: var(--btn-border-radius);
+    padding: 0 var(--btn-padding);
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    outline: 0;
+    user-select: none;
+    transition: background-color 0.2s ease-out;
+}
+
+.btn-small {
+    height: calc(0.75 * var(--btn-height));
+    font-size: 13px;
+}
+
+.btn-small i {
+    font-size: 1.2rem;
+}
+
+.btn-small:disabled,
+.btn-flat:disabled {
+    color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 76%);
+    background-color: color-mix(
+        in srgb,
+        transparent,
+        var(--md-sys-color-on-surface) 24%
+    );
+    pointer-events: none;
+    box-shadow: none;
+    cursor: default;
+}
+
+.input-field input,
+.input-field textarea {
+    outline: none;
+    color: var(--md-sys-color-on-background);
+    background-color: var(--md-sys-color-surface);
+    width: 100%;
+    font-size: 16px;
+    height: 56px;
+}
+
+.modal-react-open .modal-content {
+    padding: 24px;
+}
 
 :root {
     --background: teal;
@@ -700,6 +786,8 @@ th.site-url {
 }
 
 .modal-react-open .modal-footer {
+    height: 56px;
+    position: static;
     align-items: center;
     display: flex;
     gap: 10px;
