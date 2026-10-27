@@ -25,7 +25,7 @@ The application supports:
 
 ## Prerequisites
 
-- Node.js 24
+- Node.js 22.21.1 (see `.nvmrc`)
 - npm 10+
 - MongoDB
 - An Auth0 application for dashboard login
@@ -56,18 +56,26 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 
 Run these commands from [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/src):
 
-| Command                   | Purpose                      |
-| ------------------------- | ---------------------------- |
-| `npm run dev`             | Start the development server |
-| `npm run build`           | Build the production app     |
-| `npm run start`           | Start the production server  |
-| `npm run lint`            | Run ESLint                   |
-| `npm test -- --runInBand` | Run the Jest suite in-band   |
+| Command                   | Purpose                       |
+| ------------------------- | ----------------------------- |
+| `npm run dev`             | Start the development server  |
+| `npm run build`           | Build the production app      |
+| `npm run start`           | Start the production server   |
+| `npm run lint`            | Run ESLint                    |
+| `npm run typecheck`       | Check types with TypeScript 7 |
+| `npm test -- --runInBand` | Run the Jest suite in-band    |
 
 Recommended pre-deploy checks:
 
 ```sh
 npm run lint
+npm run typecheck
 npm test -- --runInBand
 npm run build
 ```
+
+TypeScript 7 runs the `typecheck` command. The `typescript` dependency uses
+Microsoft's TypeScript 6 compatibility package because Next.js and ESLint still
+use its compiler API. The `@typescript/native` alias supplies TypeScript 7's
+`tsc` executable. The command calls that executable directly to avoid npm binary
+name conflicts with the compatibility package.

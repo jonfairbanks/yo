@@ -1,5 +1,9 @@
 # Deployment
 
+## Runtime
+
+Development, CI, and Docker use Node.js 22.21.1 to match the supported App Runner managed runtime. Source-based App Runner deployments build the application directly; they do not use the Dockerfile. Keep these version pins aligned when updating the runtime. Node major upgrades require confirming managed-runtime support before approval; Dependabot still proposes patch and minor updates.
+
 ## Docker
 
 The Docker assets live under [`src/`](/Users/jonfairbanks/Documents/GitHub/yo/src).

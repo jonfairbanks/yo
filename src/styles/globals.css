@@ -1,6 +1,92 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css';
+@import 'tailwindcss/utilities.css';
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+}
+
+/* Materialize 2.4 separates color helpers and removes these legacy defaults. */
+nav {
+    color: var(--md-sys-color-on-primary);
+    background-color: var(--md-sys-color-secondary-container);
+    width: 100%;
+    height: 56px;
+    line-height: 56px;
+    box-shadow:
+        0 2px 2px 0 rgb(0 0 0 / 14%),
+        0 3px 1px -2px rgb(0 0 0 / 12%),
+        0 1px 5px 0 rgb(0 0 0 / 20%);
+}
+
+@media only screen and (min-width: 601px) {
+    nav {
+        height: 64px;
+        line-height: 64px;
+    }
+}
+
+.btn,
+.btn-small,
+.btn-flat {
+    font-size: inherit;
+}
+
+.btn-small,
+.btn-flat {
+    height: var(--btn-height);
+    border: none;
+    border-radius: var(--btn-border-radius);
+    padding: 0 var(--btn-padding);
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    outline: 0;
+    user-select: none;
+    transition: background-color 0.2s ease-out;
+}
+
+.btn-small {
+    height: calc(0.75 * var(--btn-height));
+    font-size: 13px;
+}
+
+.btn-small i {
+    font-size: 1.2rem;
+}
+
+.btn-small:disabled,
+.btn-flat:disabled {
+    color: color-mix(in srgb, transparent, var(--md-sys-color-on-surface) 76%);
+    background-color: color-mix(
+        in srgb,
+        transparent,
+        var(--md-sys-color-on-surface) 24%
+    );
+    pointer-events: none;
+    box-shadow: none;
+    cursor: default;
+}
+
+.input-field input,
+.input-field textarea {
+    outline: none;
+    color: var(--md-sys-color-on-background);
+    background-color: var(--md-sys-color-surface);
+    width: 100%;
+    font-size: 16px;
+    height: 56px;
+}
+
+.modal-react-open .modal-content {
+    padding: 24px;
+}
 
 :root {
     --background: teal;
@@ -79,19 +165,6 @@ body.modal-open {
 
 .brand a:hover {
     color: #f0f0f0;
-}
-
-.create-btn {
-    color: var(--text);
-    padding: 5px 5px;
-    border-radius: 2px;
-    text-decoration: none;
-    transition: var(--background) 0.3s ease;
-}
-
-.create-btn:hover {
-    background-color: #ffffff;
-    color: var(--foreground);
 }
 
 /* Override the tab background color */
@@ -601,19 +674,6 @@ body.modal-open {
     gap: 5px;
 }
 
-.table-actions.compact-actions {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-width: 360px;
-}
-
-.table-actions.compact-actions .btn-small {
-    display: inline-flex;
-    justify-content: center;
-    width: 100%;
-}
-
 .row-actions-grid {
     display: grid;
     gap: 4px;
@@ -660,10 +720,6 @@ th.site-url {
     margin-bottom: 10px;
 }
 
-.success-link-btn {
-    margin-right: 10px;
-}
-
 .modal-backdrop {
     align-items: center;
     background: rgba(0, 0, 0, 0.55);
@@ -676,6 +732,7 @@ th.site-url {
 }
 
 .modal-react-open {
+    background-color: var(--md-sys-color-surface);
     display: block !important;
     margin: 0;
     max-height: calc(100vh - 40px);
@@ -700,6 +757,9 @@ th.site-url {
 }
 
 .modal-react-open .modal-footer {
+    background-color: var(--md-sys-color-surface);
+    height: 56px;
+    position: static;
     align-items: center;
     display: flex;
     gap: 10px;
@@ -720,56 +780,8 @@ th.site-url {
     font-style: italic;
 }
 
-.update-modal-btn {
-}
-
 .delete-modal-btn {
     margin-right: 10px !important;
-}
-
-.modal-backdrop {
-    align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex;
-    inset: 0;
-    justify-content: center;
-    padding: 20px;
-    position: fixed;
-    z-index: 1000;
-}
-
-.modal-react-open {
-    display: block !important;
-    margin: 0;
-    max-height: calc(100vh - 40px);
-    max-width: 720px;
-    overflow-y: auto;
-    position: relative;
-    top: 0 !important;
-    width: min(720px, 100%);
-}
-
-.modal-close-button {
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    float: right;
-    padding: 0;
-}
-
-.url-cell {
-    max-width: 800px; /* TBD */
-    white-space: normal;
-    word-wrap: break-word;
-}
-
-.url-cell a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.url-cell a:hover {
-    text-decoration: underline;
 }
 
 .search-input:focus {
@@ -1016,24 +1028,20 @@ th.site-url {
     }
 
     .yo-table-cards .site-url,
-    .yo-table-cards .site-url a,
-    .yo-table-cards .url-cell,
-    .yo-table-cards .url-cell a {
+    .yo-table-cards .site-url a {
         max-width: none;
         overflow-wrap: break-word;
         word-break: break-word;
     }
 
-    .row-actions-grid,
-    .table-actions.compact-actions {
+    .row-actions-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         justify-content: stretch;
         min-width: 0;
         width: 100%;
     }
 
-    .row-actions-grid .btn-small,
-    .table-actions.compact-actions .btn-small {
+    .row-actions-grid .btn-small {
         min-width: 0;
         width: 100%;
     }
@@ -1070,8 +1078,7 @@ th.site-url {
         flex: 1 1 0;
     }
 
-    .row-actions-grid,
-    .table-actions.compact-actions {
+    .row-actions-grid {
         grid-template-columns: 1fr;
     }
 

@@ -3,13 +3,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import { getShortPath, getShortUrl } from '../lib/browser-short-url'
 
-const LinkActions = ({
-    compact = false,
-    className = '',
-    includeTest = true,
-    linkName,
-    onVisit,
-}) => {
+const LinkActions = ({ compact = false, linkName, onVisit }) => {
     const [copied, setCopied] = useState(false)
 
     const shortPath = getShortPath(linkName)
@@ -25,25 +19,23 @@ const LinkActions = ({
 
     const compactClassName = compact
         ? 'row-actions-grid compact-row-actions'
-        : `table-actions ${className}`.trim()
+        : 'table-actions'
 
     return (
         <div className={compactClassName}>
-            {includeTest ? (
-                <a
-                    href={shortPath}
-                    className={`${buttonClass} teal white-text row-action-button`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={onVisit}
-                    aria-label={`Test ${linkName} redirect`}
-                >
-                    <i className="material-icons row-action-icon">
-                        open_in_new
-                    </i>
-                    {compact ? 'Visit' : 'Visit Page'}
-                </a>
-            ) : null}
+            <a
+                href={shortPath}
+                className={`${buttonClass} teal white-text row-action-button`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onVisit}
+                aria-label={`Test ${linkName} redirect`}
+            >
+                <i className="material-icons row-action-icon">
+                    open_in_new
+                </i>
+                {compact ? 'Visit' : 'Visit Page'}
+            </a>
             <CopyToClipboard text={shortUrl} onCopy={handleCopied}>
                 <button
                     type="button"
