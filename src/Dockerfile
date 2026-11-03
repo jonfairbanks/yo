@@ -1,11 +1,11 @@
-FROM node:22.21.1 AS deps
+FROM node:22.23.3 AS deps
 
 ENV TERM=xterm
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 
-FROM node:22.21.1 AS build
+FROM node:22.23.3 AS build
 
 ENV TERM=xterm
 WORKDIR /app
@@ -17,7 +17,7 @@ ARG NEXT_PUBLIC_DASHBOARD_TIME_ZONE=America/Los_Angeles
 ENV NEXT_PUBLIC_DASHBOARD_TIME_ZONE=$NEXT_PUBLIC_DASHBOARD_TIME_ZONE
 RUN npm run build
 
-FROM node:22.21.1 AS production
+FROM node:22.23.3 AS production
 
 ENV NODE_ENV=production
 ENV TERM=xterm
