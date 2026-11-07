@@ -49,7 +49,7 @@
     "@types/react-dom": "^19.3.0",
     "@typescript/native": "npm:typescript@~7.0.2",
     "eslint": "^9",
-    "eslint-config-next": "^16.4.2",
+    "eslint-config-next": "^16.4.3",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "node-mocks-http": "^1.18.1",
